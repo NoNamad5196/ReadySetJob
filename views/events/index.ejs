@@ -1,0 +1,132 @@
+<div class="page-header">
+  <h1 class="page-header__title">일정 관리</h1>
+</div>
+
+<section class="card">
+  <h2>새 일정 등록</h2>
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form action="/events" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="form-field">
+      <label for="title">일정 제목 *</label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        class="input"
+        required
+        placeholder="예: 네이버 1차 기술면접, 카카오 코딩테스트"
+        value="<%= values.title %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="type">일정 유형 *</label>
+      <select id="type" name="type" class="input" required>
+        <% for (const t of EVENT_TYPES) { %>
+          <option value="<%= t %>" <%= values.type === t ? 'selected' : '' %>>
+            <%= EVENT_TYPE_LABELS[t] %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="starts_at">일시 *</label>
+      <input
+        type="datetime-local"
+        id="starts_at"
+        name="starts_at"
+        class="input"
+        required
+        value="<%= values.starts_at %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="application_id">연결할 지원 내역 (선택)</label>
+      <select id="application_id" name="application_id" class="input">
+        <option value="">-- 연결 안 함 --</option>
+        <% for (const appItem of applications) { %>
+          <option
+            value="<%= appItem.id %>"
+            <%= Number(values.application_id) === Number(appItem.id) ? 'selected' : '' %>
+          >
+            [<%= appItem.company_name %>] <%= appItem.job_title %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="memo">메모</label>
+      <input
+        type="text"
+        id="memo"
+        name="memo"
+        class="input"
+        value="<%= values.memo %>"
+      >
+    </div>
+
+    <button type="submit" class="btn btn-primary">일정 등록</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>전체 일정 목록 (<%= events.length %>건)</h2>
+  <% if (events.length === 0) { %>
+    <div class="empty-state">
+      <p>등록된 일정이 없습니다.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>일시</th>
+            <th>일정명</th>
+            <th>유형</th>
+            <th>관련 지원</th>
+            <th>메모</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const ev of events) { %>
+            <tr>
+              <td><%= ev.starts_at %></td>
+              <td><strong><%= ev.title %></strong></td>
+              <td><span class="badge"><%= EVENT_TYPE_LABELS[ev.type] || ev.type %></span></td>
+              <td>
+                <% if (ev.application_id) { %>
+                  <a href="/applications/<%= ev.application_id %>">
+                    <%= ev.company_name %> — <%= ev.job_title %>
+                  </a>
+                <% } else { %>
+                  -
+                <% } %>
+              </td>
+              <td><%= ev.memo || '-' %></td>
+              <td>
+                <form
+                  action="/events/<%= ev.id %>?_method=DELETE"
+                  method="POST"
+                  data-confirm="이 일정을 삭제하시겠습니까?"
+                >
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="_method" value="DELETE">
+                  <button type="submit" class="btn btn-danger btn-sm">삭제</button>
+                </form>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

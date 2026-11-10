@@ -1,0 +1,66 @@
+<div class="page-header">
+  <h1 class="page-header__title"><%= isEdit ? '기업 정보 수정' : '새 기업 등록' %></h1>
+  <a href="<%= isEdit ? `/companies/${company.id}` : '/companies' %>" class="btn">목록으로</a>
+</div>
+
+<section class="card">
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form
+    action="<%= isEdit ? `/companies/${company.id}?_method=PUT` : '/companies' %>"
+    method="POST"
+  >
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (isEdit) { %>
+      <input type="hidden" name="_method" value="PUT">
+    <% } %>
+
+    <div class="form-field">
+      <label for="name">기업명 *</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        class="input"
+        required
+        value="<%= company.name %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="industry">산업군</label>
+      <input
+        type="text"
+        id="industry"
+        name="industry"
+        class="input"
+        placeholder="예: IT·플랫폼, 핀테크, 커머스"
+        value="<%= company.industry || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="website">웹사이트 (https://...)</label>
+      <input
+        type="url"
+        id="website"
+        name="website"
+        class="input"
+        placeholder="https://..."
+        value="<%= company.website || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="memo">기업 메모 / 인재상</label>
+      <textarea id="memo" name="memo" class="input"><%= company.memo || '' %></textarea>
+    </div>
+
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary"><%= isEdit ? '수정 저장' : '등록하기' %></button>
+      <a href="<%= isEdit ? `/companies/${company.id}` : '/companies' %>" class="btn">취소</a>
+    </div>
+  </form>
+</section>

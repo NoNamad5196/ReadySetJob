@@ -1,0 +1,53 @@
+<section class="card">
+  <div class="page-header">
+    <h1 class="page-header__title">회원가입</h1>
+  </div>
+  <p class="text-muted">새 계정을 생성하고 채용 지원 현황을 체계적으로 관리하세요.</p>
+
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form action="/signup" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="form-field">
+      <label for="name">이름</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        class="input"
+        required
+        value="<%= values.name %>"
+      >
+    </div>
+    <div class="form-field">
+      <label for="email">이메일</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        class="input"
+        required
+        autocomplete="email"
+        value="<%= values.email %>"
+      >
+    </div>
+    <div class="form-field">
+      <label for="password">비밀번호 (8자 이상)</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="input"
+        minlength="8"
+        required
+        autocomplete="new-password"
+      >
+    </div>
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary">가입하기</button>
+      <a href="/login" class="btn">이미 계정이 있으신가요? 로그인</a>
+    </div>
+  </form>
+</section>

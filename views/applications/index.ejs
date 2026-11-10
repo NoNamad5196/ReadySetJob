@@ -1,0 +1,88 @@
+<div class="page-header">
+  <h1 class="page-header__title">지원 현황</h1>
+  <a href="/applications/new" class="btn btn-primary">지원 내역 등록</a>
+</div>
+
+<form action="/applications" method="GET" class="filter-bar">
+  <input
+    type="search"
+    name="q"
+    class="input"
+    placeholder="기업명, 공고명, 직무, 메모 검색..."
+    value="<%= filters.q %>"
+  >
+  <select name="stage" class="input">
+    <option value="">전체 전형 단계</option>
+    <% for (const st of APPLICATION_STAGES) { %>
+      <option value="<%= st %>" <%= filters.stage === st ? 'selected' : '' %>>
+        <%= STAGE_LABELS[st] %>
+      </option>
+    <% } %>
+  </select>
+  <select name="result" class="input">
+    <option value="">전체 결과</option>
+    <% for (const resKey of APPLICATION_RESULTS) { %>
+      <option value="<%= resKey %>" <%= filters.result === resKey ? 'selected' : '' %>>
+        <%= RESULT_LABELS[resKey] %>
+      </option>
+    <% } %>
+  </select>
+  <button type="submit" class="btn">필터 적용</button>
+  <a href="/applications" class="btn">초기화</a>
+</form>
+
+<section class="card">
+  <% if (!applications || applications.length === 0) { %>
+    <div class="empty-state">
+      <p>조건에 맞는 지원 내역이 없습니다.</p>
+      <a href="/applications/new" class="btn btn-primary">새 지원 내역 등록하기</a>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>기업명</th>
+            <th>채용 공고 / 직무</th>
+            <th>전형 단계</th>
+            <th>결과</th>
+            <th>지원일</th>
+            <th>공고 마감일</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const appItem of applications) { %>
+            <tr>
+              <td>
+                <a href="/companies/<%= appItem.company_id %>"><strong><%= appItem.company_name %></strong></a>
+              </td>
+              <td>
+                <a href="/applications/<%= appItem.id %>"><%= appItem.job_title %></a>
+                <div class="text-muted"><%= appItem.job_position || '-' %></div>
+              </td>
+              <td>
+                <span class="badge badge--stage-<%= appItem.stage %>">
+                  <%= STAGE_LABELS[appItem.stage] || appItem.stage %>
+                </span>
+              </td>
+              <td>
+                <span class="badge badge--result-<%= appItem.result %>">
+                  <%= RESULT_LABELS[appItem.result] || appItem.result %>
+                </span>
+              </td>
+              <td><%= appItem.applied_at || '-' %></td>
+              <td><%= appItem.job_deadline || '상시' %></td>
+              <td>
+                <div class="inline-actions">
+                  <a href="/applications/<%= appItem.id %>" class="btn btn-sm">상세</a>
+                  <a href="/applications/<%= appItem.id %>/edit" class="btn btn-sm">수정</a>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

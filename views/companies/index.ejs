@@ -1,0 +1,67 @@
+<div class="page-header">
+  <h1 class="page-header__title">기업 관리</h1>
+  <a href="/companies/new" class="btn btn-primary">기업 등록</a>
+</div>
+
+<form action="/companies" method="GET" class="filter-bar">
+  <input
+    type="search"
+    name="q"
+    class="input"
+    placeholder="기업명, 산업군, 메모 검색..."
+    value="<%= q %>"
+  >
+  <button type="submit" class="btn">검색</button>
+  <% if (q) { %>
+    <a href="/companies" class="btn">초기화</a>
+  <% } %>
+</form>
+
+<section class="card">
+  <% if (!companies || companies.length === 0) { %>
+    <div class="empty-state">
+      <p>등록된 기업이 없습니다.</p>
+      <a href="/companies/new" class="btn btn-primary">첫 기업 등록하기</a>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>기업명</th>
+            <th>산업군</th>
+            <th>웹사이트</th>
+            <th>채용 공고 수</th>
+            <th>지원 수</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const company of companies) { %>
+            <tr>
+              <td>
+                <a href="/companies/<%= company.id %>"><strong><%= company.name %></strong></a>
+              </td>
+              <td><%= company.industry || '-' %></td>
+              <td>
+                <% if (company.website) { %>
+                  <a href="<%= company.website %>" target="_blank" rel="noopener noreferrer"><%= company.website %></a>
+                <% } else { %>
+                  -
+                <% } %>
+              </td>
+              <td><%= company.job_count %>건</td>
+              <td><%= company.application_count %>건</td>
+              <td>
+                <div class="inline-actions">
+                  <a href="/companies/<%= company.id %>" class="btn btn-sm">상세</a>
+                  <a href="/companies/<%= company.id %>/edit" class="btn btn-sm">수정</a>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

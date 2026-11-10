@@ -1,0 +1,81 @@
+<div class="page-header">
+  <h1 class="page-header__title"><%= company.name %></h1>
+  <div class="inline-actions">
+    <a href="/jobs/new?company_id=<%= company.id %>" class="btn btn-primary">이 기업의 공고 등록</a>
+    <a href="/companies/<%= company.id %>/edit" class="btn">기업 수정</a>
+    <form
+      action="/companies/<%= company.id %>?_method=DELETE"
+      method="POST"
+      data-confirm="이 기업과 연결된 채용 공고 및 지원 내역이 함께 삭제됩니다. 계속하시겠습니까?"
+    >
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="_method" value="DELETE">
+      <button type="submit" class="btn btn-danger">삭제</button>
+    </form>
+  </div>
+</div>
+
+<section class="card">
+  <h2>기업 기본 정보</h2>
+  <p><strong>산업군:</strong> <%= company.industry || '-' %></p>
+  <p>
+    <strong>웹사이트:</strong>
+    <% if (company.website) { %>
+      <a href="<%= company.website %>" target="_blank" rel="noopener noreferrer"><%= company.website %></a>
+    <% } else { %>
+      -
+    <% } %>
+  </p>
+  <p><strong>메모:</strong> <%= company.memo || '등록된 메모가 없습니다.' %></p>
+</section>
+
+<section class="card">
+  <div class="page-header">
+    <h2>등록된 채용 공고 (<%= company.jobPosts.length %>건)</h2>
+    <a href="/jobs/new?company_id=<%= company.id %>" class="btn btn-sm">공고 추가</a>
+  </div>
+
+  <% if (company.jobPosts.length === 0) { %>
+    <div class="empty-state">
+      <p>이 기업에 등록된 채용 공고가 없습니다.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>공고 제목</th>
+            <th>직무</th>
+            <th>채용 형태</th>
+            <th>마감일 (D-Day)</th>
+            <th>지원 상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const job of company.jobPosts) { %>
+            <% const dday = calculateDday(job.deadline); %>
+            <tr>
+              <td><a href="/jobs/<%= job.id %>"><strong><%= job.title %></strong></a></td>
+              <td><%= job.position || '-' %></td>
+              <td><span class="badge"><%= EMPLOYMENT_TYPE_LABELS[job.employment_type] || job.employment_type %></span></td>
+              <td>
+                <%= job.deadline || '상시' %>
+                <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
+              </td>
+              <td>
+                <% if (job.application_id) { %>
+                  <a href="/applications/<%= job.application_id %>">
+                    <span class="badge badge--stage-<%= job.application_stage %>"><%= STAGE_LABELS[job.application_stage] %></span>
+                    <span class="badge badge--result-<%= job.application_result %>"><%= RESULT_LABELS[job.application_result] %></span>
+                  </a>
+                <% } else { %>
+                  <a href="/applications/new?job_post_id=<%= job.id %>" class="btn btn-sm">지원 등록</a>
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

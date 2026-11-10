@@ -1,0 +1,142 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  name TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS companies (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  industry TEXT DEFAULT '',
+  website TEXT DEFAULT '',
+  memo TEXT DEFAULT '',
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  updated_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(user_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS job_posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  position TEXT DEFAULT '',
+  employment_type TEXT NOT NULL DEFAULT 'new_grad' CHECK (employment_type IN ('intern', 'new_grad', 'experienced', 'other')),
+  url TEXT DEFAULT '',
+  deadline DATE,
+  memo TEXT DEFAULT '',
+  is_bookmarked INTEGER NOT NULL DEFAULT 0 CHECK (is_bookmarked IN (0, 1)),
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS applications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  job_post_id INTEGER NOT NULL UNIQUE REFERENCES job_posts(id) ON DELETE CASCADE,
+  stage TEXT NOT NULL DEFAULT 'document' CHECK (stage IN ('document', 'coding_test', 'assignment', 'interview1', 'interview2', 'final')),
+  result TEXT NOT NULL DEFAULT 'in_progress' CHECK (result IN ('in_progress', 'passed', 'failed', 'withdrawn')),
+  board_order INTEGER NOT NULL DEFAULT 0,
+  applied_at DATE,
+  memo TEXT DEFAULT '',
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS stage_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  application_id INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+  from_stage TEXT,
+  to_stage TEXT NOT NULL,
+  from_result TEXT,
+  to_result TEXT NOT NULL,
+  changed_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  application_id INTEGER REFERENCES applications(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'other' CHECK (type IN ('deadline', 'test', 'interview', 'announcement', 'other')),
+  starts_at DATETIME NOT NULL,
+  memo TEXT DEFAULT '',
+  created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS essays (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  application_id INTEGER REFERENCES applications(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS essay_questions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  essay_id INTEGER NOT NULL REFERENCES essays(id) ON DELETE CASCADE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  question TEXT NOT NULL,
+  char_limit INTEGER,
+  answer TEXT NOT NULL DEFAULT '',
+  updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS essay_versions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  essay_id INTEGER NOT NULL REFERENCES essays(id) ON DELETE CASCADE,
+  version_no INTEGER NOT NULL,
+  label TEXT DEFAULT '',
+  snapshot_json TEXT NOT NULL,
+  restored_from_version_id INTEGER REFERENCES essay_versions(id) ON DELETE SET NULL,
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(essay_id, version_no)
+);
+
+CREATE TABLE IF NOT EXISTS materials (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL DEFAULT 'experience' CHECK (kind IN ('experience', 'project', 'award', 'activity', 'other')),
+  title TEXT NOT NULL,
+  period TEXT DEFAULT '',
+  content TEXT DEFAULT '',
+  tags TEXT DEFAULT '',
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS essay_materials (
+  essay_id INTEGER NOT NULL REFERENCES essays(id) ON DELETE CASCADE,
+  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+  PRIMARY KEY (essay_id, material_id)
+);
+
+CREATE TABLE IF NOT EXISTS interview_questions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  application_id INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+  question TEXT NOT NULL,
+  source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('ai', 'manual')),
+  created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);
+CREATE INDEX IF NOT EXISTS idx_job_posts_user_id ON job_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_job_posts_company_id ON job_posts(company_id);
+CREATE INDEX IF NOT EXISTS idx_job_posts_deadline ON job_posts(deadline);
+CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
+CREATE INDEX IF NOT EXISTS idx_applications_user_stage ON applications(user_id, stage);
+CREATE INDEX IF NOT EXISTS idx_stage_logs_application_id ON stage_logs(application_id);
+CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id);
+CREATE INDEX IF NOT EXISTS idx_events_starts_at ON events(starts_at);
+CREATE INDEX IF NOT EXISTS idx_essays_user_id ON essays(user_id);
+CREATE INDEX IF NOT EXISTS idx_essay_questions_essay_id ON essay_questions(essay_id);
+CREATE INDEX IF NOT EXISTS idx_essay_versions_essay_id ON essay_versions(essay_id);
+CREATE INDEX IF NOT EXISTS idx_materials_user_id ON materials(user_id);
+CREATE INDEX IF NOT EXISTS idx_interview_questions_user_id ON interview_questions(user_id);

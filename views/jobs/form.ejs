@@ -1,0 +1,150 @@
+<div class="page-header">
+  <h1 class="page-header__title"><%= isEdit ? '채용 공고 수정' : '채용 공고 등록' %></h1>
+  <a href="<%= isEdit ? `/jobs/${job.id}` : '/jobs' %>" class="btn">목록으로</a>
+</div>
+
+<section class="card">
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form
+    action="<%= isEdit ? `/jobs/${job.id}?_method=PUT` : '/jobs' %>"
+    method="POST"
+  >
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (isEdit) { %>
+      <input type="hidden" name="_method" value="PUT">
+    <% } %>
+
+    <div class="form-field">
+      <label for="company_id">기존 기업 선택</label>
+      <select id="company_id" name="company_id" class="input">
+        <option value="">-- 등록된 기업 선택 --</option>
+        <% for (const c of companies) { %>
+          <option value="<%= c.id %>" <%= Number(job.company_id) === Number(c.id) ? 'selected' : '' %>>
+            <%= c.name %> (<%= c.industry || '산업군 미지정' %>)
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <% if (!isEdit) { %>
+      <div class="card">
+        <h3>또는 새 기업 바로 등록 (트랜잭션 자동 생성)</h3>
+        <div class="form-field">
+          <label for="new_company_name">새 기업명</label>
+          <input
+            type="text"
+            id="new_company_name"
+            name="new_company_name"
+            class="input"
+            placeholder="새 기업명을 입력하면 기업과 공고가 함께 등록됩니다"
+            value="<%= job.new_company_name || '' %>"
+          >
+        </div>
+        <div class="form-field">
+          <label for="new_company_industry">새 기업 산업군 (선택)</label>
+          <input
+            type="text"
+            id="new_company_industry"
+            name="new_company_industry"
+            class="input"
+            value="<%= job.new_company_industry || '' %>"
+          >
+        </div>
+        <div class="form-field">
+          <label for="new_company_website">새 기업 웹사이트 (선택)</label>
+          <input
+            type="url"
+            id="new_company_website"
+            name="new_company_website"
+            class="input"
+            placeholder="https://..."
+            value="<%= job.new_company_website || '' %>"
+          >
+        </div>
+      </div>
+    <% } %>
+
+    <div class="form-field">
+      <label for="title">공고 제목 *</label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        class="input"
+        required
+        value="<%= job.title || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="position">모집 직무 / 포지션</label>
+      <input
+        type="text"
+        id="position"
+        name="position"
+        class="input"
+        placeholder="예: 백엔드 엔지니어, 프론트엔드 개발"
+        value="<%= job.position || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="employment_type">채용 형태 *</label>
+      <select id="employment_type" name="employment_type" class="input" required>
+        <% for (const type of EMPLOYMENT_TYPES) { %>
+          <option value="<%= type %>" <%= job.employment_type === type ? 'selected' : '' %>>
+            <%= EMPLOYMENT_TYPE_LABELS[type] %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="deadline">마감일 (YYYY-MM-DD)</label>
+      <input
+        type="date"
+        id="deadline"
+        name="deadline"
+        class="input"
+        value="<%= job.deadline || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="url">공고 링크 (URL)</label>
+      <input
+        type="url"
+        id="url"
+        name="url"
+        class="input"
+        placeholder="https://..."
+        value="<%= job.url || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="memo">자격 요건 / 우대 사항 메모</label>
+      <textarea id="memo" name="memo" class="input"><%= job.memo || '' %></textarea>
+    </div>
+
+    <div class="form-field">
+      <label>
+        <input
+          type="checkbox"
+          name="is_bookmarked"
+          value="1"
+          <%= job.is_bookmarked ? 'checked' : '' %>
+        >
+        관심 공고 북마크
+      </label>
+    </div>
+
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary"><%= isEdit ? '수정 저장' : '공고 등록' %></button>
+      <a href="<%= isEdit ? `/jobs/${job.id}` : '/jobs' %>" class="btn">취소</a>
+    </div>
+  </form>
+</section>

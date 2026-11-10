@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<%= csrfToken %>">
+  <title><%= typeof title !== 'undefined' && title ? `${title} | ReadySetJob` : 'ReadySetJob' %></title>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <% if (currentUser) { %>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a href="/dashboard" class="sidebar__brand">ReadySetJob</a>
+        <nav aria-label="주 메뉴">
+          <ul class="sidebar__nav">
+            <li>
+              <a href="/dashboard" class="sidebar__link <%= currentPath.startsWith('/dashboard') ? 'sidebar__link--active' : '' %>">
+                <span>대시보드</span>
+              </a>
+            </li>
+            <li>
+              <a href="/applications" class="sidebar__link <%= currentPath.startsWith('/applications') ? 'sidebar__link--active' : '' %>">
+                <span>지원 현황</span>
+              </a>
+            </li>
+            <li>
+              <a href="/jobs" class="sidebar__link <%= currentPath.startsWith('/jobs') ? 'sidebar__link--active' : '' %>">
+                <span>채용 공고</span>
+              </a>
+            </li>
+            <li>
+              <a href="/companies" class="sidebar__link <%= currentPath.startsWith('/companies') ? 'sidebar__link--active' : '' %>">
+                <span>기업</span>
+              </a>
+            </li>
+            <li>
+              <span class="sidebar__link sidebar__link--disabled" aria-disabled="true" title="추후 단계에서 제공 예정">
+                <span>자기소개서</span>
+                <span class="badge">준비중</span>
+              </span>
+            </li>
+            <li>
+              <span class="sidebar__link sidebar__link--disabled" aria-disabled="true" title="추후 단계에서 제공 예정">
+                <span>자료함</span>
+                <span class="badge">준비중</span>
+              </span>
+            </li>
+            <li>
+              <a href="/events" class="sidebar__link <%= currentPath.startsWith('/events') ? 'sidebar__link--active' : '' %>">
+                <span>일정</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar">
+          <div>
+            <strong><%= currentUser.name %></strong>님 (<%= currentUser.email %>)
+          </div>
+          <div class="topbar__actions">
+            <button type="button" id="theme-toggle" class="btn btn-sm">테마 전환</button>
+            <form action="/logout" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="btn btn-sm">로그아웃</button>
+            </form>
+          </div>
+        </header>
+
+        <main class="content">
+          <% if (flash) { %>
+            <div class="flash flash--<%= flash.type === 'error' ? 'error' : 'success' %>" role="status">
+              <%= flash.message %>
+            </div>
+          <% } %>
+          <%- body %>
+        </main>
+      </div>
+    </div>
+  <% } else { %>
+    <main class="auth-container">
+      <% if (flash) { %>
+        <div class="flash flash--<%= flash.type === 'error' ? 'error' : 'success' %>" role="status">
+          <%= flash.message %>
+        </div>
+      <% } %>
+      <%- body %>
+    </main>
+  <% } %>
+  <script src="/js/app.js"></script>
+</body>
+</html>

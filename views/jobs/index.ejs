@@ -1,0 +1,102 @@
+<div class="page-header">
+  <h1 class="page-header__title">채용 공고</h1>
+  <a href="/jobs/new" class="btn btn-primary">채용 공고 등록</a>
+</div>
+
+<form action="/jobs" method="GET" class="filter-bar">
+  <input
+    type="search"
+    name="q"
+    class="input"
+    placeholder="기업명, 공고명, 직무 검색..."
+    value="<%= filters.q %>"
+  >
+  <select name="employment_type" class="input">
+    <option value="">전체 채용 형태</option>
+    <% for (const type of EMPLOYMENT_TYPES) { %>
+      <option value="<%= type %>" <%= filters.employment_type === type ? 'selected' : '' %>>
+        <%= EMPLOYMENT_TYPE_LABELS[type] %>
+      </option>
+    <% } %>
+  </select>
+  <select name="bookmarked" class="input">
+    <option value="">전체 공고</option>
+    <option value="1" <%= filters.bookmarked === '1' ? 'selected' : '' %>>북마크 공고만</option>
+  </select>
+  <select name="sort" class="input">
+    <option value="deadline" <%= filters.sort === 'deadline' ? 'selected' : '' %>>마감일 빠른순</option>
+    <option value="recent" <%= filters.sort === 'recent' ? 'selected' : '' %>>최근 등록순</option>
+  </select>
+  <button type="submit" class="btn">필터 적용</button>
+  <a href="/jobs" class="btn">초기화</a>
+</form>
+
+<section class="card">
+  <% if (!jobs || jobs.length === 0) { %>
+    <div class="empty-state">
+      <p>조건에 맞는 채용 공고가 없습니다.</p>
+      <a href="/jobs/new" class="btn btn-primary">새 채용 공고 등록하기</a>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>북마크</th>
+            <th>기업명</th>
+            <th>공고 제목</th>
+            <th>직무 / 형태</th>
+            <th>마감일 (D-Day)</th>
+            <th>지원 현황</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const job of jobs) { %>
+            <% const dday = calculateDday(job.deadline); %>
+            <tr>
+              <td>
+                <form action="/jobs/<%= job.id %>/bookmark" method="POST">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="redirect_to" value="/jobs">
+                  <button type="submit" class="btn btn-sm" aria-label="북마크 토글">
+                    <%= job.is_bookmarked ? '★ 관심' : '☆ 해제' %>
+                  </button>
+                </form>
+              </td>
+              <td>
+                <a href="/companies/<%= job.company_id %>"><%= job.company_name %></a>
+              </td>
+              <td>
+                <a href="/jobs/<%= job.id %>"><strong><%= job.title %></strong></a>
+              </td>
+              <td>
+                <%= job.position || '-' %>
+                <span class="badge"><%= EMPLOYMENT_TYPE_LABELS[job.employment_type] || job.employment_type %></span>
+              </td>
+              <td>
+                <%= job.deadline || '상시' %>
+                <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
+              </td>
+              <td>
+                <% if (job.application_id) { %>
+                  <a href="/applications/<%= job.application_id %>">
+                    <span class="badge badge--stage-<%= job.application_stage %>"><%= STAGE_LABELS[job.application_stage] %></span>
+                  </a>
+                <% } else { %>
+                  <a href="/applications/new?job_post_id=<%= job.id %>" class="btn btn-sm">지원하기</a>
+                <% } %>
+              </td>
+              <td>
+                <div class="inline-actions">
+                  <a href="/jobs/<%= job.id %>" class="btn btn-sm">상세</a>
+                  <a href="/jobs/<%= job.id %>/edit" class="btn btn-sm">수정</a>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

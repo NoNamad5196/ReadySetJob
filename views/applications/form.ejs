@@ -1,0 +1,85 @@
+<div class="page-header">
+  <h1 class="page-header__title"><%= isEdit ? '지원 내역 수정' : '지원 내역 등록' %></h1>
+  <a href="<%= isEdit ? `/applications/${application.id}` : '/applications' %>" class="btn">목록으로</a>
+</div>
+
+<section class="card">
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form
+    action="<%= isEdit ? `/applications/${application.id}?_method=PUT` : '/applications' %>"
+    method="POST"
+  >
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (isEdit) { %>
+      <input type="hidden" name="_method" value="PUT">
+    <% } %>
+
+    <% if (isEdit) { %>
+      <div class="form-field">
+        <label>지원 공고</label>
+        <p><strong><%= application.company_name %></strong> — <%= application.job_title %></p>
+      </div>
+    <% } else { %>
+      <div class="form-field">
+        <label for="job_post_id">지원할 채용 공고 *</label>
+        <select id="job_post_id" name="job_post_id" class="input" required>
+          <option value="">-- 채용 공고 선택 --</option>
+          <% for (const j of jobs) { %>
+            <option
+              value="<%= j.id %>"
+              <%= Number(application.job_post_id) === Number(j.id) ? 'selected' : '' %>
+            >
+              [<%= j.company_name %>] <%= j.title %> (<%= j.position || '직무 미정' %>)<%= j.application_id ? ' - 이미 지원됨' : '' %>
+            </option>
+          <% } %>
+        </select>
+      </div>
+    <% } %>
+
+    <div class="form-field">
+      <label for="stage">전형 단계 *</label>
+      <select id="stage" name="stage" class="input" required>
+        <% for (const st of APPLICATION_STAGES) { %>
+          <option value="<%= st %>" <%= application.stage === st ? 'selected' : '' %>>
+            <%= STAGE_LABELS[st] %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="result">전형 결과 *</label>
+      <select id="result" name="result" class="input" required>
+        <% for (const resKey of APPLICATION_RESULTS) { %>
+          <option value="<%= resKey %>" <%= application.result === resKey ? 'selected' : '' %>>
+            <%= RESULT_LABELS[resKey] %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="applied_at">지원일 (YYYY-MM-DD)</label>
+      <input
+        type="date"
+        id="applied_at"
+        name="applied_at"
+        class="input"
+        value="<%= application.applied_at || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="memo">지원 메모 / 전형 회고</label>
+      <textarea id="memo" name="memo" class="input"><%= application.memo || '' %></textarea>
+    </div>
+
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary"><%= isEdit ? '수정 저장' : '지원 등록' %></button>
+      <a href="<%= isEdit ? `/applications/${application.id}` : '/applications' %>" class="btn">취소</a>
+    </div>
+  </form>
+</section>

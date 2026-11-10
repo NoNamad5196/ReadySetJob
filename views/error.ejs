@@ -1,0 +1,13 @@
+<section class="card">
+  <div class="page-header">
+    <h1 class="page-header__title">오류 (<%= status %>)</h1>
+  </div>
+  <p><%= message %></p>
+  <div class="inline-actions">
+    <% if (currentUser) { %>
+      <a href="/dashboard" class="btn btn-primary">대시보드로 이동</a>
+    <% } else { %>
+      <a href="/login" class="btn btn-primary">로그인 페이지로 이동</a>
+    <% } %>
+  </div>
+</section>

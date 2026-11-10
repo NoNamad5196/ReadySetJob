@@ -1,0 +1,55 @@
+<% const dday = calculateDday(job.deadline); %>
+<div class="page-header">
+  <div>
+    <p class="text-muted"><a href="/companies/<%= job.company_id %>"><%= job.company_name %></a></p>
+    <h1 class="page-header__title"><%= job.title %></h1>
+  </div>
+  <div class="inline-actions">
+    <form action="/jobs/<%= job.id %>/bookmark" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="redirect_to" value="/jobs/<%= job.id %>">
+      <button type="submit" class="btn">
+        <%= job.is_bookmarked ? '★ 북마크됨' : '☆ 북마크 추가' %>
+      </button>
+    </form>
+    <% if (job.application_id) { %>
+      <a href="/applications/<%= job.application_id %>" class="btn btn-primary">지원 내역 보기</a>
+    <% } else { %>
+      <a href="/applications/new?job_post_id=<%= job.id %>" class="btn btn-primary">이 공고 지원 등록</a>
+    <% } %>
+    <a href="/jobs/<%= job.id %>/edit" class="btn">수정</a>
+    <form
+      action="/jobs/<%= job.id %>?_method=DELETE"
+      method="POST"
+      data-confirm="이 채용 공고를 삭제하시겠습니까?"
+    >
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="_method" value="DELETE">
+      <button type="submit" class="btn btn-danger">삭제</button>
+    </form>
+  </div>
+</div>
+
+<section class="card">
+  <h2>공고 상세 정보</h2>
+  <p><strong>기업명:</strong> <a href="/companies/<%= job.company_id %>"><%= job.company_name %></a></p>
+  <p><strong>모집 직무:</strong> <%= job.position || '-' %></p>
+  <p>
+    <strong>채용 형태:</strong>
+    <span class="badge"><%= EMPLOYMENT_TYPE_LABELS[job.employment_type] || job.employment_type %></span>
+  </p>
+  <p>
+    <strong>마감일:</strong>
+    <%= job.deadline || '상시 채용' %>
+    <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
+  </p>
+  <p>
+    <strong>공고 URL:</strong>
+    <% if (job.url) { %>
+      <a href="<%= job.url %>" target="_blank" rel="noopener noreferrer"><%= job.url %></a>
+    <% } else { %>
+      -
+    <% } %>
+  </p>
+  <p><strong>메모:</strong> <%= job.memo || '등록된 메모가 없습니다.' %></p>
+</section>

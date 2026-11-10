@@ -1,0 +1,41 @@
+<section class="card">
+  <div class="page-header">
+    <h1 class="page-header__title">로그인</h1>
+  </div>
+  <p class="text-muted">ReadySetJob 취업·인턴 지원 현황 및 자기소개서 관리</p>
+
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form action="/login" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="form-field">
+      <label for="email">이메일</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        class="input"
+        required
+        autocomplete="email"
+        value="<%= values.email %>"
+      >
+    </div>
+    <div class="form-field">
+      <label for="password">비밀번호</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="input"
+        required
+        autocomplete="current-password"
+      >
+    </div>
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary">로그인</button>
+      <a href="/signup" class="btn">회원가입</a>
+    </div>
+  </form>
+</section>
