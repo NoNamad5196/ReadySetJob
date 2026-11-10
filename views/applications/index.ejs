@@ -1,6 +1,13 @@
 <div class="page-header">
   <h1 class="page-header__title">지원 현황</h1>
-  <a href="/applications/new" class="btn btn-primary">지원 내역 등록</a>
+  <div class="inline-actions">
+    <div class="view-toggle" role="group" aria-label="보기 방식 전환">
+      <a href="/applications/board" class="btn btn-sm">보드</a>
+      <span class="view-toggle__sep" aria-hidden="true">|</span>
+      <a href="/applications" class="btn btn-sm btn-primary" aria-current="page">목록</a>
+    </div>
+    <a href="/applications/new" class="btn btn-primary">지원 내역 등록</a>
+  </div>
 </div>
 
 <form action="/applications" method="GET" class="filter-bar">

@@ -1,0 +1,84 @@
+<link rel="stylesheet" href="/css/essay.css">
+
+<div class="page-header">
+  <h1 class="page-header__title">새 자기소개서 작성</h1>
+  <a href="/essays" class="btn">목록으로</a>
+</div>
+
+<section class="card">
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form action="/essays" method="POST" id="essay-create-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="form-field">
+      <label for="title">자기소개서 제목 *</label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        class="input"
+        required
+        placeholder="예: 2026 하반기 토스 Frontend 인턴 자기소개서"
+        value="<%= essay.title %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="application_id">연결할 지원 내역 (선택)</label>
+      <select id="application_id" name="application_id" class="input">
+        <option value="">선택 안 함 (자유 자기소개서)</option>
+        <% for (const appItem of applications) { %>
+          <option value="<%= appItem.id %>" <%= Number(essay.application_id) === appItem.id ? 'selected' : '' %>>
+            <%= appItem.company_name %> — <%= appItem.job_title %> (<%= STAGE_LABELS[appItem.stage] || appItem.stage %>)
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="essay-new-questions" id="new-questions-container">
+      <div class="essay-section-header">
+        <h2>문항 구성 (최소 1개 이상)</h2>
+        <button type="button" id="add-new-question-row" class="btn btn-sm">+ 문항 행 추가</button>
+      </div>
+
+      <% essay.questions.forEach((q, idx) => { %>
+        <div class="essay-question-init-row">
+          <div class="form-field essay-question-init-row__text">
+            <label for="question_<%= idx %>">문항 <%= idx + 1 %> 질문 *</label>
+            <input
+              type="text"
+              id="question_<%= idx %>"
+              name="question"
+              class="input"
+              placeholder="예: 지원 동기 및 입사 후 포부를 기술해 주세요."
+              value="<%= q.question %>"
+            >
+          </div>
+          <div class="form-field essay-question-init-row__limit">
+            <label for="char_limit_<%= idx %>">글자수 제한 (선택)</label>
+            <input
+              type="number"
+              id="char_limit_<%= idx %>"
+              name="char_limit"
+              class="input"
+              min="1"
+              max="50000"
+              placeholder="예: 1000"
+              value="<%= q.char_limit ?? '' %>"
+            >
+          </div>
+          <input type="hidden" name="answer" value="<%= q.answer || '' %>">
+        </div>
+      <% }); %>
+    </div>
+
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary">자기소개서 생성 및 편집 시작</button>
+      <a href="/essays" class="btn">취소</a>
+    </div>
+  </form>
+</section>
+<script src="/js/essay-editor.js"></script>

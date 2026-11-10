@@ -44,7 +44,7 @@
 | P0-05 | 한국어 데모 데이터 시드 스크립트 (`네이버`, `카카오`, `토스` 등 6개 기업·공고·지원·일정) | `src/db/seed.js`, `test/ownership-and-seed.test.js` | `검증 완료` |
 | P0-06 | 회원가입·로그인·로그아웃, `bcryptjs` 해싱, 세션 재생성, `requireAuth`, CSRF 미들웨어 | `src/middleware/auth.js`, `src/middleware/csrf.js`, `src/routes/auth.js`, `test/auth-and-security.test.js` | `검증 완료` |
 | P0-07 | 기업 관리 CRUD, 채용 공고 CRUD(인라인 기업 생성·북마크 토글·D-Day), 지원 현황 CRUD(`stage_logs`), 일정 CRUD 및 소유권 격리(`404`) | `src/routes/{companies,jobs,applications,events,dashboard}.js`, `src/services/*.js`, `test/crud-and-ownership.test.js`, `test/ownership-and-seed.test.js` | `검증 완료` |
-| P0-08 | 프로젝트 계획서 (`docs/PROJECT_PROPOSAL.md`, 2026-11-16 제출용) 작성 | `docs/PROJECT_PROPOSAL.md` | `개발 중` |
+| P0-08 | 프로젝트 계획서 (`docs/PROJECT_PROPOSAL.md`, 2026-11-16 제출용) 작성 | `docs/PROJECT_PROPOSAL.md` | `구현 완료` (초안 완성, 사용자 검토 대기) |
 
 ---
 
@@ -59,7 +59,7 @@
 |---|---|---|---|
 | DSN-01 | UI/UX 레퍼런스 조사 및 분석 문서화 | `docs/DESIGN_REFERENCES.md`, `docs/RESEARCH_NOTES.md` | `구현 완료` |
 | DSN-02 | 기본 디자인 토큰(`tokens.css`) 및 라이트/다크 모드 변수 스캐폴딩 | `public/css/tokens.css`, `public/css/app.css`, `public/js/app.js` | `구현 완료` |
-| DSN-03 | 정적 HTML 디자인 시안 A/B/C (대시보드, 칸반 보드, 자소서 에디터) 제작 및 스크린샷 캡처 | `design/mockups/`, `design/mockups/screenshot.mjs` | `개발 중` |
+| DSN-03 | 정적 HTML 디자인 시안 A/B/C (대시보드, 칸반 보드, 자소서 에디터) 제작 및 스크린샷 캡처 | `design/mockups/`, `design/mockups/screenshot.mjs` | `구현 완료` |
 | DSN-04 | 사용자 시안 검토 및 최종 디자인 승인 | 사용자 피드백 대기 | `개발 중` (사용자 승인 대기) |
 | DSN-05 | 승인된 시안 기반 디자인 시스템 문서(`docs/DESIGN_SYSTEM.md`) 확정 | `docs/DESIGN_SYSTEM.md` | `계획` |
 
@@ -76,15 +76,15 @@
 
 | 구분 | 작업 항목 | 관련 파일 / 경로 (계획된 명세) | 상태 |
 |---|---|---|---|
-| P1-01 | 칸반 보드 화면 (`GET /applications/board`) 및 단계별 카드 렌더링 | `src/routes/applications.js`, `views/applications/board.ejs` | `개발 중` |
-| P1-02 | 칸반 카드 단계 이동 및 컬럼 내 `index`(`board_order`) 재정렬 API (`PATCH /api/applications/:id/stage`) | `src/routes/applications.js`, `src/services/applicationsService.js` | `개발 중` |
-| P1-03 | 자기소개서 목록·생성·멀티 문항 에디터 (`GET/POST /essays`, `GET /essays/:id`) | `src/routes/essays.js`, `src/services/essaysService.js`, `views/essays/*` | `개발 중` |
-| P1-04 | 자기소개서 작업 초안 저장 API (`PUT /api/essays/:id/draft`, 버전 미생성) | `src/routes/essays.js`, `src/services/essaysService.js` | `개발 중` |
-| P1-05 | 불변 버전 스냅샷 생성 및 조회 (`POST /essays/:id/versions`, `GET /essays/:id/versions`, `GET /essays/:id/versions/:no`) | `src/routes/essays.js`, `src/services/essaysService.js` | `개발 중` |
-| P1-06 | 서버 사이드 `jsdiff` 단어 단위 버전 비교 (`GET /essays/:id/compare?from&to`) | `src/routes/essays.js`, `views/essays/compare.ejs` | `개발 중` |
-| P1-07 | 이력 보존형 버전 복원 (`POST /essays/:id/versions/:no/restore`) | `src/routes/essays.js`, `src/services/essaysService.js` | `개발 중` |
-| P1-08 | 과거 자기소개서 문항·답변 검색 API (`GET /api/essays/search`) 및 자료함 연결/해제 (`essay_materials`) | `src/routes/essays.js`, `src/services/essaysService.js` | `개발 중` |
-| P1-09 | P1 칸반 및 자기소개서 버전·Diff·복원·소유권 격리 자동화 테스트 | `test/` | `개발 중` |
+| P1-01 | 칸반 보드 화면 (`GET /applications/board`) 및 단계별 카드 렌더링 | `src/routes/applications.js`, `views/applications/board.ejs` | `검증 완료` |
+| P1-02 | 칸반 카드 단계 이동 및 컬럼 내 `index`(`board_order`) 재정렬 API (`PATCH /api/applications/:id/stage`) | `src/routes/applications.js`, `src/services/applicationsService.js` | `검증 완료` |
+| P1-03 | 자기소개서 목록·생성·멀티 문항 에디터 (`GET/POST /essays`, `GET /essays/:id`) | `src/routes/essays.js`, `src/services/essaysService.js`, `views/essays/*` | `검증 완료` |
+| P1-04 | 자기소개서 작업 초안 저장 API (`PUT /api/essays/:id/draft`, 버전 미생성) | `src/routes/essays.js`, `src/services/essaysService.js` | `검증 완료` |
+| P1-05 | 불변 버전 스냅샷 생성 및 조회 (`POST /essays/:id/versions`, `GET /essays/:id/versions`, `GET /essays/:id/versions/:no`) | `src/routes/essays.js`, `src/services/essaysService.js` | `검증 완료` |
+| P1-06 | 서버 사이드 `jsdiff` 단어 단위 버전 비교 (`GET /essays/:id/compare?from&to`) | `src/routes/essays.js`, `views/essays/compare.ejs` | `검증 완료` |
+| P1-07 | 이력 보존형 버전 복원 (`POST /essays/:id/versions/:no/restore`) | `src/routes/essays.js`, `src/services/essaysService.js` | `검증 완료` |
+| P1-08 | 과거 자기소개서 문항·답변 검색 API (`GET /api/essays/search`) 및 자료함 연결/해제 (`essay_materials`) | `src/routes/essays.js`, `src/services/essaysService.js` | `검증 완료` |
+| P1-09 | P1 칸반 및 자기소개서 버전·Diff·복원·소유권 격리 자동화 테스트 | `test/` | `검증 완료` |
 
 ---
 
@@ -142,3 +142,5 @@
 - **핵심 도메인 CRUD 및 소유권 격리 구현 (`검증 완료`)**: 기업(`/companies`), 채용 공고(`/jobs`, 인라인 기업 생성 트랜잭션 및 북마크 토글), 지원 현황(`/applications`, `/api/applications/:id/stage`, `stage_logs` 기록), 일정(`/events`), 대시보드 카운트(`/dashboard`) 구현 및 `test/crud-and-ownership.test.js`, `test/ownership-and-seed.test.js` 통과.
 - **기술 문서 4종 작성 (`구현 완료`)**: 실제 코드 및 P1 계획 명세를 바탕으로 `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DB_DESIGN.md`, `docs/TASKS.md` 작성 완료.
 - **진행 중 작업 (`개발 중`)**: `docs/PROJECT_PROPOSAL.md`(11/16 제출 계획서), 디자인 시안 A/B/C(`design/mockups/`), P1 칸반 보드 및 자기소개서 버전 관리 모듈 병행 개발 진행 중.
+- **P1 완료 (`검증 완료`)**: 칸반 보드(드래그앤드롭·키보드·no-JS 폴백, 트랜잭션 재정렬)와 자기소개서 에디터·불변 버전·jsdiff 비교·이력 보존형 복원 구현. `npm test` 25/25 통과, 헤드리스 브라우저에서 카드 드래그 → PATCH 200 → 새로고침 후 단계 유지, 에디터 Ctrl+S 초안 저장 유지, 콘솔 오류 0건 확인. 화면 스타일은 디자인 승인 전 중립 스타일.
+- **계획서 초안 완성**: `docs/PROJECT_PROPOSAL.md` (20개 장) — 사용자 검토 대기.

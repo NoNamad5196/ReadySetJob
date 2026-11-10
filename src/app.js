@@ -20,6 +20,7 @@ const { createCompaniesRouter } = require('./routes/companies');
 const { createJobsRouter } = require('./routes/jobs');
 const { createApplicationsRouter, createApplicationsApiRouter } = require('./routes/applications');
 const { createEventsRouter } = require('./routes/events');
+const { createEssaysRouter, createEssaysApiRouter } = require('./routes/essays');
 
 const BaseSqliteStore = createSqliteStore(session);
 
@@ -130,6 +131,8 @@ function createApp({ dbPath } = {}) {
   app.use('/applications', createApplicationsRouter(db));
   app.use('/api/applications', createApplicationsApiRouter(db));
   app.use('/events', createEventsRouter(db));
+  app.use('/essays', createEssaysRouter(db));
+  app.use('/api/essays', createEssaysApiRouter(db));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

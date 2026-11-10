@@ -1,0 +1,269 @@
+<link rel="stylesheet" href="/css/essay.css">
+
+<% if (error) { %>
+  <div class="flash flash--error" role="alert"><%= error %></div>
+<% } %>
+
+<form id="essay-draft-form" action="/essays/<%= essay.id %>?_method=PUT" method="POST" data-essay-id="<%= essay.id %>">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <input type="hidden" name="_method" value="PUT">
+</form>
+
+<div class="essay-topbar card">
+  <div class="essay-topbar__info">
+    <div class="essay-topbar__title-row">
+      <input
+        type="text"
+        name="title"
+        form="essay-draft-form"
+        class="input essay-topbar__title-input"
+        value="<%= essay.title %>"
+        aria-label="자기소개서 제목"
+        required
+      >
+      <select name="application_id" form="essay-draft-form" class="input essay-topbar__app-select" aria-label="연결된 지원 내역">
+        <option value="">지원 내역 미연결</option>
+        <% for (const appItem of applications) { %>
+          <option value="<%= appItem.id %>" <%= Number(essay.application_id) === appItem.id ? 'selected' : '' %>>
+            <%= appItem.company_name %> — <%= appItem.job_title %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+    <div class="essay-topbar__meta">
+      <span id="draft-save-status" class="badge badge--result-passed" data-saved-at="<%= essay.updated_at %>">
+        저장됨 · <%= essay.updated_at %>
+      </span>
+      <% if (essay.latest_version_no) { %>
+        <span class="badge badge--result-in_progress">최신 스냅샷 v<%= essay.latest_version_no %></span>
+      <% } else { %>
+        <span class="badge">생성된 버전 없음</span>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="essay-topbar__actions">
+    <button type="submit" form="essay-draft-form" id="btn-save-draft" class="btn btn-primary">저장</button>
+
+    <form action="/essays/<%= essay.id %>/versions" method="POST" class="essay-version-create-form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input
+        type="text"
+        name="label"
+        class="input input-sm"
+        placeholder="버전 메모 (예: 1차 첨삭 완료)"
+        aria-label="버전 메모"
+      >
+      <button type="submit" class="btn">버전 만들기</button>
+    </form>
+
+    <a href="/essays/<%= essay.id %>/versions" class="btn">버전 기록 (<%= essay.versions.length %>)</a>
+    <% if (essay.versions.length > 0) { %>
+      <a href="/essays/<%= essay.id %>/compare?from=<%= essay.versions[essay.versions.length - 1].version_no %>&to=current" class="btn">버전 비교</a>
+    <% } %>
+    <a href="/essays" class="btn">목록</a>
+  </div>
+</div>
+
+<div class="essay-workspace">
+  <aside class="essay-ref-panel card" aria-label="참고 패널">
+    <div class="essay-tabs" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="essay-tab <%= activeTab !== 'materials' ? 'essay-tab--active' : '' %>"
+        data-tab-target="panel-past"
+        aria-selected="<%= activeTab !== 'materials' ? 'true' : 'false' %>"
+      >
+        과거 자기소개서
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="essay-tab <%= activeTab === 'materials' ? 'essay-tab--active' : '' %>"
+        data-tab-target="panel-materials"
+        aria-selected="<%= activeTab === 'materials' ? 'true' : 'false' %>"
+      >
+        경험 자료 (<%= essay.linkedMaterials.length %>)
+      </button>
+    </div>
+
+    <div id="panel-past" class="essay-tab-panel <%= activeTab === 'materials' ? 'essay-tab-panel--hidden' : '' %>" role="tabpanel">
+      <form action="/essays/<%= essay.id %>" method="GET" id="past-essay-search-form" class="essay-ref-search">
+        <input type="hidden" name="tab" value="past">
+        <input
+          type="search"
+          id="past-essay-search-input"
+          name="ref_q"
+          class="input"
+          placeholder="다른 자기소개서 문항/답변 검색..."
+          value="<%= refQ %>"
+        >
+        <button type="submit" class="btn btn-sm">검색</button>
+      </form>
+
+      <div id="past-essay-results" class="essay-ref-list">
+        <% if (!pastQuestions || pastQuestions.length === 0) { %>
+          <div class="empty-state">
+            <p>검색된 다른 자기소개서 문항이 없습니다.</p>
+          </div>
+        <% } else { %>
+          <% for (const pq of pastQuestions) { %>
+            <article class="essay-ref-item">
+              <div class="essay-ref-item__meta">
+                <strong><%= pq.essay_title %></strong>
+                <% if (pq.company_name) { %>
+                  <span class="badge"><%= pq.company_name %></span>
+                <% } %>
+              </div>
+              <div class="essay-ref-item__question">Q<%= pq.sort_order %>. <%= pq.question %></div>
+              <p class="essay-ref-item__snippet"><%= pq.answer || '(답변 없음)' %></p>
+              <a href="/essays/<%= pq.essay_id %>" class="btn btn-sm">원문 보기</a>
+            </article>
+          <% } %>
+        <% } %>
+      </div>
+    </div>
+
+    <div id="panel-materials" class="essay-tab-panel <%= activeTab !== 'materials' ? 'essay-tab-panel--hidden' : '' %>" role="tabpanel">
+      <% if (!essay.allMaterials || essay.allMaterials.length === 0) { %>
+        <div class="empty-state">
+          <p>등록된 경험 자료가 없습니다.</p>
+        </div>
+      <% } else { %>
+        <div class="essay-ref-list">
+          <% for (const mat of essay.allMaterials) { %>
+            <article class="essay-ref-item <%= mat.is_linked ? 'essay-ref-item--linked' : '' %>">
+              <div class="essay-ref-item__meta">
+                <strong><%= mat.title %></strong>
+                <span class="badge"><%= mat.kind %></span>
+              </div>
+              <% if (mat.period) { %>
+                <div class="text-muted"><%= mat.period %></div>
+              <% } %>
+              <p class="essay-ref-item__snippet"><%= mat.content %></p>
+              <% if (mat.tags) { %>
+                <div class="text-muted">태그: <%= mat.tags %></div>
+              <% } %>
+              <div class="inline-actions">
+                <% if (mat.is_linked) { %>
+                  <span class="badge badge--result-passed">연결됨</span>
+                  <form action="/essays/<%= essay.id %>/materials/<%= mat.id %>?_method=DELETE" method="POST">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" class="btn btn-sm">연결 해제</button>
+                  </form>
+                <% } else { %>
+                  <form action="/essays/<%= essay.id %>/materials/<%= mat.id %>" method="POST">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-sm btn-primary">이 자소서에 연결</button>
+                  </form>
+                <% } %>
+              </div>
+            </article>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+  </aside>
+
+  <div class="essay-main-editor">
+    <% essay.questions.forEach((q, idx) => { %>
+      <% const withSpace = (q.answer || '').length; %>
+      <% const withoutSpace = (q.answer || '').replace(/\s/g, '').length; %>
+      <% const isOverLimit = q.char_limit && withSpace > q.char_limit; %>
+
+      <section class="card essay-question-card" data-question-card="<%= q.id %>">
+        <div class="essay-question-card__header">
+          <h2 class="essay-question-card__title">
+            <span class="badge badge--stage-document">문항 <%= idx + 1 %></span>
+            <span><%= q.question %></span>
+          </h2>
+          <div class="inline-actions">
+            <form action="/essays/<%= essay.id %>/questions/<%= q.id %>/move" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="dir" value="up">
+              <button type="submit" class="btn btn-sm" <%= idx === 0 ? 'disabled' : '' %> title="위로 이동">↑</button>
+            </form>
+            <form action="/essays/<%= essay.id %>/questions/<%= q.id %>/move" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="dir" value="down">
+              <button type="submit" class="btn btn-sm" <%= idx === essay.questions.length - 1 ? 'disabled' : '' %> title="아래로 이동">↓</button>
+            </form>
+            <% if (essay.questions.length > 1) { %>
+              <form action="/essays/<%= essay.id %>/questions/<%= q.id %>?_method=DELETE" method="POST" data-confirm="이 문항을 삭제하시겠습니까?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="btn btn-sm btn-danger">문항 삭제</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+
+        <details class="essay-question-edit-details">
+          <summary class="text-muted">문항 질문 / 글자수 제한 수정</summary>
+          <form action="/essays/<%= essay.id %>/questions/<%= q.id %>?_method=PUT" method="POST" class="essay-question-edit-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="_method" value="PUT">
+            <input type="text" name="question" class="input" value="<%= q.question %>" required aria-label="문항 질문">
+            <input type="number" name="char_limit" class="input essay-limit-input" min="1" max="50000" placeholder="제한 글자수" value="<%= q.char_limit ?? '' %>" aria-label="글자수 제한">
+            <button type="submit" class="btn btn-sm">문항 변경 적용</button>
+          </form>
+        </details>
+
+        <input type="hidden" name="question_id" value="<%= q.id %>" form="essay-draft-form">
+        <textarea
+          name="answer"
+          form="essay-draft-form"
+          class="input essay-answer-textarea <%= isOverLimit ? 'essay-answer-textarea--over' : '' %>"
+          data-question-id="<%= q.id %>"
+          data-char-limit="<%= q.char_limit ?? '' %>"
+          rows="9"
+          placeholder="여기에 답변을 작성하세요..."
+        ><%= q.answer %></textarea>
+
+        <div class="essay-counter-bar">
+          <span
+            class="essay-char-counter <%= isOverLimit ? 'essay-char-counter--over' : '' %>"
+            data-counter-for="<%= q.id %>"
+          >
+            <% if (q.char_limit) { %>
+              <%= withSpace %> / <%= q.char_limit %>자 (공백 포함) · <%= withoutSpace %>자 (공백 제외)
+            <% } else { %>
+              <%= withSpace %>자 (공백 포함) · <%= withoutSpace %>자 (공백 제외)
+            <% } %>
+          </span>
+          <span
+            class="badge badge--result-failed essay-overlimit-warning <%= isOverLimit ? '' : 'essay-overlimit-warning--hidden' %>"
+            data-warning-for="<%= q.id %>"
+          >
+            글자수 제한 초과!
+          </span>
+        </div>
+      </section>
+    <% }); %>
+
+    <section class="card">
+      <h3 class="essay-subcard-title">새 문항 추가</h3>
+      <form action="/essays/<%= essay.id %>/questions" method="POST" class="essay-question-edit-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="text" name="question" class="input" placeholder="추가할 문항 질문을 입력하세요..." required aria-label="새 문항 질문">
+        <input type="number" name="char_limit" class="input essay-limit-input" min="1" max="50000" placeholder="글자수 제한 (예: 1000)" aria-label="새 문항 글자수 제한">
+        <button type="submit" class="btn btn-primary">+ 문항 추가</button>
+      </form>
+    </section>
+
+    <section class="card essay-danger-zone">
+      <div class="inline-actions">
+        <span class="text-muted">자기소개서 전체 삭제 (모든 문항 및 버전 스냅샷이 함께 삭제됩니다)</span>
+        <form action="/essays/<%= essay.id %>?_method=DELETE" method="POST" data-confirm="정말 이 자기소개서를 삭제하시겠습니까?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="_method" value="DELETE">
+          <button type="submit" class="btn btn-sm btn-danger">자기소개서 삭제</button>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="/js/essay-editor.js"></script>

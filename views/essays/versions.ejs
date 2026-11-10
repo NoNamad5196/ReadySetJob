@@ -1,0 +1,79 @@
+<link rel="stylesheet" href="/css/essay.css">
+
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title"><%= essay.title %> — 버전 기록</h1>
+    <p class="text-muted">생성된 모든 버전 스냅샷은 불변(Immutable)으로 영구 보존되며, 복원 시에도 새 버전이 추가됩니다.</p>
+  </div>
+  <div class="inline-actions">
+    <a href="/essays/<%= essay.id %>" class="btn btn-primary">에디터로 돌아가기</a>
+    <% if (versions && versions.length > 0) { %>
+      <a href="/essays/<%= essay.id %>/compare?from=<%= versions[versions.length - 1].version_no %>&to=current" class="btn">버전 비교</a>
+    <% } %>
+  </div>
+</div>
+
+<section class="card">
+  <form action="/essays/<%= essay.id %>/versions" method="POST" class="filter-bar">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="redirect_to" value="/essays/<%= essay.id %>/versions">
+    <input type="text" name="label" class="input" placeholder="현재 초안으로 새 버전 만들기 (라벨 입력)...">
+    <button type="submit" class="btn btn-primary">+ 현재 초안 스냅샷 저장</button>
+  </form>
+
+  <% if (!versions || versions.length === 0) { %>
+    <div class="empty-state">
+      <p>아직 저장된 버전 스냅샷이 없습니다. 상단 버튼으로 첫 버전을 생성해 보세요.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>버전 번호</th>
+            <th>버전 라벨 / 메모</th>
+            <th>복원 계보</th>
+            <th>문항 수</th>
+            <th>생성 시각</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const v of versions) { %>
+            <tr>
+              <td>
+                <a href="/essays/<%= essay.id %>/versions/<%= v.version_no %>">
+                  <span class="badge badge--result-in_progress">v<%= v.version_no %></span>
+                </a>
+              </td>
+              <td>
+                <a href="/essays/<%= essay.id %>/versions/<%= v.version_no %>">
+                  <strong><%= v.label || '버전 스냅샷' %></strong>
+                </a>
+              </td>
+              <td>
+                <% if (v.restored_from_version_no) { %>
+                  <span class="badge badge--stage-coding_test">v<%= v.restored_from_version_no %>에서 복원</span>
+                <% } else { %>
+                  <span class="text-muted">-</span>
+                <% } %>
+              </td>
+              <td><%= v.snapshot.length %>문항</td>
+              <td><%= v.created_at %></td>
+              <td>
+                <div class="inline-actions">
+                  <a href="/essays/<%= essay.id %>/versions/<%= v.version_no %>" class="btn btn-sm">스냅샷 보기</a>
+                  <a href="/essays/<%= essay.id %>/compare?from=<%= v.version_no %>&to=current" class="btn btn-sm">현재 초안과 비교</a>
+                  <form action="/essays/<%= essay.id %>/versions/<%= v.version_no %>/restore" method="POST" data-confirm="v<%= v.version_no %> 버전으로 복원하시겠습니까? (현재 미저장 변경분은 자동 백업됩니다)">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-sm btn-primary">이 버전으로 복원</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

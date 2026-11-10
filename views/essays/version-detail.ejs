@@ -1,0 +1,48 @@
+<link rel="stylesheet" href="/css/essay.css">
+
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title">
+      <%= essay.title %> — <span class="badge badge--result-in_progress">v<%= version.version_no %></span> 스냅샷
+    </h1>
+    <p class="text-muted">
+      라벨: <strong><%= version.label || '버전 스냅샷' %></strong> · 생성 시각: <%= version.created_at %>
+      <% if (version.restored_from_version_no) { %>
+        · <span class="badge badge--stage-coding_test">v<%= version.restored_from_version_no %>에서 복원</span>
+      <% } %>
+    </p>
+  </div>
+  <div class="inline-actions">
+    <form action="/essays/<%= essay.id %>/versions/<%= version.version_no %>/restore" method="POST" data-confirm="v<%= version.version_no %> 버전으로 복원하시겠습니까?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-primary">이 버전으로 복원</button>
+    </form>
+    <a href="/essays/<%= essay.id %>/compare?from=<%= version.version_no %>&to=current" class="btn">현재 초안과 비교</a>
+    <% if (version.version_no > 1) { %>
+      <a href="/essays/<%= essay.id %>/compare?from=<%= version.version_no - 1 %>&to=<%= version.version_no %>" class="btn">이전 버전(v<%= version.version_no - 1 %>)과 비교</a>
+    <% } %>
+    <a href="/essays/<%= essay.id %>/versions" class="btn">버전 목록</a>
+    <a href="/essays/<%= essay.id %>" class="btn">에디터로</a>
+  </div>
+</div>
+
+<% version.snapshot.forEach((item, idx) => { %>
+  <% const withSpace = (item.answer || '').length; %>
+  <% const withoutSpace = (item.answer || '').replace(/\s/g, '').length; %>
+  <section class="card">
+    <div class="essay-question-card__header">
+      <h2 class="essay-question-card__title">
+        <span class="badge badge--stage-document">문항 <%= idx + 1 %></span>
+        <span><%= item.question %></span>
+      </h2>
+      <span class="text-muted">
+        <% if (item.char_limit) { %>
+          <%= withSpace %> / <%= item.char_limit %>자 (공백 포함) · <%= withoutSpace %>자 (공백 제외)
+        <% } else { %>
+          <%= withSpace %>자 (공백 포함) · <%= withoutSpace %>자 (공백 제외)
+        <% } %>
+      </span>
+    </div>
+    <div class="essay-snapshot-answer"><%= item.answer || '(내용 없음)' %></div>
+  </section>
+<% }); %>

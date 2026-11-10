@@ -1,0 +1,66 @@
+<link rel="stylesheet" href="/css/essay.css">
+
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title"><%= essay.title %> — 버전 비교</h1>
+    <p class="text-muted">
+      기준(From): <strong><%= comparison.fromLabel %></strong> → 비교 대상(To): <strong><%= comparison.toLabel %></strong>
+    </p>
+  </div>
+  <div class="inline-actions">
+    <a href="/essays/<%= essay.id %>" class="btn btn-primary">에디터로 돌아가기</a>
+    <a href="/essays/<%= essay.id %>/versions" class="btn">버전 기록</a>
+  </div>
+</div>
+
+<section class="card">
+  <form action="/essays/<%= essay.id %>/compare" method="GET" class="filter-bar">
+    <label for="from-select">기준 버전 (From)</label>
+    <select id="from-select" name="from" class="input">
+      <% for (const v of versions) { %>
+        <option value="<%= v.version_no %>" <%= String(comparison.fromParam) === String(v.version_no) ? 'selected' : '' %>>
+          v<%= v.version_no %> — <%= v.label || '버전 스냅샷' %> (<%= v.created_at %>)
+        </option>
+      <% } %>
+    </select>
+
+    <label for="to-select">비교 대상 (To)</label>
+    <select id="to-select" name="to" class="input">
+      <option value="current" <%= comparison.toParam === 'current' ? 'selected' : '' %>>현재 작업 초안 (current)</option>
+      <% for (const v of versions) { %>
+        <option value="<%= v.version_no %>" <%= String(comparison.toParam) === String(v.version_no) ? 'selected' : '' %>>
+          v<%= v.version_no %> — <%= v.label || '버전 스냅샷' %> (<%= v.created_at %>)
+        </option>
+      <% } %>
+    </select>
+
+    <button type="submit" class="btn btn-primary">비교하기</button>
+  </form>
+
+  <div class="essay-diff-legend">
+    <span class="badge badge--result-failed">삭제된 단어 (&lt;del&gt;)</span>
+    <span class="badge badge--result-passed">추가된 단어 (&lt;ins&gt;)</span>
+  </div>
+</section>
+
+<% for (const item of comparison.diffs) { %>
+  <section class="card">
+    <div class="essay-question-card__header">
+      <h2 class="essay-question-card__title">
+        <span class="badge badge--stage-document">문항 <%= item.index %></span>
+        <span><%= item.question %></span>
+        <% if (item.status === 'added') { %>
+          <span class="badge badge--result-passed">추가된 문항</span>
+        <% } else if (item.status === 'removed') { %>
+          <span class="badge badge--result-failed">삭제된 문항</span>
+        <% } %>
+      </h2>
+      <span class="text-muted">
+        글자수 변화: <%= item.fromLen %>자 → <%= item.toLen %>자
+        <% if (item.char_limit) { %> (제한 <%= item.char_limit %>자)<% } %>
+      </span>
+    </div>
+
+    <div class="essay-diff-box"><% for (const part of item.parts) { %><% if (part.added) { %><ins class="diff-ins"><%= part.value %></ins><% } else if (part.removed) { %><del class="diff-del"><%= part.value %></del><% } else { %><span><%= part.value %></span><% } %><% } %></div>
+  </section>
+<% } %>

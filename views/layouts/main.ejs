@@ -7,6 +7,7 @@
   <title><%= typeof title !== 'undefined' && title ? `${title} | ReadySetJob` : 'ReadySetJob' %></title>
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/board.css">
 </head>
 <body>
   <% if (currentUser) { %>
@@ -21,7 +22,7 @@
               </a>
             </li>
             <li>
-              <a href="/applications" class="sidebar__link <%= currentPath.startsWith('/applications') ? 'sidebar__link--active' : '' %>">
+              <a href="/applications/board" class="sidebar__link <%= currentPath.startsWith('/applications') ? 'sidebar__link--active' : '' %>">
                 <span>지원 현황</span>
               </a>
             </li>
@@ -36,10 +37,9 @@
               </a>
             </li>
             <li>
-              <span class="sidebar__link sidebar__link--disabled" aria-disabled="true" title="추후 단계에서 제공 예정">
+              <a href="/essays" class="sidebar__link <%= currentPath.startsWith('/essays') ? 'sidebar__link--active' : '' %>">
                 <span>자기소개서</span>
-                <span class="badge">준비중</span>
-              </span>
+              </a>
             </li>
             <li>
               <span class="sidebar__link sidebar__link--disabled" aria-disabled="true" title="추후 단계에서 제공 예정">

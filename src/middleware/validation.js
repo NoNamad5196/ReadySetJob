@@ -26,11 +26,20 @@ const STAGE_LABELS = {
   final: '최종전형',
 };
 
+const BOARD_STAGE_LABELS = {
+  document: '서류',
+  coding_test: '코딩테스트',
+  assignment: '과제',
+  interview1: '1차 면접',
+  interview2: '2차 면접',
+  final: '최종',
+};
+
 const RESULT_LABELS = {
   in_progress: '진행중',
   passed: '합격',
   failed: '불합격',
-  withdrawn: '포기',
+  withdrawn: '지원취소',
 };
 
 const EVENT_TYPE_LABELS = {
@@ -105,6 +114,7 @@ function attachUiHelpers(req, res, next) {
   res.locals.EVENT_TYPES = EVENT_TYPES;
   res.locals.EMPLOYMENT_TYPE_LABELS = EMPLOYMENT_TYPE_LABELS;
   res.locals.STAGE_LABELS = STAGE_LABELS;
+  res.locals.BOARD_STAGE_LABELS = BOARD_STAGE_LABELS;
   res.locals.RESULT_LABELS = RESULT_LABELS;
   res.locals.EVENT_TYPE_LABELS = EVENT_TYPE_LABELS;
   res.locals.calculateDday = calculateDday;
@@ -118,6 +128,7 @@ module.exports = {
   EVENT_TYPES,
   EMPLOYMENT_TYPE_LABELS,
   STAGE_LABELS,
+  BOARD_STAGE_LABELS,
   RESULT_LABELS,
   EVENT_TYPE_LABELS,
   isValidEmail,

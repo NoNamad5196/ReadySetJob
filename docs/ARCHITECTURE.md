@@ -1,6 +1,6 @@
 # ReadySetJob 시스템 아키텍처 및 라우터 명세서 (ARCHITECTURE)
 
-본 문서는 **ReadySetJob**의 계층형 아키텍처, 요청 처리 생명주기, 디렉터리 구조, 미들웨어 책임, 에러 처리 전략, 보안 모델 및 전체 HTTP 라우터 명세를 기술한다. 모든 내용은 `src/app.js`, `src/middleware/*.js`, `src/routes/*.js`, `src/services/*.js`의 실제 구현 코드에 기반하며, 현재 병행 개발 중인 P1 기능(칸반 보드 및 자기소개서 버전 관리)은 **P1: 개발 중 (계획된 명세)**로 구분하여 기술한다.
+본 문서는 **ReadySetJob**의 계층형 아키텍처, 요청 처리 생명주기, 디렉터리 구조, 미들웨어 책임, 에러 처리 전략, 보안 모델 및 전체 HTTP 라우터 명세를 기술한다. 모든 내용은 `src/app.js`, `src/middleware/*.js`, `src/routes/*.js`, `src/services/*.js`의 실제 구현 코드에 기반하며, 현재 병행 개발 중인 P1 기능(칸반 보드 및 자기소개서 버전 관리)은 **P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인)**로 구분하여 기술한다.
 
 ---
 
@@ -301,26 +301,26 @@ ReadySetJob/
 
 ---
 
-### 6.2 P1: 개발 중 (계획된 명세) 라우트
+### 6.2 P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) 라우트
 
 현재 병행 작업으로 추가되고 있는 칸반 보드 및 자기소개서(버전·비교·복원·검색·자료 연결) 라우트 명세는 다음과 같다.
 
 | Method | Path | 인증 | 입력 필드 및 검증 규칙 | 성공 응답 | 실패/에러 응답 | 상태 |
 |---|---|---|---|---|---|---|
-| `GET` | `/applications/board` | `requireAuth` | Query: `q`(선택), `result`(선택) | `200` 전형 단계별(`document` ~ `final`) 그룹화된 칸반 보드 뷰 렌더링 | 미인증 시 `302 /login` | P1: 개발 중 (계획된 명세) |
-| `PATCH` | `/api/applications/:id/stage` | `requireAuth` + CSRF | Param: `id`, JSON Body: `{ stage, result?, index? }` (`index`는 대상 컬럼 내 정렬 순서) | `200` JSON: 대상 컬럼 내 카드 `board_order` 재정렬 및 단계/결과 변경 시 `stage_logs` 기록 후 갱신 상태 반환 | `401`, `403`, `404`, `422` JSON | P1: 개발 중 (계획된 명세) |
-| `GET` | `/essays` | `requireAuth` | Query: `q`(선택), `application_id`(선택) | `200` 자기소개서 목록 뷰 렌더링 | 미인증 시 `302 /login` | P1: 개발 중 (계획된 명세) |
-| `GET` | `/essays/new` | `requireAuth` | Query: `application_id`(선택) | `200` 새 자기소개서 작성 폼 렌더링 | 미인증 시 `302 /login` | P1: 개발 중 (계획된 명세) |
-| `POST` | `/essays` | `requireAuth` + CSRF | Body: `title`(필수), `application_id`(선택, 본인 소유), 문항 배열(`question`, `char_limit`, `answer`) | 트랜잭션으로 `essays` 및 `essay_questions` 생성 후 `302 /essays/:id` | 검증 실패 `422`, 타인 지원 건 `404` | P1: 개발 중 (계획된 명세) |
-| `GET` | `/essays/:id` | `requireAuth` | Param: `id` | `200` 자기소개서 멀티 문항 에디터 + 버전 목록 + 연결된 자료함 렌더링 | 미존재/타인 소유 시 `404` | P1: 개발 중 (계획된 명세) |
-| `PUT` | `/api/essays/:id/draft` | `requireAuth` + CSRF | Param: `id`, JSON/Form Body: `title`, `questions` 배열(`id?`, `sort_order`, `question`, `char_limit`, `answer`) | `200` JSON: `essay_questions` 작업 초안만 갱신 (새 `essay_versions` 레코드 생성 안 함) | `401`, `403`, `404`, `422` JSON | P1: 개발 중 (계획된 명세) |
-| `POST` | `/essays/:id/versions` | `requireAuth` + CSRF | Param: `id`, Body: `label`(선택, 버전 메모) | 현재 초안을 `snapshot_json`으로 직렬화해 불변 버전(`version_no = max + 1`) 생성 후 `302` 또는 `201` JSON | 미존재/타인 소유 `404`, 검증 실패 `422` | P1: 개발 중 (계획된 명세) |
-| `GET` | `/essays/:id/versions` | `requireAuth` | Param: `id` | `200` 해당 자기소개서의 전체 버전 히스토리 목록(HTML/JSON) 반환 | 미존재/타인 소유 시 `404` | P1: 개발 중 (계획된 명세) |
-| `GET` | `/essays/:id/versions/:no` | `requireAuth` | Param: `id`, `no`(`version_no`) | `200` 특정 버전 번호(`:no`)의 불변 스냅샷 상세 조회 | 미존재/타인 소유 시 `404` | P1: 개발 중 (계획된 명세) |
-| `GET` | `/essays/:id/compare` | `requireAuth` | Param: `id`, Query: `from`(버전 번호), `to`(버전 번호) | `200` 서버 사이드 `jsdiff` 단어 단위 Diff 결과 렌더링 (HTML 이스케이프 적용) | 버전 미존재/타인 소유 `404`, 파라미터 오류 `422` | P1: 개발 중 (계획된 명세) |
-| `POST` | `/essays/:id/versions/:no/restore` | `requireAuth` + CSRF | Param: `id`, `no`(복원할 `version_no`) | 트랜잭션: (1) 미저장 초안 변경분이 있으면 자동 버전 백업, (2) `:no` 스냅샷으로 `essay_questions` 초안 덮어쓰기, (3) `restored_from_version_id`를 설정한 새 버전(`max + 1`) 생성 후 에디터로 리다이렉트/응답 | 미존재/타인 소유 `404` | P1: 개발 중 (계획된 명세) |
-| `GET` | `/api/essays/search` | `requireAuth` | Query: `q`(검색 키워드) | `200` JSON: 사용자의 자기소개서 문항 질문·답변 매칭 목록 반환 | 미인증 시 `401` JSON | P1: 개발 중 (계획된 명세) |
-| `POST` | `/essays/:id/materials` (및 unlink) | `requireAuth` + CSRF | Param: `id`, Body/Param: `material_id` | 본인 소유의 자기소개서와 경험 자료(`materials`) 간 `essay_materials` 연결/해제 처리 | 미존재/타인 소유 시 `404` | P1: 개발 중 (계획된 명세) |
+| `GET` | `/applications/board` | `requireAuth` | Query: `q`(선택), `result`(선택) | `200` 전형 단계별(`document` ~ `final`) 그룹화된 칸반 보드 뷰 렌더링 | 미인증 시 `302 /login` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `PATCH` | `/api/applications/:id/stage` | `requireAuth` + CSRF | Param: `id`, JSON Body: `{ stage, result?, index? }` (`index`는 대상 컬럼 내 정렬 순서) | `200` JSON: 대상 컬럼 내 카드 `board_order` 재정렬 및 단계/결과 변경 시 `stage_logs` 기록 후 갱신 상태 반환 | `401`, `403`, `404`, `422` JSON | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `GET` | `/essays` | `requireAuth` | Query: `q`(선택), `application_id`(선택) | `200` 자기소개서 목록 뷰 렌더링 | 미인증 시 `302 /login` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `GET` | `/essays/new` | `requireAuth` | Query: `application_id`(선택) | `200` 새 자기소개서 작성 폼 렌더링 | 미인증 시 `302 /login` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `POST` | `/essays` | `requireAuth` + CSRF | Body: `title`(필수), `application_id`(선택, 본인 소유), 문항 배열(`question`, `char_limit`, `answer`) | 트랜잭션으로 `essays` 및 `essay_questions` 생성 후 `302 /essays/:id` | 검증 실패 `422`, 타인 지원 건 `404` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `GET` | `/essays/:id` | `requireAuth` | Param: `id` | `200` 자기소개서 멀티 문항 에디터 + 버전 목록 + 연결된 자료함 렌더링 | 미존재/타인 소유 시 `404` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `PUT` | `/api/essays/:id/draft` | `requireAuth` + CSRF | Param: `id`, JSON/Form Body: `title`, `questions` 배열(`id?`, `sort_order`, `question`, `char_limit`, `answer`) | `200` JSON: `essay_questions` 작업 초안만 갱신 (새 `essay_versions` 레코드 생성 안 함) | `401`, `403`, `404`, `422` JSON | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `POST` | `/essays/:id/versions` | `requireAuth` + CSRF | Param: `id`, Body: `label`(선택, 버전 메모) | 현재 초안을 `snapshot_json`으로 직렬화해 불변 버전(`version_no = max + 1`) 생성 후 `302` 또는 `201` JSON | 미존재/타인 소유 `404`, 검증 실패 `422` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `GET` | `/essays/:id/versions` | `requireAuth` | Param: `id` | `200` 해당 자기소개서의 전체 버전 히스토리 목록(HTML/JSON) 반환 | 미존재/타인 소유 시 `404` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `GET` | `/essays/:id/versions/:no` | `requireAuth` | Param: `id`, `no`(`version_no`) | `200` 특정 버전 번호(`:no`)의 불변 스냅샷 상세 조회 | 미존재/타인 소유 시 `404` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `GET` | `/essays/:id/compare` | `requireAuth` | Param: `id`, Query: `from`(버전 번호), `to`(버전 번호) | `200` 서버 사이드 `jsdiff` 단어 단위 Diff 결과 렌더링 (HTML 이스케이프 적용) | 버전 미존재/타인 소유 `404`, 파라미터 오류 `422` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `POST` | `/essays/:id/versions/:no/restore` | `requireAuth` + CSRF | Param: `id`, `no`(복원할 `version_no`) | 트랜잭션: (1) 미저장 초안 변경분이 있으면 자동 버전 백업, (2) `:no` 스냅샷으로 `essay_questions` 초안 덮어쓰기, (3) `restored_from_version_id`를 설정한 새 버전(`max + 1`) 생성 후 에디터로 리다이렉트/응답 | 미존재/타인 소유 `404` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `GET` | `/api/essays/search` | `requireAuth` | Query: `q`(검색 키워드) | `200` JSON: 사용자의 자기소개서 문항 질문·답변 매칭 목록 반환 | 미인증 시 `401` JSON | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
+| `POST` | `/essays/:id/materials` (및 unlink) | `requireAuth` + CSRF | Param: `id`, Body/Param: `material_id` | 본인 소유의 자기소개서와 경험 자료(`materials`) 간 `essay_materials` 연결/해제 처리 | 미존재/타인 소유 시 `404` | P1: 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
 
 ---
 

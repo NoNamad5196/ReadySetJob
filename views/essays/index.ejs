@@ -1,0 +1,90 @@
+<link rel="stylesheet" href="/css/essay.css">
+
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title">자기소개서 관리</h1>
+    <p class="text-muted">기업·공고별 자기소개서 초안 작성 및 불변 버전 스냅샷·비교·복원을 관리합니다.</p>
+  </div>
+  <a href="/essays/new" class="btn btn-primary">새 자기소개서 작성</a>
+</div>
+
+<form action="/essays" method="GET" class="filter-bar">
+  <input
+    type="search"
+    name="q"
+    class="input"
+    placeholder="제목, 문항 질문, 답변 본문, 기업명 검색..."
+    value="<%= q %>"
+  >
+  <select name="application_id" class="input" aria-label="지원 내역 필터">
+    <option value="">전체 지원 내역</option>
+    <% for (const appItem of applications) { %>
+      <option value="<%= appItem.id %>" <%= Number(application_id) === appItem.id ? 'selected' : '' %>>
+        <%= appItem.company_name %> — <%= appItem.job_title %>
+      </option>
+    <% } %>
+  </select>
+  <button type="submit" class="btn">검색</button>
+  <% if (q || application_id) { %>
+    <a href="/essays" class="btn">초기화</a>
+  <% } %>
+</form>
+
+<section class="card">
+  <% if (!essays || essays.length === 0) { %>
+    <div class="empty-state">
+      <p>조건에 맞는 자기소개서가 없습니다.</p>
+      <a href="/essays/new" class="btn btn-primary">첫 자기소개서 작성하기</a>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>자기소개서 제목</th>
+            <th>연결된 기업 / 공고</th>
+            <th>문항 수</th>
+            <th>최신 버전</th>
+            <th>최근 수정 시각</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const item of essays) { %>
+            <tr>
+              <td>
+                <a href="/essays/<%= item.id %>"><strong><%= item.title %></strong></a>
+              </td>
+              <td>
+                <% if (item.company_name) { %>
+                  <span><strong><%= item.company_name %></strong> · <%= item.job_title %></span>
+                <% } else { %>
+                  <span class="text-muted">미연결 (자유 양식)</span>
+                <% } %>
+              </td>
+              <td><%= item.question_count %>문항</td>
+              <td>
+                <% if (item.latest_version_no) { %>
+                  <span class="badge badge--result-in_progress">v<%= item.latest_version_no %></span>
+                  <span class="text-muted">(총 <%= item.version_count %>개)</span>
+                <% } else { %>
+                  <span class="badge">초안만 있음</span>
+                <% } %>
+              </td>
+              <td><%= item.updated_at %></td>
+              <td>
+                <div class="inline-actions">
+                  <a href="/essays/<%= item.id %>" class="btn btn-sm btn-primary">편집</a>
+                  <a href="/essays/<%= item.id %>/versions" class="btn btn-sm">버전 기록</a>
+                  <% if (item.latest_version_no) { %>
+                    <a href="/essays/<%= item.id %>/compare?from=1&to=<%= item.latest_version_no > 1 ? item.latest_version_no : 'current' %>" class="btn btn-sm">비교</a>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
