@@ -4,3 +4,8 @@ require('./ownership-and-seed.test.js');
 require('./board.test.js');
 require('./essays.test.js');
 require('./essay-versions.test.js');
+require('./dashboard.test.js');
+require('./materials.test.js');
+require('./dashboard.test.js');
+require('./materials.test.js');
+

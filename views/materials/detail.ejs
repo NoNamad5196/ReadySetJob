@@ -1,0 +1,102 @@
+<div class="page-header">
+  <div>
+    <div style="margin-bottom: var(--space-2);">
+      <span class="badge"><%= MATERIAL_KIND_LABELS[material.kind] || material.kind %></span>
+      <% if (material.period) { %>
+        <span class="text-muted" style="margin-left: var(--space-2);"><%= material.period %></span>
+      <% } %>
+    </div>
+    <h1 class="page-header__title"><%= material.title %></h1>
+  </div>
+  <div class="inline-actions">
+    <a href="/materials/<%= material.id %>/edit" class="btn">자료 수정</a>
+    <form
+      action="/materials/<%= material.id %>?_method=DELETE"
+      method="POST"
+      data-confirm="이 자료를 삭제하시겠습니까?"
+    >
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="_method" value="DELETE">
+      <button type="submit" class="btn btn-danger">삭제</button>
+    </form>
+    <a href="/materials" class="btn">목록으로</a>
+  </div>
+</div>
+
+<section class="card">
+  <h2>기본 정보 및 태그</h2>
+  <% if (material.tags) { %>
+    <div style="margin-bottom: var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-1);">
+      <% const tagList = material.tags.split(',').map((t) => t.trim()).filter(Boolean); %>
+      <% for (const tag of tagList) { %>
+        <span class="badge"><%= tag %></span>
+      <% } %>
+    </div>
+  <% } else { %>
+    <p class="text-muted">등록된 태그가 없습니다.</p>
+  <% } %>
+  <div class="text-muted" style="font-size: 0.8125rem;">
+    등록일: <%= material.created_at ? material.created_at.slice(0, 16).replace('T', ' ') : '-' %> |
+    최근 수정: <%= material.updated_at ? material.updated_at.slice(0, 16).replace('T', ' ') : '-' %>
+  </div>
+</section>
+
+<section class="card">
+  <h2>상세 내용</h2>
+  <% if (material.content) { %>
+    <div style="white-space: pre-wrap; line-height: 1.7; color: var(--color-text);">
+      <%= material.content %>
+    </div>
+  <% } else { %>
+    <p class="text-muted">작성된 상세 내용이 없습니다.</p>
+  <% } %>
+</section>
+
+<section class="card">
+  <div class="page-header" style="margin-bottom: var(--space-3);">
+    <h2 style="font-size: 1.125rem; margin: 0;">
+      연결된 자기소개서 (<%= material.linkedEssays ? material.linkedEssays.length : 0 %>건)
+    </h2>
+    <a href="/essays/new" class="btn btn-sm">새 자기소개서 작성</a>
+  </div>
+
+  <% if (!material.linkedEssays || material.linkedEssays.length === 0) { %>
+    <div class="empty-state" style="padding: var(--space-4);">
+      <p>이 자료를 참조하고 있는 자기소개서가 없습니다.</p>
+      <span class="text-muted">자기소개서 작성 시 우측 패널에서 이 자료를 연결할 수 있습니다.</span>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>자기소개서 제목</th>
+            <th>지원 기업 / 공고</th>
+            <th>최근 수정일</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const essay of material.linkedEssays) { %>
+            <tr>
+              <td>
+                <a href="/essays/<%= essay.id %>"><strong><%= essay.title %></strong></a>
+              </td>
+              <td>
+                <% if (essay.company_name) { %>
+                  <%= essay.company_name %><% if (essay.job_title) { %> - <%= essay.job_title %><% } %>
+                <% } else { %>
+                  -
+                <% } %>
+              </td>
+              <td><%= essay.updated_at ? essay.updated_at.slice(0, 16).replace('T', ' ') : '-' %></td>
+              <td>
+                <a href="/essays/<%= essay.id %>" class="btn btn-sm">자소서 보기</a>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

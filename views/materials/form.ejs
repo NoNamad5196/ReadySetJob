@@ -1,0 +1,87 @@
+<div class="page-header">
+  <h1 class="page-header__title"><%= isEdit ? '자료 수정' : '새 자료 등록' %></h1>
+  <a href="<%= isEdit ? `/materials/${material.id}` : '/materials' %>" class="btn">목록으로</a>
+</div>
+
+<section class="card">
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form
+    action="<%= isEdit ? `/materials/${material.id}?_method=PUT` : '/materials' %>"
+    method="POST"
+  >
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (isEdit) { %>
+      <input type="hidden" name="_method" value="PUT">
+    <% } %>
+
+    <div class="form-field">
+      <label for="title">제목 *</label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        class="input"
+        required
+        maxlength="120"
+        placeholder="예: 실시간 채용 공고 알림 웹 서비스 프로젝트"
+        value="<%= material.title || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="kind">구분 *</label>
+      <select id="kind" name="kind" class="input" required>
+        <% for (const k of MATERIAL_KINDS) { %>
+          <option value="<%= k %>" <%= (material.kind || 'experience') === k ? 'selected' : '' %>>
+            <%= MATERIAL_KIND_LABELS[k] || k %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="period">활동 기간</label>
+      <input
+        type="text"
+        id="period"
+        name="period"
+        class="input"
+        maxlength="60"
+        placeholder="예: 2026.03 ~ 2026.06"
+        value="<%= material.period || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="tags">태그</label>
+      <input
+        type="text"
+        id="tags"
+        name="tags"
+        class="input"
+        placeholder="콤마(,)로 구분 (예: Node.js, Express, SQLite, 성능개선)"
+        value="<%= material.tags || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="content">상세 내용 / 성과 / 배운 점</label>
+      <textarea
+        id="content"
+        name="content"
+        class="input"
+        maxlength="5000"
+        rows="8"
+        placeholder="프로젝트 목표, 역할, 직면한 문제와 기술적 해결책, 정량적 성과를 구체적으로 작성하세요."
+      ><%= material.content || '' %></textarea>
+    </div>
+
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary"><%= isEdit ? '수정 저장' : '등록하기' %></button>
+      <a href="<%= isEdit ? `/materials/${material.id}` : '/materials' %>" class="btn">취소</a>
+    </div>
+  </form>
+</section>

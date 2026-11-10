@@ -9,38 +9,221 @@
 
 <section class="stats-grid">
   <div class="card">
-    <div class="stat-card__label">전체 지원 현황</div>
-    <div class="stat-card__value"><%= counts.applicationsCount %>건</div>
+    <div class="stat-card__label">전체 지원</div>
+    <div class="stat-card__value"><%= stats.totals.totalApplications %>건</div>
   </div>
   <div class="card">
     <div class="stat-card__label">진행 중 전형</div>
-    <div class="stat-card__value"><%= counts.inProgressCount %>건</div>
+    <div class="stat-card__value"><%= stats.totals.inProgress %>건</div>
   </div>
   <div class="card">
     <div class="stat-card__label">합격</div>
-    <div class="stat-card__value"><%= counts.passedCount %>건</div>
+    <div class="stat-card__value"><%= stats.totals.passed %>건</div>
   </div>
   <div class="card">
-    <div class="stat-card__label">등록된 채용 공고 (북마크)</div>
-    <div class="stat-card__value"><%= counts.jobsCount %>건 (<%= counts.bookmarkedJobsCount %>)</div>
+    <div class="stat-card__label">불합격 / 지원취소</div>
+    <div class="stat-card__value"><%= stats.totals.failed %> / <%= stats.totals.withdrawn %>건</div>
+  </div>
+  <div class="card">
+    <div class="stat-card__label">자기소개서 (버전)</div>
+    <div class="stat-card__value"><%= stats.totals.essaysCount %>건 (<%= stats.totals.essayVersionsCount %>)</div>
+  </div>
+  <div class="card">
+    <div class="stat-card__label">채용 공고 (북마크)</div>
+    <div class="stat-card__value"><%= stats.totals.jobsCount %>건 (<%= stats.totals.bookmarkedJobsCount %>)</div>
   </div>
   <div class="card">
     <div class="stat-card__label">관심 기업</div>
-    <div class="stat-card__value"><%= counts.companiesCount %>곳</div>
+    <div class="stat-card__value"><%= stats.totals.companiesCount %>곳</div>
   </div>
   <div class="card">
-    <div class="stat-card__label">등록된 일정</div>
-    <div class="stat-card__value"><%= counts.upcomingEventsCount %>건</div>
+    <div class="stat-card__label">14일 내 일정</div>
+    <div class="stat-card__value"><%= stats.totals.upcomingEventsCount %>건</div>
   </div>
 </section>
 
-<section class="card">
-  <h2>빠른 이동</h2>
-  <p class="text-muted">상세 차트 및 마감 임박 위젯은 대시보드 고도화 단계에서 추가됩니다.</p>
-  <div class="inline-actions">
-    <a href="/applications" class="btn">지원 현황 목록 보기</a>
-    <a href="/jobs" class="btn">채용 공고 목록 보기</a>
-    <a href="/companies" class="btn">기업 목록 보기</a>
-    <a href="/events" class="btn">일정 관리 보기</a>
+<section class="dashboard-charts-grid">
+  <div class="card chart-card">
+    <h2 class="chart-card__title">진행 중 전형 단계별 분포</h2>
+    <div class="chart-container">
+      <% if (stats.totals.inProgress === 0) { %>
+        <div class="chart-empty">
+          <p>진행 중인 전형이 없습니다.</p>
+          <span class="text-muted">채용 공고에서 새 지원을 등록해 보세요.</span>
+        </div>
+      <% } else { %>
+        <canvas id="chart-stage"></canvas>
+      <% } %>
+    </div>
+  </div>
+  <div class="card chart-card">
+    <h2 class="chart-card__title">전형 결과 비율</h2>
+    <div class="chart-container">
+      <% if (stats.totals.totalApplications === 0) { %>
+        <div class="chart-empty">
+          <p>지원 내역이 없습니다.</p>
+          <span class="text-muted">지원서를 제출하고 결과를 기록해 보세요.</span>
+        </div>
+      <% } else { %>
+        <canvas id="chart-result"></canvas>
+      <% } %>
+    </div>
+  </div>
+  <div class="card chart-card">
+    <h2 class="chart-card__title">최근 6개월 지원 추이</h2>
+    <div class="chart-container">
+      <% if (stats.monthlyTrend.total === 0) { %>
+        <div class="chart-empty">
+          <p>최근 6개월 지원 이력이 없습니다.</p>
+          <span class="text-muted">꾸준한 지원 활동으로 추이를 채워보세요.</span>
+        </div>
+      <% } else { %>
+        <canvas id="chart-monthly"></canvas>
+      <% } %>
+    </div>
   </div>
 </section>
+
+<div class="dashboard-sections-grid">
+  <section class="card">
+    <div class="page-header" style="margin-bottom: var(--space-3);">
+      <h2 style="font-size: 1.125rem; margin: 0;">마감 임박 공고 (14일 이내)</h2>
+      <a href="/jobs" class="btn btn-sm">공고 전체</a>
+    </div>
+    <% if (!stats.upcomingDeadlines || stats.upcomingDeadlines.length === 0) { %>
+      <div class="empty-state" style="padding: var(--space-4);">
+        <p>14일 이내 마감 예정인 채용 공고가 없습니다.</p>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>D-Day</th>
+              <th>기업 / 공고</th>
+              <th>마감일</th>
+              <th>지원 현황</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (const job of stats.upcomingDeadlines) { %>
+              <tr>
+                <td>
+                  <span class="badge badge--dday-<%= job.dday.state %>"><%= job.dday.label %></span>
+                </td>
+                <td>
+                  <a href="/jobs/<%= job.id %>"><strong><%= job.title %></strong></a>
+                  <div class="text-muted"><%= job.company_name %></div>
+                </td>
+                <td><%= job.deadline %></td>
+                <td>
+                  <% if (job.application_id) { %>
+                    <a href="/applications/<%= job.application_id %>">
+                      <span class="badge badge--stage-<%= job.application_stage %>"><%= STAGE_LABELS[job.application_stage] %></span>
+                    </a>
+                  <% } else { %>
+                    <a href="/applications/new?job_post_id=<%= job.id %>" class="btn btn-sm">지원 등록</a>
+                  <% } %>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="card">
+    <div class="page-header" style="margin-bottom: var(--space-3);">
+      <h2 style="font-size: 1.125rem; margin: 0;">다가오는 일정 (14일 이내)</h2>
+      <a href="/events" class="btn btn-sm">일정 전체</a>
+    </div>
+    <% if (!stats.upcomingEvents || stats.upcomingEvents.length === 0) { %>
+      <div class="empty-state" style="padding: var(--space-4);">
+        <p>14일 이내 예정된 일정이 없습니다.</p>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>일시</th>
+              <th>구분</th>
+              <th>일정명</th>
+              <th>관련 기업/공고</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (const evt of stats.upcomingEvents) { %>
+              <tr>
+                <td><%= evt.starts_at ? evt.starts_at.slice(0, 16).replace('T', ' ') : '-' %></td>
+                <td>
+                  <span class="badge"><%= EVENT_TYPE_LABELS[evt.type] || evt.type %></span>
+                </td>
+                <td><strong><%= evt.title %></strong></td>
+                <td>
+                  <% if (evt.company_name) { %>
+                    <%= evt.company_name %><% if (evt.job_title) { %> - <%= evt.job_title %><% } %>
+                  <% } else { %>
+                    -
+                  <% } %>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+</div>
+
+<section class="card">
+  <div class="page-header" style="margin-bottom: var(--space-3);">
+    <h2 style="font-size: 1.125rem; margin: 0;">최근 전형 변경 이력</h2>
+    <a href="/applications/board" class="btn btn-sm">칸반 보드</a>
+  </div>
+  <% if (!stats.recentActivity || stats.recentActivity.length === 0) { %>
+    <div class="empty-state" style="padding: var(--space-4);">
+      <p>최근 전형 변경 이력이 없습니다.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>기업명</th>
+            <th>공고명</th>
+            <th>변경 내역</th>
+            <th>변경 일시</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const act of stats.recentActivity) { %>
+            <tr>
+              <td><%= act.company_name %></td>
+              <td>
+                <a href="/applications/<%= act.application_id %>"><%= act.job_title %></a>
+              </td>
+              <td>
+                <% if (act.from_stage && act.from_stage !== act.to_stage) { %>
+                  <span class="badge badge--stage-<%= act.from_stage %>"><%= STAGE_LABELS[act.from_stage] || act.from_stage %></span>
+                  &rarr;
+                <% } %>
+                <span class="badge badge--stage-<%= act.to_stage %>"><%= STAGE_LABELS[act.to_stage] || act.to_stage %></span>
+                <% if (act.to_result && act.to_result !== 'in_progress') { %>
+                  <span class="badge badge--result-<%= act.to_result %>"><%= RESULT_LABELS[act.to_result] || act.to_result %></span>
+                <% } %>
+              </td>
+              <td><%= act.changed_at ? act.changed_at.slice(0, 16).replace('T', ' ') : '-' %></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%# CSP-safe: JSON is not executed as script, pre-escaped with < -> \u003c to prevent script tag breakout %>
+<script type="application/json" id="dashboard-data"><%- dashboardDataJson %></script>
+<script src="/vendor/chart.js/chart.umd.js"></script>
+<script src="/js/dashboard.js"></script>

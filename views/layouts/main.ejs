@@ -42,10 +42,9 @@
               </a>
             </li>
             <li>
-              <span class="sidebar__link sidebar__link--disabled" aria-disabled="true" title="추후 단계에서 제공 예정">
+              <a href="/materials" class="sidebar__link <%= currentPath.startsWith('/materials') ? 'sidebar__link--active' : '' %>">
                 <span>자료함</span>
-                <span class="badge">준비중</span>
-              </span>
+              </a>
             </li>
             <li>
               <a href="/events" class="sidebar__link <%= currentPath.startsWith('/events') ? 'sidebar__link--active' : '' %>">

@@ -9,6 +9,15 @@ const APPLICATION_STAGES = [
 ];
 const APPLICATION_RESULTS = ['in_progress', 'passed', 'failed', 'withdrawn'];
 const EVENT_TYPES = ['deadline', 'test', 'interview', 'announcement', 'other'];
+const MATERIAL_KINDS = ['experience', 'project', 'award', 'activity', 'other'];
+
+const MATERIAL_KIND_LABELS = {
+  experience: '경험',
+  project: '프로젝트',
+  award: '수상',
+  activity: '대외활동',
+  other: '기타',
+};
 
 const EMPLOYMENT_TYPE_LABELS = {
   intern: '인턴',
@@ -107,16 +116,27 @@ function calculateDday(deadlineStr) {
   return { label: `마감 (D+${Math.abs(diffDays)})`, state: 'expired', days: diffDays };
 }
 
+function normalizeTags(tagsStr) {
+  if (!tagsStr) return '';
+  return String(tagsStr)
+    .split(',')
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0)
+    .join(',');
+}
+
 function attachUiHelpers(req, res, next) {
   res.locals.EMPLOYMENT_TYPES = EMPLOYMENT_TYPES;
   res.locals.APPLICATION_STAGES = APPLICATION_STAGES;
   res.locals.APPLICATION_RESULTS = APPLICATION_RESULTS;
   res.locals.EVENT_TYPES = EVENT_TYPES;
+  res.locals.MATERIAL_KINDS = MATERIAL_KINDS;
   res.locals.EMPLOYMENT_TYPE_LABELS = EMPLOYMENT_TYPE_LABELS;
   res.locals.STAGE_LABELS = STAGE_LABELS;
   res.locals.BOARD_STAGE_LABELS = BOARD_STAGE_LABELS;
   res.locals.RESULT_LABELS = RESULT_LABELS;
   res.locals.EVENT_TYPE_LABELS = EVENT_TYPE_LABELS;
+  res.locals.MATERIAL_KIND_LABELS = MATERIAL_KIND_LABELS;
   res.locals.calculateDday = calculateDday;
   next();
 }
@@ -126,15 +146,18 @@ module.exports = {
   APPLICATION_STAGES,
   APPLICATION_RESULTS,
   EVENT_TYPES,
+  MATERIAL_KINDS,
   EMPLOYMENT_TYPE_LABELS,
   STAGE_LABELS,
   BOARD_STAGE_LABELS,
   RESULT_LABELS,
   EVENT_TYPE_LABELS,
+  MATERIAL_KIND_LABELS,
   isValidEmail,
   isValidDate,
   isValidDateTime,
   isValidUrl,
   calculateDday,
+  normalizeTags,
   attachUiHelpers,
 };

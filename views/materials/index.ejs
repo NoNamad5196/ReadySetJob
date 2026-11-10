@@ -1,0 +1,82 @@
+<div class="page-header">
+  <h1 class="page-header__title">자료함 (경험·이력 관리)</h1>
+  <a href="/materials/new" class="btn btn-primary">새 자료 등록</a>
+</div>
+
+<form action="/materials" method="GET" class="filter-bar">
+  <input
+    type="search"
+    name="q"
+    class="input"
+    placeholder="제목, 내용, 태그 검색..."
+    value="<%= filters.q %>"
+  >
+  <select name="kind" class="input">
+    <option value="">전체 구분</option>
+    <% for (const k of MATERIAL_KINDS) { %>
+      <option value="<%= k %>" <%= filters.kind === k ? 'selected' : '' %>>
+        <%= MATERIAL_KIND_LABELS[k] || k %>
+      </option>
+    <% } %>
+  </select>
+  <button type="submit" class="btn">검색</button>
+  <% if (filters.q || filters.kind) { %>
+    <a href="/materials" class="btn">초기화</a>
+  <% } %>
+</form>
+
+<section class="card">
+  <% if (!materials || materials.length === 0) { %>
+    <div class="empty-state">
+      <p>조건에 맞는 자료가 없습니다.</p>
+      <a href="/materials/new" class="btn btn-primary">새 자료 등록하기</a>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>제목</th>
+            <th>기간</th>
+            <th>태그</th>
+            <th>연결된 자기소개서</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const item of materials) { %>
+            <tr>
+              <td>
+                <span class="badge"><%= MATERIAL_KIND_LABELS[item.kind] || item.kind %></span>
+              </td>
+              <td>
+                <a href="/materials/<%= item.id %>"><strong><%= item.title %></strong></a>
+              </td>
+              <td><%= item.period || '-' %></td>
+              <td>
+                <% if (item.tags) { %>
+                  <% const tagList = item.tags.split(',').map((t) => t.trim()).filter(Boolean); %>
+                  <% for (const tag of tagList) { %>
+                    <span class="badge"><%= tag %></span>
+                  <% } %>
+                <% } else { %>
+                  -
+                <% } %>
+              </td>
+              <td>
+                <%= item.linked_essay_count || 0 %>건
+              </td>
+              <td>
+                <div class="inline-actions">
+                  <a href="/materials/<%= item.id %>" class="btn btn-sm">상세</a>
+                  <a href="/materials/<%= item.id %>/edit" class="btn btn-sm">수정</a>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

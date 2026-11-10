@@ -1,16 +1,27 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
-const { getDashboardCounts } = require('../services/usersService');
+const {
+  getDashboardStats,
+  serializeDashboardData,
+} = require('../services/dashboardService');
 
 function createDashboardRouter(db) {
   const router = express.Router();
 
   router.get('/dashboard', requireAuth, (req, res) => {
-    const counts = getDashboardCounts(db, req.session.user.id);
+    const stats = getDashboardStats(db, req.session.user.id);
+    const dashboardDataJson = serializeDashboardData(stats);
     return res.render('dashboard/index', {
       title: '대시보드',
-      counts,
+      stats,
+      counts: stats.totals,
+      dashboardDataJson,
     });
+  });
+
+  router.get('/api/dashboard/stats', requireAuth, (req, res) => {
+    const stats = getDashboardStats(db, req.session.user.id);
+    return res.json(stats);
   });
 
   return router;

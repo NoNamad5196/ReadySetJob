@@ -21,6 +21,7 @@ const { createJobsRouter } = require('./routes/jobs');
 const { createApplicationsRouter, createApplicationsApiRouter } = require('./routes/applications');
 const { createEventsRouter } = require('./routes/events');
 const { createEssaysRouter, createEssaysApiRouter } = require('./routes/essays');
+const { createMaterialsRouter } = require('./routes/materials');
 
 const BaseSqliteStore = createSqliteStore(session);
 
@@ -74,6 +75,10 @@ function createApp({ dbPath } = {}) {
   }
 
   app.use(express.static(path.join(__dirname, '../public')));
+  app.use(
+    '/vendor/chart.js',
+    express.static(path.join(__dirname, '../node_modules/chart.js/dist'))
+  );
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
 
@@ -133,6 +138,7 @@ function createApp({ dbPath } = {}) {
   app.use('/events', createEventsRouter(db));
   app.use('/essays', createEssaysRouter(db));
   app.use('/api/essays', createEssaysApiRouter(db));
+  app.use('/materials', createMaterialsRouter(db));
 
   app.use(notFoundHandler);
   app.use(errorHandler);
