@@ -86,12 +86,12 @@
 
 <div class="dashboard-sections-grid">
   <section class="card">
-    <div class="page-header" style="margin-bottom: var(--space-3);">
-      <h2 style="font-size: 1.125rem; margin: 0;">마감 임박 공고 (14일 이내)</h2>
+    <div class="page-header section-header--compact">
+      <h2 class="section-title-sm">마감 임박 공고 (14일 이내)</h2>
       <a href="/jobs" class="btn btn-sm">공고 전체</a>
     </div>
     <% if (!stats.upcomingDeadlines || stats.upcomingDeadlines.length === 0) { %>
-      <div class="empty-state" style="padding: var(--space-4);">
+      <div class="empty-state empty-state--compact">
         <p>14일 이내 마감 예정인 채용 공고가 없습니다.</p>
       </div>
     <% } else { %>
@@ -134,12 +134,12 @@
   </section>
 
   <section class="card">
-    <div class="page-header" style="margin-bottom: var(--space-3);">
-      <h2 style="font-size: 1.125rem; margin: 0;">다가오는 일정 (14일 이내)</h2>
+    <div class="page-header section-header--compact">
+      <h2 class="section-title-sm">다가오는 일정 (14일 이내)</h2>
       <a href="/events" class="btn btn-sm">일정 전체</a>
     </div>
     <% if (!stats.upcomingEvents || stats.upcomingEvents.length === 0) { %>
-      <div class="empty-state" style="padding: var(--space-4);">
+      <div class="empty-state empty-state--compact">
         <p>14일 이내 예정된 일정이 없습니다.</p>
       </div>
     <% } else { %>
@@ -178,12 +178,12 @@
 </div>
 
 <section class="card">
-  <div class="page-header" style="margin-bottom: var(--space-3);">
-    <h2 style="font-size: 1.125rem; margin: 0;">최근 전형 변경 이력</h2>
+  <div class="page-header section-header--compact">
+    <h2 class="section-title-sm">최근 전형 변경 이력</h2>
     <a href="/applications/board" class="btn btn-sm">칸반 보드</a>
   </div>
   <% if (!stats.recentActivity || stats.recentActivity.length === 0) { %>
-    <div class="empty-state" style="padding: var(--space-4);">
+    <div class="empty-state empty-state--compact">
       <p>최근 전형 변경 이력이 없습니다.</p>
     </div>
   <% } else { %>
