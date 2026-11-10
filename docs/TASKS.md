@@ -144,3 +144,6 @@
 - **진행 중 작업 (`개발 중`)**: `docs/PROJECT_PROPOSAL.md`(11/16 제출 계획서), 디자인 시안 A/B/C(`design/mockups/`), P1 칸반 보드 및 자기소개서 버전 관리 모듈 병행 개발 진행 중.
 - **P1 완료 (`검증 완료`)**: 칸반 보드(드래그앤드롭·키보드·no-JS 폴백, 트랜잭션 재정렬)와 자기소개서 에디터·불변 버전·jsdiff 비교·이력 보존형 복원 구현. `npm test` 25/25 통과, 헤드리스 브라우저에서 카드 드래그 → PATCH 200 → 새로고침 후 단계 유지, 에디터 Ctrl+S 초안 저장 유지, 콘솔 오류 0건 확인. 화면 스타일은 디자인 승인 전 중립 스타일.
 - **계획서 초안 완성**: `docs/PROJECT_PROPOSAL.md` (20개 장) — 사용자 검토 대기.
+- **P2 핵심 구현 (`검증 완료`)**: 대시보드 통계(KPI, 단계별 분포·결과 비율·월별 추이 Chart.js 차트, 마감 임박·일정·최근 활동)와 경험 자료함 CRUD 구현. Chart.js는 npm 패키지를 `/vendor/chart.js`로 자체 서빙(CDN 미사용).
+- **코드 리뷰 반영 (`검증 완료`)**: Momus(Grok) 리뷰 9건 수정 — 프로덕션 SESSION_SECRET 필수화, secure 쿠키, 오픈 리다이렉트 차단(`safeRedirectPath`), 달력 기준 엄격한 날짜 검증, 수정/삭제 시 board_order 재정렬, 정수 id 파싱(`parseId`), 자소서 서비스 계층 소유권 검증, 가입 UNIQUE 경합 처리. CSP에 차단되던 인라인 style 제거. `npm test` 42/42 통과, 브라우저 시나리오 콘솔 오류 0건.
+- **남은 작업**: 디자인 승인 → `docs/DESIGN_SYSTEM.md` 확정 및 전 화면 적용(P3), 다크모드 완성, AI 예상 면접 질문(P4), 통합 테스트·시연 데이터·최종 보고서·발표 자료. Notion 동기화는 Notion MCP 인증 만료(Unauthorized)로 보류 — 로컬 `docs/notion/*.md`에 보존.
