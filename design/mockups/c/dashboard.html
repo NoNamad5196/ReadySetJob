@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadySetJob — 대시보드 (Variant C: Craft-style)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="c-layout">
+    <!-- Quiet Editorial Sidebar (200px) -->
+    <aside class="c-sidebar">
+      <div class="c-sidebar-header">
+        <div class="c-brand-icon">R</div>
+        <span class="c-brand-title">ReadySetJob</span>
+        <span class="c-brand-badge">C안</span>
+      </div>
+
+      <nav class="c-nav-list">
+        <div class="c-nav-section">스튜디오</div>
+        <a href="dashboard.html" class="c-nav-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          <span>대시보드</span>
+        </a>
+        <a href="kanban.html" class="c-nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
+          <span>지원 현황 보드</span>
+          <span class="c-nav-count">18</span>
+        </a>
+        <a href="editor.html" class="c-nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>자소서 에디터</span>
+          <span class="c-nav-count">v4</span>
+        </a>
+
+        <div class="c-nav-section" style="margin-top: 14px;">지식 베이스</div>
+        <a href="#" class="c-nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span>경험 자료실</span>
+          <span class="c-nav-count">14</span>
+        </a>
+        <a href="#" class="c-nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <span>공고 북마크</span>
+          <span class="c-nav-count">8</span>
+        </a>
+      </nav>
+
+      <div class="c-sidebar-bottom">
+        <div class="c-user-initials">민</div>
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          김민준 구직 노트
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="c-main">
+      <!-- 52px Header -->
+      <header class="c-header">
+        <div class="c-header-title-wrap">
+          <h1 class="c-header-title">스튜디오 대시보드</h1>
+          <span style="font-size: 13px; color: var(--text-muted);">2026 하반기 공채 및 인턴십 진행</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="font-size: 12px; color: var(--text-secondary); display: flex; gap: 8px;">
+            <span>진행중 <strong>11</strong>건</span>
+            <span>·</span>
+            <span>최종 합격 <strong style="color: var(--status-pass-text);">2</strong>건</span>
+          </div>
+          <a href="editor.html" class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span>자소서 바로 쓰기</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Scrollable Dashboard Content -->
+      <div class="c-dashboard-content">
+        <!-- Top Section: Working Essays Document Grid -->
+        <section>
+          <div class="c-doc-grid-header">
+            <div>
+              <h2 class="c-section-heading">작성 중인 자기소개서 문서</h2>
+              <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+                최근 집필 중인 지원서로 1클릭 복귀하여 문장을 다듬습니다.
+              </div>
+            </div>
+            <a href="editor.html" class="btn btn-secondary btn-sm">전체 자소서 목록 →</a>
+          </div>
+
+          <div class="c-doc-cards">
+            <!-- Doc 1: 토스 -->
+            <a href="editor.html" class="c-doc-card" style="border-left: 3px solid var(--accent-primary);">
+              <div class="c-doc-card-top">
+                <div>
+                  <div class="c-doc-company">토스 (비바리퍼블리카)</div>
+                  <div class="c-doc-role">Frontend 엔지니어 인턴</div>
+                </div>
+                <span class="badge badge-warn tabular-nums">D-3 마감</span>
+              </div>
+              <div class="c-doc-progress-wrap">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
+                  <span>1,814 / 2,200자 (3문항)</span>
+                  <span style="font-weight: 600; color: var(--accent-primary);">82.5%</span>
+                </div>
+                <div class="c-doc-progress-bar">
+                  <div class="c-doc-progress-fill" style="width: 82.5%;"></div>
+                </div>
+              </div>
+              <div class="c-doc-card-footer">
+                <span>불변 버전: v4 (2분 전 저장)</span>
+                <span style="color: var(--accent-primary); font-weight: 600;">에디터 열기 →</span>
+              </div>
+            </a>
+
+            <!-- Doc 2: 당근 -->
+            <div class="c-doc-card">
+              <div class="c-doc-card-top">
+                <div>
+                  <div class="c-doc-company">당근</div>
+                  <div class="c-doc-role">서버 개발 신입</div>
+                </div>
+                <span class="badge badge-warn tabular-nums">D-5 마감</span>
+              </div>
+              <div class="c-doc-progress-wrap">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
+                  <span>1,240 / 2,000자 (2문항 작성)</span>
+                  <span style="font-weight: 600;">62.0%</span>
+                </div>
+                <div class="c-doc-progress-bar">
+                  <div class="c-doc-progress-fill" style="width: 62%;"></div>
+                </div>
+              </div>
+              <div class="c-doc-card-footer">
+                <span>불변 버전: v2 (어제 저장)</span>
+                <span>이어서 쓰기</span>
+              </div>
+            </div>
+
+            <!-- Doc 3: 무신사 -->
+            <div class="c-doc-card">
+              <div class="c-doc-card-top">
+                <div>
+                  <div class="c-doc-company">무신사</div>
+                  <div class="c-doc-role">웹 프론트엔드 개발자</div>
+                </div>
+                <span class="badge badge-pending tabular-nums">D-7</span>
+              </div>
+              <div class="c-doc-progress-wrap">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
+                  <span>520 / 1,500자 (1문항 작성)</span>
+                  <span style="font-weight: 600;">34.7%</span>
+                </div>
+                <div class="c-doc-progress-bar">
+                  <div class="c-doc-progress-fill" style="width: 34.7%;"></div>
+                </div>
+              </div>
+              <div class="c-doc-card-footer">
+                <span>불변 버전: v1 (11.07 생성)</span>
+                <span>초안 작성중</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Middle: 6-Stage Pipeline Summary Banner (Editorial Sheet Style) -->
+        <section class="c-pipeline-sheet">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <h2 class="c-section-heading" style="font-size: 16px;">6단계 채용 파이프라인 진행 상태</h2>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                전체 18개 지원사 전형 단계별 현황
+              </div>
+            </div>
+            <a href="kanban.html" class="btn btn-secondary btn-sm">칸반 도시에 보드 →</a>
+          </div>
+
+          <div class="c-pipeline-steps">
+            <div class="c-step-box">
+              <span class="c-step-name">1. 서류전형</span>
+              <span class="c-step-count">18</span>
+              <span style="font-size: 11px; color: var(--text-muted);">전체 접수</span>
+            </div>
+            <div class="c-step-box">
+              <span class="c-step-name">2. 코딩테스트</span>
+              <span class="c-step-count">12</span>
+              <span style="font-size: 11px; color: var(--accent-primary);">통과 66.7%</span>
+            </div>
+            <div class="c-step-box">
+              <span class="c-step-name">3. 과제전형</span>
+              <span class="c-step-count">7</span>
+              <span style="font-size: 11px; color: var(--accent-primary);">통과 58.3%</span>
+            </div>
+            <div class="c-step-box">
+              <span class="c-step-name">4. 1차 면접</span>
+              <span class="c-step-count">5</span>
+              <span style="font-size: 11px; color: var(--accent-primary);">통과 71.4%</span>
+            </div>
+            <div class="c-step-box">
+              <span class="c-step-name">5. 2차 면접</span>
+              <span class="c-step-count">3</span>
+              <span style="font-size: 11px; color: var(--accent-primary);">통과 60.0%</span>
+            </div>
+            <div class="c-step-box" style="background-color: var(--status-pass-bg); border-color: var(--status-pass-border);">
+              <span class="c-step-name" style="color: var(--status-pass-text); font-weight: 600;">6. 최종 합격</span>
+              <span class="c-step-count" style="color: var(--status-pass-text);">2</span>
+              <span style="font-size: 11px; color: var(--status-pass-text); font-weight: 600;">오퍼 수락</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bottom: Experience Scrap Frequency & Schedule Briefing -->
+        <section class="c-bottom-grid">
+          <!-- Left: Experience Material Usage Frequency -->
+          <div class="c-info-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">경험 자료실 인용 빈도 (STAR)</h3>
+              <span style="font-size: 11px; color: var(--text-muted);">총 14개 경험 보유</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">대용량 테이블 가상화 최적화</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">성과: 메모리 68% 절감, 스크롤 58fps 향상</div>
+                </div>
+                <span class="badge badge-tag tabular-nums" style="background-color: var(--accent-soft); color: var(--accent-primary); font-weight: 600;">4회 인용</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">학사 정보 시스템 웹 접근성 개선</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">성과: Lighthouse 접근성 98점, CLS 0.01 달성</div>
+                </div>
+                <span class="badge badge-tag tabular-nums" style="background-color: var(--accent-soft); color: var(--accent-primary); font-weight: 600;">3회 인용</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">MSW 기반 프론트엔드 모의 서버 분리</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">성과: API 명세 변경 시 프론트 개발 병목 해소</div>
+                </div>
+                <span class="badge badge-tag tabular-nums" style="background-color: var(--accent-soft); color: var(--accent-primary); font-weight: 600;">2회 인용</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">웹팩 트리셰이킹 번들 다이어트</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">성과: 초기 번들 사이즈 45% 감축</div>
+                </div>
+                <span class="badge badge-tag tabular-nums" style="background-color: var(--accent-soft); color: var(--accent-primary); font-weight: 600;">2회 인용</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: This Week's Major Schedule -->
+          <div class="c-info-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+              <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">이번 주 전형 및 마감 일정</h3>
+              <span class="badge badge-warn tabular-nums">임박 3건</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--bg-surface-subtle);">
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">토스 — Frontend 인턴 서류 마감</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">11월 13일(목) 23:59 마감 · 현재 v4 퇴고 중</div>
+                </div>
+                <span class="badge badge-warn tabular-nums">D-3</span>
+              </div>
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--bg-surface-subtle);">
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">카카오 — 1차 기술/직무 면접</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">11월 13일(목) 14:00 ~ 15:00 · 화상 면접</div>
+                </div>
+                <span class="badge badge-pending tabular-nums">11/13</span>
+              </div>
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--bg-surface-subtle);">
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">라인플러스 — 2차 임원 면접</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">11월 14일(금) 10:00 · 분당 서현 대면</div>
+                </div>
+                <span class="badge badge-pending tabular-nums">11/14</span>
+              </div>
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 6px 0;">
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">하이퍼커넥트 — 온라인 코딩테스트</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">11월 15일(토) 13:00 ~ 15:30 (150분)</div>
+                </div>
+                <span class="badge badge-pending tabular-nums">11/15</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

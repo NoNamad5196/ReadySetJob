@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadySetJob — 대시보드 (Variant B: Huntr-style)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Global Navigation Bar (56px) -->
+    <header class="gnb-header">
+      <div class="gnb-left">
+        <div class="brand-wrap">
+          <div class="brand-symbol">R</div>
+          <span class="brand-text">ReadySetJob</span>
+          <span class="brand-pill">B안</span>
+        </div>
+        <nav class="gnb-nav">
+          <a href="dashboard.html" class="gnb-nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+            <span>대시보드</span>
+          </a>
+          <a href="kanban.html" class="gnb-nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
+            <span>지원 칸반 보드</span>
+          </a>
+          <a href="editor.html" class="gnb-nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>자소서 에디터</span>
+          </a>
+          <a href="#" class="gnb-nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>경험 자료실</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="gnb-right">
+        <div class="status-summary-pill">
+          <span class="status-dot-active"></span>
+          <span>진행 중 <strong>11</strong>건</span>
+          <span style="color: var(--border-strong);">|</span>
+          <span style="color: var(--status-schedule-text); font-weight: 600;">D-Day 3건 임박</span>
+        </div>
+        <a href="kanban.html" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>+ 새 지원 추가</span>
+        </a>
+        <div class="user-profile-badge">
+          <div class="user-avatar-circle">김</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Full-Width Pipeline Summary Funnel Banner (64px) -->
+    <div class="pipeline-funnel-banner">
+      <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap;">
+        전형 파이프라인
+      </div>
+      <div class="funnel-stage-group">
+        <div class="funnel-step active">
+          <span class="funnel-step-name">1. 서류</span>
+          <span class="funnel-step-count">18</span>
+        </div>
+        <span class="funnel-arrow">→</span>
+        <div class="funnel-step active">
+          <span class="funnel-step-name">2. 코딩테스트</span>
+          <span class="funnel-step-count">12</span>
+          <span class="funnel-rate">(66.7%)</span>
+        </div>
+        <span class="funnel-arrow">→</span>
+        <div class="funnel-step active">
+          <span class="funnel-step-name">3. 과제전형</span>
+          <span class="funnel-step-count">7</span>
+          <span class="funnel-rate">(58.3%)</span>
+        </div>
+        <span class="funnel-arrow">→</span>
+        <div class="funnel-step active">
+          <span class="funnel-step-name">4. 1차 면접</span>
+          <span class="funnel-step-count">5</span>
+          <span class="funnel-rate">(71.4%)</span>
+        </div>
+        <span class="funnel-arrow">→</span>
+        <div class="funnel-step active">
+          <span class="funnel-step-name">5. 2차 면접</span>
+          <span class="funnel-step-count">3</span>
+          <span class="funnel-rate">(60.0%)</span>
+        </div>
+        <span class="funnel-arrow">→</span>
+        <div class="funnel-step active" style="background-color: var(--status-pass-bg); border-color: var(--status-pass-border);">
+          <span class="funnel-step-name" style="color: var(--status-pass-text);">6. 최종 합격</span>
+          <span class="funnel-step-count" style="background-color: var(--status-pass-text);">2</span>
+          <span class="funnel-rate" style="color: var(--status-pass-text);">(66.7%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Scrollable Content -->
+    <main class="b-dashboard-content">
+      <!-- 4-Card KPI Row -->
+      <section class="b-kpi-row">
+        <div class="b-kpi-card">
+          <div class="kpi-icon-box" style="background-color: var(--accent-soft); color: var(--accent-primary);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+          </div>
+          <div class="kpi-text-area">
+            <span class="kpi-sub">총 누적 지원</span>
+            <span class="kpi-num">18</span>
+            <span style="font-size: 11px; color: var(--text-muted);">2026 하반기 신입/인턴</span>
+          </div>
+        </div>
+
+        <div class="b-kpi-card">
+          <div class="kpi-icon-box" style="background-color: #eff6ff; color: #2563eb;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="kpi-text-area">
+            <span class="kpi-sub">현재 진행 중</span>
+            <span class="kpi-num" style="color: var(--accent-primary);">11</span>
+            <span style="font-size: 11px; color: var(--accent-primary); font-weight: 500;">파이프라인 가동률 61.1%</span>
+          </div>
+        </div>
+
+        <div class="b-kpi-card">
+          <div class="kpi-icon-box" style="background-color: var(--status-pass-bg); color: var(--status-pass-text);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="kpi-text-area">
+            <span class="kpi-sub">최종 합격 오퍼</span>
+            <span class="kpi-num" style="color: var(--status-pass-text);">2</span>
+            <span style="font-size: 11px; color: var(--status-pass-text); font-weight: 500;">토스증권, 네이버클라우드</span>
+          </div>
+        </div>
+
+        <div class="b-kpi-card">
+          <div class="kpi-icon-box" style="background-color: var(--status-fail-bg); color: var(--status-fail-text);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <div class="kpi-text-area">
+            <span class="kpi-sub">불합격 전형 마감</span>
+            <span class="kpi-num" style="color: var(--status-fail-text);">5</span>
+            <span style="font-size: 11px; color: var(--text-muted);">전형 피드백 보관됨</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Two-Column Main Layout: 45% Schedule Briefing + 55% Statistics Grid -->
+      <section class="b-main-grid">
+        <!-- Left: 45% Schedule Briefing & D-Day Timeline -->
+        <div class="b-card">
+          <div class="b-card-header">
+            <div>
+              <h2 class="b-card-title">이번 주 전형 일정 브리핑</h2>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                11월 2주차 필수 참석 면접 및 마감 일정 (4건)
+              </div>
+            </div>
+            <span class="badge badge-schedule">3일 이내 임박</span>
+          </div>
+
+          <div class="schedule-timeline">
+            <!-- Event 1: 토스 서류 마감 -->
+            <div class="timeline-event-card">
+              <div class="timeline-date-badge" style="background-color: var(--status-schedule-bg); color: var(--status-schedule-text);">
+                <span class="timeline-date-day">13</span>
+                <span class="timeline-date-month">11월(목)</span>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-company">
+                  <span>토스 — Frontend 엔지니어 인턴</span>
+                  <span class="badge badge-schedule">D-3 마감</span>
+                </div>
+                <div class="timeline-detail">
+                  서류 접수 마감: 23:59까지 · 현재 자소서 v4 작성 중 (글자수 82.5% 달성)
+                </div>
+              </div>
+              <a href="editor.html" class="btn btn-secondary btn-sm" style="align-self: center;">자소서 편집 →</a>
+            </div>
+
+            <!-- Event 2: 카카오 1차 면접 -->
+            <div class="timeline-event-card">
+              <div class="timeline-date-badge">
+                <span class="timeline-date-day">13</span>
+                <span class="timeline-date-month">11월(목)</span>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-company">
+                  <span>카카오 — 1차 기술/직무 면접</span>
+                  <span class="badge badge-pending">화상 면접</span>
+                </div>
+                <div class="timeline-detail">
+                  14:00 ~ 15:00 · 광고플랫폼 프론트엔드 포지션 · Google Meet 링크 수신완료
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" style="align-self: center;">질문 노트</button>
+            </div>
+
+            <!-- Event 3: 라인플러스 2차 면접 -->
+            <div class="timeline-event-card">
+              <div class="timeline-date-badge">
+                <span class="timeline-date-day">14</span>
+                <span class="timeline-date-month">11월(금)</span>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-company">
+                  <span>라인플러스 — 2차 심층/임원 면접</span>
+                  <span class="badge badge-pending">대면 면접</span>
+                </div>
+                <div class="timeline-detail">
+                  10:00 ~ 11:30 · 분당 서현 오피스 · 복장 비즈니스 캐주얼
+                </div>
+              </div>
+            </div>
+
+            <!-- Event 4: 하이퍼커넥트 코딩테스트 -->
+            <div class="timeline-event-card">
+              <div class="timeline-date-badge">
+                <span class="timeline-date-day">15</span>
+                <span class="timeline-date-month">11월(토)</span>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-company">
+                  <span>하이퍼커넥트 — 온라인 코딩테스트</span>
+                  <span class="badge badge-type">프로그래머스</span>
+                </div>
+                <div class="timeline-detail">
+                  13:00 ~ 15:30 (150분) · 알고리즘 3문항 + SQL 1문항
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: 55% Statistics Breakdown -->
+        <div class="b-card">
+          <div class="b-card-header">
+            <div>
+              <h2 class="b-card-title">단계별 통과율 및 전환 분석</h2>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                단계별 합격/불합격/진행중 구성비
+              </div>
+            </div>
+            <span class="badge badge-pass">최종 전환율 11.1%</span>
+          </div>
+
+          <div class="stats-breakdown">
+            <!-- Stage 1 -->
+            <div class="stat-bar-group">
+              <div class="stat-bar-label">
+                <span>1. 서류전형 (총 18건)</span>
+                <span>통과 12건 (66.7%) · 탈락 1건 (쿠팡) · 진행중 5건</span>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-pass" style="width: 66.7%;"></div>
+                <div class="stat-bar-fail" style="width: 5.6%;"></div>
+                <div style="background-color: var(--accent-soft); width: 27.7%;"></div>
+              </div>
+            </div>
+
+            <!-- Stage 2 -->
+            <div class="stat-bar-group">
+              <div class="stat-bar-label">
+                <span>2. 코딩테스트 (총 12건)</span>
+                <span>통과 7건 (58.3%) · 탈락 2건 (리디 등) · 진행중 3건</span>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-pass" style="width: 58.3%;"></div>
+                <div class="stat-bar-fail" style="width: 16.7%;"></div>
+                <div style="background-color: var(--accent-soft); width: 25.0%;"></div>
+              </div>
+            </div>
+
+            <!-- Stage 3 -->
+            <div class="stat-bar-group">
+              <div class="stat-bar-label">
+                <span>3. 과제전형 (총 7건)</span>
+                <span>통과 5건 (71.4%) · 탈락 0건 · 진행중 2건 (우아한형제들 등)</span>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-pass" style="width: 71.4%;"></div>
+                <div style="background-color: var(--accent-soft); width: 28.6%;"></div>
+              </div>
+            </div>
+
+            <!-- Stage 4 -->
+            <div class="stat-bar-group">
+              <div class="stat-bar-label">
+                <span>4. 1차 면접 (총 5건)</span>
+                <span>통과 3건 (60.0%) · 탈락 1건 (당근) · 진행중 1건 (카카오)</span>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-pass" style="width: 60.0%;"></div>
+                <div class="stat-bar-fail" style="width: 20.0%;"></div>
+                <div style="background-color: var(--accent-soft); width: 20.0%;"></div>
+              </div>
+            </div>
+
+            <!-- Stage 5 & 6 -->
+            <div class="stat-bar-group">
+              <div class="stat-bar-label">
+                <span>5. 2차 면접 & 최종 (총 3건)</span>
+                <span>최종 합격 2건 (토스증권, 네이버클라우드) · 진행중 1건 (라인)</span>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-pass" style="width: 66.7%; background-color: var(--status-pass-text);"></div>
+                <div style="background-color: var(--accent-soft); width: 33.3%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Summary Metrics -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-subtle); text-align: center;">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted);">서류 통과 배수</div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--accent-primary);">1.5배수</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted);">평균 전형 소요기간</div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);">24.5일</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted);">자소서 작성 완료율</div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--status-pass-text);">94.4%</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

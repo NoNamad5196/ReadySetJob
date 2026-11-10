@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadySetJob — 지원 칸반 보드 (Variant B: Huntr-style)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Global Navigation Bar (56px) -->
+    <header class="gnb-header">
+      <div class="gnb-left">
+        <div class="brand-wrap">
+          <div class="brand-symbol">R</div>
+          <span class="brand-text">ReadySetJob</span>
+          <span class="brand-pill">B안</span>
+        </div>
+        <nav class="gnb-nav">
+          <a href="dashboard.html" class="gnb-nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+            <span>대시보드</span>
+          </a>
+          <a href="kanban.html" class="gnb-nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
+            <span>지원 칸반 보드</span>
+          </a>
+          <a href="editor.html" class="gnb-nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>자소서 에디터</span>
+          </a>
+          <a href="#" class="gnb-nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>경험 자료실</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="gnb-right">
+        <!-- Filter bar elements inside GNB -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="text" placeholder="기업명, 직무 검색..." style="padding: 5px 12px; border: 1px solid var(--border-subtle); border-radius: 6px; font-size: 13px; background: var(--bg-surface-subtle); width: 170px;">
+          <div style="display: flex; gap: 4px;">
+            <button class="btn btn-sm btn-secondary" style="background-color: var(--accent-soft); color: var(--accent-text); border-color: var(--accent-border);">전체 (18)</button>
+            <button class="btn btn-sm btn-secondary">진행중 (11)</button>
+            <button class="btn btn-sm btn-secondary">합격 (2)</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>+ 새 지원 추가</span>
+        </button>
+        <div class="user-avatar-circle">김</div>
+      </div>
+    </header>
+
+    <!-- Pipeline Subheader Funnel Status -->
+    <div class="b-kanban-subheader">
+      <div class="b-subheader-stats">
+        <span>전체: <strong style="color: var(--text-primary);">18</strong></span>
+        <span>·</span>
+        <span>진행중: <strong style="color: var(--accent-primary);">11</strong></span>
+        <span>·</span>
+        <span>합격: <strong style="color: var(--status-pass-text);">2</strong></span>
+        <span>·</span>
+        <span>종료: <strong style="color: var(--status-fail-text);">5</strong></span>
+      </div>
+      <div class="b-subheader-legend">
+        <span style="font-size: 12px; color: var(--text-muted);">전형 열 순서: 서류 → 코테 → 과제 → 1차 → 2차 → 최종</span>
+      </div>
+    </div>
+
+    <!-- 100% Full-Width 6-Column Kanban Board -->
+    <div class="b-kanban-board-container">
+      <!-- Col 1: 서류전형 (4) -->
+      <div class="b-kanban-col">
+        <div class="b-kanban-col-header">
+          <span class="b-col-name">1. 서류전형</span>
+          <span class="b-col-badge">4</span>
+        </div>
+        <div class="b-kanban-card-list">
+          <!-- Card: 토스 -->
+          <div class="b-card-tile">
+            <div class="b-tile-header">
+              <span class="b-tile-company">토스</span>
+              <span class="badge badge-schedule">D-3 (11/13)</span>
+            </div>
+            <div class="b-tile-role">Frontend 엔지니어 인턴</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">인턴</span>
+              <span>자소서 3/3문항 완료</span>
+              <span style="color: var(--accent-primary); font-weight: 600;">v4</span>
+            </div>
+          </div>
+
+          <!-- Card: 당근 -->
+          <div class="b-card-tile">
+            <div class="b-tile-header">
+              <span class="b-tile-company">당근</span>
+              <span class="badge badge-schedule">D-5 (11/15)</span>
+            </div>
+            <div class="b-tile-role">서버 개발 신입</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">신입</span>
+              <span>자소서 2/3문항 작성</span>
+              <span>v2</span>
+            </div>
+          </div>
+
+          <!-- Card: 무신사 -->
+          <div class="b-card-tile">
+            <div class="b-tile-header">
+              <span class="b-tile-company">무신사</span>
+              <span class="badge badge-pending">D-7 (11/17)</span>
+            </div>
+            <div class="b-tile-role">웹 프론트엔드 개발자</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">신입</span>
+              <span>자소서 1/3문항 작성</span>
+              <span>v1</span>
+            </div>
+          </div>
+
+          <!-- Card: 쿠팡 (불합격) -->
+          <div class="b-card-tile is-muted status-fail">
+            <div class="b-tile-header">
+              <span class="b-tile-company">쿠팡</span>
+              <span class="badge badge-fail">불합격</span>
+            </div>
+            <div class="b-tile-role">풀스택 소프트웨어 엔지니어</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">신입</span>
+              <span>11/04 발표 종료</span>
+              <span>피드백</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Col 2: 코딩테스트 (3) -->
+      <div class="b-kanban-col">
+        <div class="b-kanban-col-header">
+          <span class="b-col-name">2. 코딩테스트</span>
+          <span class="b-col-badge">3</span>
+        </div>
+        <div class="b-kanban-card-list">
+          <!-- Card: 네이버 -->
+          <div class="b-card-tile status-pass">
+            <div class="b-tile-header">
+              <span class="b-tile-company">네이버</span>
+              <span class="badge badge-pass">합격 (통과)</span>
+            </div>
+            <div class="b-tile-role">FE 플랫폼 엔지니어</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">신입</span>
+              <span>과제 안내 대기중</span>
+              <span style="color: var(--status-pass-text); font-weight: 600;">PASS</span>
+            </div>
+          </div>
+
+          <!-- Card: 하이퍼커넥트 (DRAGGING STATE) -->
+          <div class="b-card-tile is-dragging status-schedule">
+            <div class="b-tile-header">
+              <span class="b-tile-company">하이퍼커넥트</span>
+              <span class="badge badge-schedule">11/15(토) 13:00</span>
+            </div>
+            <div class="b-tile-role">글로벌 서비스 백엔드</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">신입</span>
+              <span>프로그래머스 150분</span>
+              <span style="color: var(--accent-primary); font-weight: 600;">이동중...</span>
+            </div>
+          </div>
+
+          <!-- Card: 리디 (불합격) -->
+          <div class="b-card-tile is-muted status-fail">
+            <div class="b-tile-header">
+              <span class="b-tile-company">리디</span>
+              <span class="badge badge-fail">불합격</span>
+            </div>
+            <div class="b-tile-role">프론트엔드 개발자</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">인턴</span>
+              <span>코딩테스트 탈락</span>
+              <span>11/06</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Col 3: 과제전형 (1) -->
+      <div class="b-kanban-col">
+        <div class="b-kanban-col-header">
+          <span class="b-col-name">3. 과제전형</span>
+          <span class="b-col-badge">1</span>
+        </div>
+        <div class="b-kanban-card-list">
+          <!-- Card: 우아한형제들 -->
+          <div class="b-card-tile status-schedule">
+            <div class="b-tile-header">
+              <span class="b-tile-company">우아한형제들</span>
+              <span class="badge badge-schedule">11/16(일) 23:59</span>
+            </div>
+            <div class="b-tile-role">배민 웹서비스 엔지니어</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">신입</span>
+              <span>과제 구현 중 (60%)</span>
+              <span>GitHub</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Col 4: 1차 면접 (2) -->
+      <div class="b-kanban-col">
+        <div class="b-kanban-col-header">
+          <span class="b-col-name">4. 1차 면접</span>
+          <span class="b-col-badge">2</span>
+        </div>
+        <div class="b-kanban-card-list">
+          <!-- Card: 카카오 (클릭되어 모달 열림 타깃) -->
+          <div class="b-card-tile status-schedule" style="border: 2px solid var(--accent-primary);">
+            <div class="b-tile-header">
+              <span class="b-tile-company">카카오</span>
+              <span class="badge badge-schedule">11/13(목) 14:00</span>
+            </div>
+            <div class="b-tile-role">광고플랫폼 FE 엔지니어</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">신입</span>
+              <span>Google Meet 화상면접</span>
+              <span style="color: var(--accent-primary); font-weight: 700;">상세보기</span>
+            </div>
+          </div>
+
+          <!-- Card: 당근 (1차 불합격) -->
+          <div class="b-card-tile is-muted status-fail">
+            <div class="b-tile-header">
+              <span class="b-tile-company">당근</span>
+              <span class="badge badge-fail">불합격</span>
+            </div>
+            <div class="b-tile-role">플랫폼 엔지니어</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">인턴</span>
+              <span>1차 직무면접 탈락</span>
+              <span>11/02</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Col 5: 2차 면접 (1) -->
+      <div class="b-kanban-col">
+        <div class="b-kanban-col-header">
+          <span class="b-col-name">5. 2차 면접</span>
+          <span class="b-col-badge">1</span>
+        </div>
+        <div class="b-kanban-card-list">
+          <!-- Card: 라인플러스 -->
+          <div class="b-card-tile status-schedule">
+            <div class="b-tile-header">
+              <span class="b-tile-company">라인플러스</span>
+              <span class="badge badge-schedule">11/14(금) 10:00</span>
+            </div>
+            <div class="b-tile-role">Server Development</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">신입</span>
+              <span>분당 서현 오피스 대면</span>
+              <span>2차심층</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Col 6: 최종 (2) -->
+      <div class="b-kanban-col">
+        <div class="b-kanban-col-header" style="background-color: var(--status-pass-bg); border-color: var(--status-pass-border);">
+          <span class="b-col-name" style="color: var(--status-pass-text);">6. 최종 합격</span>
+          <span class="b-col-badge" style="background-color: var(--status-pass-text); color: #fff;">2</span>
+        </div>
+        <div class="b-kanban-card-list">
+          <!-- Card: 토스증권 -->
+          <div class="b-card-tile status-pass" style="border-color: var(--status-pass-border);">
+            <div class="b-tile-header">
+              <span class="b-tile-company">토스증권</span>
+              <span class="badge badge-pass">최종 합격</span>
+            </div>
+            <div class="b-tile-role">코어 백엔드 엔지니어</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">신입</span>
+              <span style="color: var(--status-pass-text); font-weight: 600;">처우 협의 완료</span>
+              <span>오퍼 수락</span>
+            </div>
+          </div>
+
+          <!-- Card: 네이버클라우드 -->
+          <div class="b-card-tile status-pass" style="border-color: var(--status-pass-border);">
+            <div class="b-tile-header">
+              <span class="b-tile-company">네이버클라우드</span>
+              <span class="badge badge-pass">최종 합격</span>
+            </div>
+            <div class="b-tile-role">클라우드 플랫폼 SW</div>
+            <div class="b-tile-footer">
+              <span class="badge badge-type">인턴</span>
+              <span style="color: var(--status-pass-text); font-weight: 600;">12/01 입사 확정</span>
+              <span>환영 키트</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered Tab-Based Detail Modal (860px wide) - Huntr Job Card Modal Style -->
+    <div class="modal-overlay">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="badge badge-type" style="font-size: 13px; padding: 3px 8px;">신입</span>
+            <h2 class="modal-company-title">카카오 — 광고플랫폼 FE 엔지니어</h2>
+            <span class="badge badge-schedule">1차 면접 예정</span>
+          </div>
+          <button style="font-size: 20px; color: var(--text-muted); cursor: pointer;">✕</button>
+        </div>
+
+        <!-- Modal Tabs -->
+        <div class="modal-tabs">
+          <div class="modal-tab active">전형 정보 및 일정</div>
+          <div class="modal-tab">제출 자기소개서 (v3)</div>
+          <div class="modal-tab">참조 경험 자료실 (STAR)</div>
+          <div class="modal-tab">면접 예상 질문 (12)</div>
+        </div>
+
+        <div class="modal-body">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+            <!-- Left Info Block -->
+            <div style="background-color: var(--bg-surface-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-4);">
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">전형 마일스톤</div>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-secondary);">서류 접수:</span>
+                  <span style="font-weight: 600;">10/28 합격 통보</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-secondary);">코딩테스트:</span>
+                  <span style="font-weight: 600;">11/04 통과 (4/4 솔브)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; color: var(--accent-schedule); font-weight: 700;">
+                  <span>1차 면접:</span>
+                  <span>11/13(목) 14:00 (D-Day)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; color: var(--text-muted);">
+                  <span>2차 면접:</span>
+                  <span>11월 말 예정</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Schedule Details Block -->
+            <div style="background-color: var(--bg-surface-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-4);">
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">면접 접속 및 사전 준비</div>
+              <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+                <div><strong>방식:</strong> Google Meet 화상 면접 (60분)</div>
+                <div><strong>면접관:</strong> 광고플랫폼팀 테크 리드 2인</div>
+                <div><strong>주요 질문 영역:</strong> 대규모 트래픽 웹 성능, 상태 관리 라이브러리 비교, TypeScript 고급 타입 설계</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Memo & Linked Essay -->
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">제출된 자기소개서 요약 (v3 최종본)</div>
+            <div style="border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: var(--space-3); font-size: 13px; line-height: 1.6; color: var(--text-secondary);">
+              - 1번 문항: 카카오 광고 SDK의 신뢰성과 로딩 성능 최적화 관심도 기술 (680자)<br>
+              - 2번 문항: 웹팩 번들 다이어트 및 트리셰이킹 45% 파일 크기 감축 경험 기술 (920자)<br>
+              - 연결된 경험 카드: <strong>#대용량웹소켓대시보드</strong>, <strong>#교내학사시스템웹접근성</strong>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: var(--space-2); border-top: 1px solid var(--border-subtle); padding-top: var(--space-3);">
+            <a href="editor.html" class="btn btn-secondary">자소서 전체 보기</a>
+            <button class="btn btn-primary">면접 준비 모드 시작</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

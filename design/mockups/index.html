@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadySetJob — 디자인 시안 갤러리 (A / B / C)</title>
+  <style>
+    :root {
+      --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Noto Sans KR", sans-serif;
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      padding: 40px 24px;
+      line-height: 1.5;
+    }
+    .gallery-container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      background-color: #eff6ff;
+      color: #1d4ed8;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    p.lead {
+      font-size: 16px;
+      color: var(--text-muted);
+    }
+    .variants-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+    .variant-section {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .variant-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .variant-title-group h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .variant-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .token-pills {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .token-pill {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: #f8fafc;
+      font-family: ui-monospace, monospace;
+    }
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .screen-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: #fafbfc;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+    .screen-card:hover {
+      border-color: #94a3b8;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+      transform: translateY(-2px);
+    }
+    .thumbnail-box {
+      width: 100%;
+      height: 200px;
+      background-color: #e2e8f0;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .thumbnail-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top left;
+      display: block;
+    }
+    .screen-info {
+      padding: 14px 16px;
+      background-color: #ffffff;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .screen-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .screen-tag {
+      font-size: 12px;
+      color: #2563eb;
+      font-weight: 500;
+    }
+    .mobile-badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      background-color: #f1f5f9;
+      color: #475569;
+      border-radius: 4px;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="gallery-container">
+    <header>
+      <span class="badge">ReadySetJob Design System</span>
+      <h1>ReadySetJob 디자인 시안 갤러리 (A / B / C안)</h1>
+      <p class="lead">
+        취업·인턴십 지원 현황 추적 및 불변 버전 자기소개서 관리를 위한 고품질 라이트 모드 디자인 시안 3종 비교 검토
+      </p>
+    </header>
+
+    <div class="variants-grid">
+      <!-- Variant A -->
+      <section class="variant-section">
+        <div class="variant-header">
+          <div class="variant-title-group">
+            <h2>
+              <span>[A안] Linear 스타일 미니멀 SaaS형</span>
+              <span class="badge" style="background-color: #eef2ff; color: #4f46e5;">Indigo Theme</span>
+            </h2>
+            <div class="variant-desc">
+              고밀도 역 L자형 애플리케이션 크롬, 220px 저채도 사이드바, 440px 슬라이드오버 드로어, 13px 컴팩트 타이포그래피
+            </div>
+          </div>
+          <div class="token-pills">
+            <span class="token-pill" style="border-left: 3px solid #4f46e5;">Accent #4F46E5</span>
+            <span class="token-pill">Base 13px</span>
+            <span class="token-pill">Density High</span>
+          </div>
+        </div>
+
+        <div class="screens-grid">
+          <a href="a/dashboard.html" class="screen-card">
+            <div class="thumbnail-box">
+              <img src="screenshots/a-dashboard.png" alt="A안 대시보드" onerror="this.parentElement.innerHTML='<div style=\'color:#64748b;font-size:13px;\'>대시보드 미리보기</div>'">
+            </div>
+            <div class="screen-info">
+              <span class="screen-title">대시보드</span>
+              <span class="screen-tag">a/dashboard.html →</span>
+            </div>
+          </a>
+
+          <a href="a/kanban.html" class="screen-card">
+            <div class="thumbnail-box">
+              <img src="screenshots/a-kanban.png" alt="A안 칸반" onerror="this.parentElement.innerHTML='<div style=\'color:#64748b;font-size:13px;\'>칸반 보드 미리보기</div>'">
+            </div>
+            <div class="screen-info">
+              <span class="screen-title">지원 현황 칸반</span>
+              <span class="screen-tag">a/kanban.html →</span>
+            </div>
+          </a>
+
+          <a href="a/editor.html" class="screen-card">
+            <div class="thumbnail-box">
+              <img src="screenshots/a-editor.png" alt="A안 에디터" onerror="this.parentElement.innerHTML='<div style=\'color:#64748b;font-size:13px;\'>자소서 에디터 미리보기</div>'">
+            </div>
+            <div class="screen-info">
+              <span class="screen-title">자소서 에디터</span>
+              <span class="screen-tag">a/editor.html →</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Variant B -->
+      <section class="variant-section">
+        <div class="variant-header">
+          <div class="variant-title-group">
+            <h2>
+              <span>[B안] Huntr 스타일 채용 파이프라인 중심형</span>
+              <span class="badge" style="background-color: #eff6ff; color: #2563eb;">Royal Blue</span>
+            </h2>
+            <div class="variant-desc">
+              상단 56px 수평 GNB, 전폭 6단계 칸반 보드, 64px 단계 퍼널 요약 배너, 860px 중앙 상세 탭 모달
+            </div>
+          </div>
+          <div class="token-pills">
+            <span class="token-pill" style="border-left: 3px solid #2563eb;">Accent #2563EB</span>
+            <span class="token-pill">Base 14px</span>
+            <span class="token-pill">Density Medium</span>
+          </div>
+        </div>
+
+        <div class="screens-grid">
+          <a href="b/dashboard.html" class="screen-card">
+            <div class="thumbnail-box">
+              <img src="screenshots/b-dashboard.png" alt="B안 대시보드" onerror="this.parentElement.innerHTML='<div style=\'color:#64748b;font-size:13px;\'>대시보드 미리보기</div>'">
+            </div>
+            <div class="screen-info">
+              <span class="screen-title">대시보드</span>
+              <span class="screen-tag">b/dashboard.html →</span>
+            </div>
+          </a>
+
+          <a href="b/kanban.html" class="screen-card">
+            <div class="thumbnail-box">
+              <img src="screenshots/b-kanban.png" alt="B안 칸반" onerror="this.parentElement.innerHTML='<div style=\'color:#64748b;font-size:13px;\'>칸반 보드 미리보기</div>'">
+            </div>
+            <div class="screen-info">
+              <span class="screen-title">지원 칸반 보드</span>
+              <span class="screen-tag">b/kanban.html →</span>
+            </div>
+          </a>
+
+          <a href="b/editor.html" class="screen-card">
+            <div class="thumbnail-box">
+              <img src="screenshots/b-editor.png" alt="B안 에디터" onerror="this.parentElement.innerHTML='<div style=\'color:#64748b;font-size:13px;\'>자소서 에디터 미리보기</div>'">
+            </div>
+            <div class="screen-info">
+              <span class="screen-title">자소서 에디터</span>
+              <span class="screen-tag">b/editor.html →</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Variant C -->
+      <section class="variant-section">
+        <div class="variant-header">
+          <div class="variant-title-group">
+            <h2>
+              <span>[C안] Craft 스타일 문서 집필 중심형</span>
+              <span class="badge" style="background-color: #f0fdfa; color: #0f766e;">Deep Teal</span>
+            </h2>
+            <div class="variant-desc">
+              여유로운 문서 밀도, 200px 목차 바, 760px 순백색 종이 캔버스, 불변 버전 스냅샷 타임라인, 도시에 칸반
+            </div>
+          </div>
+          <div class="token-pills">
+            <span class="token-pill" style="border-left: 3px solid #0f766e;">Accent #0F766E</span>
+            <span class="token-pill">Base 15px / 1.75</span>
+            <span class="token-pill">Density Editorial</span>
+          </div>
+        </div>
+
+        <div class="screens-grid">
+          <a href="c/dashboard.html" class="screen-card">
+            <div class="thumbnail-box">
+              <img src="screenshots/c-dashboard.png" alt="C안 대시보드" onerror="this.parentElement.innerHTML='<div style=\'color:#64748b;font-size:13px;\'>대시보드 미리보기</div>'">
+            </div>
+            <div class="screen-info">
+              <span class="screen-title">스튜디오 대시보드</span>
+              <span class="screen-tag">c/dashboard.html →</span>
+            </div>
+          </a>
+
+          <a href="c/kanban.html" class="screen-card">
+            <div class="thumbnail-box">
+              <img src="screenshots/c-kanban.png" alt="C안 칸반" onerror="this.parentElement.innerHTML='<div style=\'color:#64748b;font-size:13px;\'>칸반 보드 미리보기</div>'">
+            </div>
+            <div class="screen-info">
+              <span class="screen-title">지원 현황 보드</span>
+              <span class="screen-tag">c/kanban.html →</span>
+            </div>
+          </a>
+
+          <a href="c/editor.html" class="screen-card">
+            <div class="thumbnail-box">
+              <img src="screenshots/c-editor.png" alt="C안 에디터" onerror="this.parentElement.innerHTML='<div style=\'color:#64748b;font-size:13px;\'>자소서 에디터 미리보기</div>'">
+            </div>
+            <div class="screen-info">
+              <span class="screen-title">자소서 에디터</span>
+              <span class="screen-tag">c/editor.html →</span>
+            </div>
+          </a>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
