@@ -56,6 +56,15 @@ function seed(db) {
       db.prepare('DELETE FROM users WHERE id = ?').run(existingUser.id);
     }
 
+    const otherUsersCount = db
+      .prepare('SELECT COUNT(*) AS cnt FROM users WHERE email != ?')
+      .get(demoEmail).cnt;
+    if (otherUsersCount === 0) {
+      db.prepare(
+        "DELETE FROM sqlite_sequence WHERE name IN ('users', 'companies', 'job_posts', 'applications', 'stage_logs', 'events', 'interview_questions')"
+      ).run();
+    }
+
     const passwordHash = bcrypt.hashSync('demo1234!', 10);
     const userInfo = db
       .prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)')

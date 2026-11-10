@@ -99,3 +99,92 @@
     </div>
   <% } %>
 </section>
+
+<section class="card">
+  <div class="page-header">
+    <h2>예상 면접 질문 (<%= (typeof interviewQuestions !== 'undefined' && interviewQuestions ? interviewQuestions.length : (application.interviewQuestions ? application.interviewQuestions.length : 0)) %>건)</h2>
+    <div>
+      <% if (typeof aiEnabled !== 'undefined' && aiEnabled) { %>
+        <form action="/applications/<%= application.id %>/interview-questions/generate" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-primary btn-sm">AI 질문 생성</button>
+        </form>
+      <% } else { %>
+        <div class="inline-actions">
+          <button type="button" class="btn btn-primary btn-sm" disabled aria-disabled="true">AI 질문 생성</button>
+          <span class="text-muted">AI 기능이 비활성화되어 있습니다 (GEMINI_API_KEY 미설정)</span>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (typeof questionError !== 'undefined' && questionError) { %>
+    <div class="flash flash--error" role="status">
+      <%= questionError %>
+    </div>
+  <% } %>
+
+  <form action="/applications/<%= application.id %>/interview-questions" method="POST" class="form-field">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="form-field">
+      <label for="question-input">면접 질문 직접 추가</label>
+      <div class="inline-actions">
+        <input
+          type="text"
+          id="question-input"
+          name="question"
+          class="input"
+          placeholder="예상 면접 질문을 입력하세요 (최대 500자)"
+          value="<%= typeof manualQuestion !== 'undefined' && manualQuestion ? manualQuestion : '' %>"
+          maxlength="500"
+          required
+        >
+        <button type="submit" class="btn btn-sm btn-primary">추가</button>
+      </div>
+    </div>
+  </form>
+
+  <% const qList = (typeof interviewQuestions !== 'undefined' && interviewQuestions) ? interviewQuestions : (application.interviewQuestions || []); %>
+  <% if (!qList || qList.length === 0) { %>
+    <p class="text-muted">등록된 예상 면접 질문이 없습니다.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>면접 질문</th>
+            <th>등록일시</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const q of qList) { %>
+            <tr>
+              <td>
+                <% if (q.source === 'ai') { %>
+                  <span class="badge badge--stage-coding_test">AI 생성</span>
+                <% } else { %>
+                  <span class="badge">직접 작성</span>
+                <% } %>
+              </td>
+              <td><%= q.question %></td>
+              <td class="text-muted"><%= q.created_at %></td>
+              <td>
+                <form
+                  action="/applications/<%= application.id %>/interview-questions/<%= q.id %>?_method=DELETE"
+                  method="POST"
+                  data-confirm="이 질문을 삭제하시겠습니까?"
+                >
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="_method" value="DELETE">
+                  <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+                </form>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

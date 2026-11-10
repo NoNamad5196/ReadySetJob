@@ -1,23 +1,17 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
 const {
-  APPLICATION_STAGES,
-  APPLICATION_RESULTS,
-  isValidDate,
-  parseId,
+  APPLICATION_STAGES, APPLICATION_RESULTS, isValidDate, parseId,
 } = require('../middleware/validation');
 const { createHttpError } = require('../middleware/error');
 const { listJobPosts, getJobPostById } = require('../services/jobsService');
 const {
-  listApplications,
-  listBoardApplications,
-  getApplicationById,
-  createApplication,
-  updateApplication,
-  moveApplication,
-  patchApplicationStage,
-  deleteApplication,
+  listApplications, listBoardApplications, getApplicationById, createApplication,
+  updateApplication, moveApplication, patchApplicationStage, deleteApplication,
 } = require('../services/applicationsService');
+const { list: listInterviewQuestions } = require('../services/interviewQuestionsService');
+const { isAiEnabled } = require('../services/aiService');
+const { createInterviewQuestionsRouter } = require('./interviewQuestions');
 
 function validateApplicationFormInput({ stage, result, applied_at }) {
   if (!APPLICATION_STAGES.includes(stage)) return '올바른 전형 단계를 선택해 주세요.';
@@ -26,26 +20,25 @@ function validateApplicationFormInput({ stage, result, applied_at }) {
   return null;
 }
 
+function parseNonNegativeInt(val, fieldName) {
+  if (val === undefined || val === null || val === '') return { value: undefined };
+  const num = Number(val);
+  if (typeof val === 'boolean' || !Number.isInteger(num) || num < 0) {
+    return { error: `유효하지 않은 순서(${fieldName})입니다.` };
+  }
+  return { value: num };
+}
+
 function parseStagePayload(body = {}) {
   const stage = String(body.stage || '').trim();
   const result = body.result !== undefined && body.result !== null && body.result !== '' ? String(body.result).trim() : undefined;
   if (!stage || !APPLICATION_STAGES.includes(stage)) return { error: '유효하지 않은 전형 단계(stage)입니다.' };
   if (result !== undefined && !APPLICATION_RESULTS.includes(result)) return { error: '유효하지 않은 전형 결과(result)입니다.' };
-  let parsedIndex;
-  if (body.index !== undefined && body.index !== null && body.index !== '') {
-    parsedIndex = Number(body.index);
-    if (typeof body.index === 'boolean' || !Number.isInteger(parsedIndex) || parsedIndex < 0) {
-      return { error: '유효하지 않은 순서(index)입니다.' };
-    }
-  }
-  let parsedBoardOrder;
-  if (body.board_order !== undefined && body.board_order !== null && body.board_order !== '') {
-    parsedBoardOrder = Number(body.board_order);
-    if (typeof body.board_order === 'boolean' || !Number.isInteger(parsedBoardOrder) || parsedBoardOrder < 0) {
-      return { error: '유효하지 않은 순서(board_order)입니다.' };
-    }
-  }
-  return { stage, result, parsedIndex, board_order: parsedBoardOrder };
+  const pIndex = parseNonNegativeInt(body.index, 'index');
+  if (pIndex.error) return { error: pIndex.error };
+  const pOrder = parseNonNegativeInt(body.board_order, 'board_order');
+  if (pOrder.error) return { error: pOrder.error };
+  return { stage, result, parsedIndex: pIndex.value, board_order: pOrder.value };
 }
 
 function createApplicationsRouter(db) {
@@ -154,9 +147,14 @@ function createApplicationsRouter(db) {
     if (!id) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
     const application = getApplicationById(db, req.session.user.id, id);
     if (!application) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
+    const interviewQuestions = listInterviewQuestions(db, req.session.user.id, id);
     return res.render('applications/detail', {
       title: `${application.company_name} — 지원 상세`,
-      application,
+      application: { ...application, interviewQuestions },
+      interviewQuestions,
+      aiEnabled: isAiEnabled(),
+      questionError: null,
+      manualQuestion: '',
     });
   });
 
@@ -234,6 +232,8 @@ function createApplicationsRouter(db) {
     req.setFlash('success', '지원 내역이 삭제되었습니다.');
     return res.redirect('/applications');
   });
+
+  router.use('/', createInterviewQuestionsRouter(db));
 
   return router;
 }

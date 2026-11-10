@@ -147,3 +147,4 @@
 - **P2 핵심 구현 (`검증 완료`)**: 대시보드 통계(KPI, 단계별 분포·결과 비율·월별 추이 Chart.js 차트, 마감 임박·일정·최근 활동)와 경험 자료함 CRUD 구현. Chart.js는 npm 패키지를 `/vendor/chart.js`로 자체 서빙(CDN 미사용).
 - **코드 리뷰 반영 (`검증 완료`)**: Momus(Grok) 리뷰 9건 수정 — 프로덕션 SESSION_SECRET 필수화, secure 쿠키, 오픈 리다이렉트 차단(`safeRedirectPath`), 달력 기준 엄격한 날짜 검증, 수정/삭제 시 board_order 재정렬, 정수 id 파싱(`parseId`), 자소서 서비스 계층 소유권 검증, 가입 UNIQUE 경합 처리. CSP에 차단되던 인라인 style 제거. `npm test` 42/42 통과, 브라우저 시나리오 콘솔 오류 0건.
 - **남은 작업**: 디자인 승인 → `docs/DESIGN_SYSTEM.md` 확정 및 전 화면 적용(P3), 다크모드 완성, AI 예상 면접 질문(P4), 통합 테스트·시연 데이터·최종 보고서·발표 자료. Notion 동기화는 Notion MCP 인증 만료(Unauthorized)로 보류 — 로컬 `docs/notion/*.md`에 보존.
+- **P4 AI 예상 면접 질문 (`구현 완료`, 실호출 미검증)**: 지원 상세에 예상 면접 질문 섹션(직접 작성 CRUD + AI 생성). 서버 측 Gemini REST 호출(`x-goog-api-key` 헤더, 15초 타임아웃, 응답 JSON 검증, 사용자별 10분 5회 제한). `GEMINI_API_KEY` 미설정 시 버튼 비활성·안내 표시, 가짜 응답 없음. stub fetch 기반 테스트 포함 `npm test` 50/50 통과. 실제 API 키로의 호출은 아직 미검증.
