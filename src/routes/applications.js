@@ -1,6 +1,11 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
-const { APPLICATION_STAGES, APPLICATION_RESULTS, isValidDate } = require('../middleware/validation');
+const {
+  APPLICATION_STAGES,
+  APPLICATION_RESULTS,
+  isValidDate,
+  parseId,
+} = require('../middleware/validation');
 const { createHttpError } = require('../middleware/error');
 const { listJobPosts, getJobPostById } = require('../services/jobsService');
 const {
@@ -24,20 +29,23 @@ function validateApplicationFormInput({ stage, result, applied_at }) {
 function parseStagePayload(body = {}) {
   const stage = String(body.stage || '').trim();
   const result = body.result !== undefined && body.result !== null && body.result !== '' ? String(body.result).trim() : undefined;
-  if (!stage || !APPLICATION_STAGES.includes(stage)) {
-    return { error: '유효하지 않은 전형 단계(stage)입니다.' };
-  }
-  if (result !== undefined && !APPLICATION_RESULTS.includes(result)) {
-    return { error: '유효하지 않은 전형 결과(result)입니다.' };
-  }
+  if (!stage || !APPLICATION_STAGES.includes(stage)) return { error: '유효하지 않은 전형 단계(stage)입니다.' };
+  if (result !== undefined && !APPLICATION_RESULTS.includes(result)) return { error: '유효하지 않은 전형 결과(result)입니다.' };
   let parsedIndex;
   if (body.index !== undefined && body.index !== null && body.index !== '') {
     parsedIndex = Number(body.index);
-    if (!Number.isInteger(parsedIndex) || parsedIndex < 0) {
+    if (typeof body.index === 'boolean' || !Number.isInteger(parsedIndex) || parsedIndex < 0) {
       return { error: '유효하지 않은 순서(index)입니다.' };
     }
   }
-  return { stage, result, parsedIndex, board_order: body.board_order };
+  let parsedBoardOrder;
+  if (body.board_order !== undefined && body.board_order !== null && body.board_order !== '') {
+    parsedBoardOrder = Number(body.board_order);
+    if (typeof body.board_order === 'boolean' || !Number.isInteger(parsedBoardOrder) || parsedBoardOrder < 0) {
+      return { error: '유효하지 않은 순서(board_order)입니다.' };
+    }
+  }
+  return { stage, result, parsedIndex, board_order: parsedBoardOrder };
 }
 
 function createApplicationsRouter(db) {
@@ -71,9 +79,8 @@ function createApplicationsRouter(db) {
 
   router.get('/new', (req, res) => {
     const jobs = listJobPosts(db, req.session.user.id);
-    const preselectedJobId = req.query.job_post_id ? Number(req.query.job_post_id) : '';
+    const preselectedJobId = req.query.job_post_id ? parseId(req.query.job_post_id) || '' : '';
     const today = new Date().toISOString().slice(0, 10);
-
     return res.render('applications/form', {
       title: '지원 내역 등록',
       isEdit: false,
@@ -92,8 +99,24 @@ function createApplicationsRouter(db) {
   router.post('/', (req, res, next) => {
     const userId = req.session.user.id;
     const jobs = listJobPosts(db, userId);
+
+    let job_post_id = '';
+    const rawJobId = req.body.job_post_id;
+    if (rawJobId !== undefined && rawJobId !== null && String(rawJobId).trim() !== '') {
+      job_post_id = parseId(rawJobId);
+      if (!job_post_id) {
+        return res.status(422).render('applications/form', {
+          title: '지원 내역 등록',
+          isEdit: false,
+          error: '올바른 채용 공고를 선택해 주세요.',
+          jobs,
+          application: req.body,
+        });
+      }
+    }
+
     const formValues = {
-      job_post_id: req.body.job_post_id ? Number(req.body.job_post_id) : '',
+      job_post_id: job_post_id || '',
       stage: String(req.body.stage || 'document').trim(),
       result: String(req.body.result || 'in_progress').trim(),
       applied_at: String(req.body.applied_at || '').trim(),
@@ -127,7 +150,9 @@ function createApplicationsRouter(db) {
   });
 
   router.get('/:id', (req, res, next) => {
-    const application = getApplicationById(db, req.session.user.id, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
+    const application = getApplicationById(db, req.session.user.id, id);
     if (!application) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
     return res.render('applications/detail', {
       title: `${application.company_name} — 지원 상세`,
@@ -137,7 +162,9 @@ function createApplicationsRouter(db) {
 
   router.get('/:id/edit', (req, res, next) => {
     const userId = req.session.user.id;
-    const application = getApplicationById(db, userId, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
+    const application = getApplicationById(db, userId, id);
     if (!application) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
     return res.render('applications/form', {
       title: `${application.company_name} — 지원 내역 수정`,
@@ -150,11 +177,12 @@ function createApplicationsRouter(db) {
 
   router.put('/:id', (req, res, next) => {
     const userId = req.session.user.id;
-    const existing = getApplicationById(db, userId, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
+    const existing = getApplicationById(db, userId, id);
     if (!existing) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
 
     const formValues = {
-      ...existing,
       stage: String(req.body.stage || existing.stage).trim(),
       result: String(req.body.result || existing.result).trim(),
       applied_at: String(req.body.applied_at !== undefined ? req.body.applied_at : existing.applied_at || '').trim(),
@@ -168,7 +196,7 @@ function createApplicationsRouter(db) {
         isEdit: true,
         error: fieldError,
         jobs: listJobPosts(db, userId),
-        application: formValues,
+        application: { ...existing, ...formValues },
       });
     }
 
@@ -178,13 +206,15 @@ function createApplicationsRouter(db) {
   });
 
   router.post('/:id/stage', (req, res, next) => {
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
     const parsed = parseStagePayload(req.body);
     if (parsed.error) return next(createHttpError(422, parsed.error));
 
     const updated = moveApplication(
       db,
       req.session.user.id,
-      req.params.id,
+      id,
       parsed.stage,
       parsed.parsedIndex,
       parsed.result
@@ -196,7 +226,9 @@ function createApplicationsRouter(db) {
   });
 
   router.delete('/:id', (req, res, next) => {
-    if (!deleteApplication(db, req.session.user.id, req.params.id)) {
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
+    if (!deleteApplication(db, req.session.user.id, id)) {
       return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
     }
     req.setFlash('success', '지원 내역이 삭제되었습니다.');
@@ -211,10 +243,13 @@ function createApplicationsApiRouter(db) {
   router.use(requireAuth);
 
   router.patch('/:id/stage', (req, res) => {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(404).json({ error: '요청한 지원 내역을 찾을 수 없습니다.' });
+
     const parsed = parseStagePayload(req.body);
     if (parsed.error) return res.status(422).json({ error: parsed.error });
 
-    const updated = patchApplicationStage(db, req.session.user.id, req.params.id, {
+    const updated = patchApplicationStage(db, req.session.user.id, id, {
       stage: parsed.stage,
       result: parsed.result,
       index: parsed.parsedIndex,
@@ -228,13 +263,7 @@ function createApplicationsApiRouter(db) {
       stage: updated.stage,
       result: updated.result,
       board_order: updated.board_order,
-      application: {
-        id: updated.id,
-        stage: updated.stage,
-        result: updated.result,
-        board_order: updated.board_order,
-        ...updated,
-      },
+      application: { ...updated },
       stageLogs: updated.stageLogs,
       stage_logs: updated.stageLogs,
     });

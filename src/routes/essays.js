@@ -1,6 +1,7 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
 const { createHttpError } = require('../middleware/error');
+const { safeRedirectPath, parseId } = require('../middleware/validation');
 const {
   listUserApplications, getOwnedApplication, listEssays, getEssayById, createEssay, saveEssayDraft,
   addEssayQuestion, updateEssayQuestion, deleteEssayQuestion, moveEssayQuestion,
@@ -16,40 +17,35 @@ function isValidCharLimit(val) {
   return Number.isInteger(num) && num > 0 && num <= 50000;
 }
 
-function parseQuestionsFromBody(body) {
-  if (Array.isArray(body.questions)) {
-    return body.questions.map((q) => ({ question: String(q.question || '').trim(), char_limit: String(q.char_limit ?? '').trim(), answer: String(q.answer || '') }));
-  }
-  const qTexts = toArray(body.question);
-  const qLimits = toArray(body.char_limit);
-  const qAnswers = toArray(body.answer);
-  return qTexts.map((q, idx) => ({ question: String(q || '').trim(), char_limit: String(qLimits[idx] ?? '').trim(), answer: String(qAnswers[idx] ?? '') }));
-}
+const parseQuestionsFromBody = (body) =>
+  Array.isArray(body.questions)
+    ? body.questions.map((q) => ({ question: String(q.question || '').trim(), char_limit: String(q.char_limit ?? '').trim(), answer: String(q.answer || '') }))
+    : toArray(body.question).map((q, idx) => ({ question: String(q || '').trim(), char_limit: String(toArray(body.char_limit)[idx] ?? '').trim(), answer: String(toArray(body.answer)[idx] ?? '') }));
 
-function parseDraftAnswersFromBody(body, existingQuestions = []) {
+const parseDraftAnswersFromBody = (body, existingQuestions = []) => {
   const arr = Array.isArray(body.answers) ? body.answers : Array.isArray(body.questions) ? body.questions : null;
   if (arr) return arr.map((a) => ({ question_id: Number(a.question_id || a.id), answer: String(a.answer ?? '') }));
-  const qIds = toArray(body.question_id);
-  const ansArr = toArray(body.answer);
+  const qIds = toArray(body.question_id), ansArr = toArray(body.answer);
   if (qIds.length > 0) return qIds.map((qid, idx) => ({ question_id: Number(qid), answer: String(ansArr[idx] ?? '') }));
   return existingQuestions.filter((q) => `answer_${q.id}` in body).map((q) => ({ question_id: q.id, answer: String(body[`answer_${q.id}`] ?? '') }));
-}
+};
 
-function renderEditorView(res, db, { userId, essay, refQ = '', activeTab = 'past', status = 200, error = null }) {
-  return res.status(status).render('essays/editor', {
-    title: `${essay.title} — 자기소개서 편집`,
-    essay,
+const renderEditorView = (res, db, { userId, essay, refQ = '', activeTab = 'past', status = 200, error = null }) =>
+  res.status(status).render('essays/editor', {
+    title: `${essay.title} — 자기소개서 편집`, essay,
     applications: listUserApplications(db, userId),
     pastQuestions: searchEssayQuestions(db, userId, { q: refQ, excludeEssayId: essay.id }),
-    refQ,
-    activeTab,
-    error,
+    refQ, activeTab, error,
   });
-}
 
 function createEssaysRouter(db) {
   const router = express.Router();
   router.use(requireAuth);
+
+  router.param('id', (req, res, next, v) => (req.params.id = parseId(v)) ? next() : next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.')));
+  router.param('qid', (req, res, next, v) => (req.params.qid = parseId(v)) ? next() : next(createHttpError(404, '요청한 문항을 찾을 수 없습니다.')));
+  router.param('no', (req, res, next, v) => (req.params.no = parseId(v)) ? next() : next(createHttpError(404, '요청한 버전을 찾을 수 없습니다.')));
+  router.param('materialId', (req, res, next, v) => (req.params.materialId = parseId(v)) ? next() : next(createHttpError(404, '자기소개서 또는 경험 자료를 찾을 수 없습니다.')));
 
   router.get('/', (req, res) => {
     const userId = req.session.user.id;
@@ -73,7 +69,8 @@ function createEssaysRouter(db) {
   router.post('/', (req, res, next) => {
     const userId = req.session.user.id;
     const title = String(req.body.title || '').trim();
-    const application_id = req.body.application_id ? Number(req.body.application_id) : null;
+    let application_id = null;
+    const rawAppId = req.body.application_id;
     const rawQuestions = parseQuestionsFromBody(req.body);
     const nonEmptyQuestions = rawQuestions.filter((q) => q.question.length > 0);
     const applications = listUserApplications(db, userId);
@@ -84,23 +81,30 @@ function createEssaysRouter(db) {
         essay: { title, application_id: application_id || '', questions: rawQuestions.length > 0 ? rawQuestions : [{ question: '', char_limit: 1000, answer: '' }] },
       });
 
+    if (rawAppId !== undefined && rawAppId !== null && String(rawAppId).trim() !== '') {
+      application_id = parseId(rawAppId);
+      if (!application_id) return renderInvalid('올바른 지원 내역을 선택해 주세요.');
+    }
     if (!title) return renderInvalid('자기소개서 제목을 입력해 주세요.');
     if (nonEmptyQuestions.length === 0) return renderInvalid('최소 1개 이상의 문항을 입력해 주세요.');
     if (nonEmptyQuestions.some((q) => !isValidCharLimit(q.char_limit))) return renderInvalid('글자수 제한은 1 이상의 정수로 입력해 주세요.');
     if (application_id && !getOwnedApplication(db, userId, application_id)) return next(createHttpError(404, '연결할 지원 내역을 찾을 수 없습니다.'));
 
-    const created = createEssay(db, userId, { title, application_id, questions: nonEmptyQuestions });
-    req.setFlash('success', '자기소개서가 생성되었습니다.');
-    return res.redirect(`/essays/${created.id}`);
+    try {
+      const created = createEssay(db, userId, { title, application_id, questions: nonEmptyQuestions });
+      req.setFlash('success', '자기소개서가 생성되었습니다.');
+      return res.redirect(`/essays/${created.id}`);
+    } catch (err) {
+      return next(err);
+    }
   });
 
   router.get('/:id', (req, res, next) => {
-    const userId = req.session.user.id;
-    const essay = getEssayById(db, userId, req.params.id);
+    const essay = getEssayById(db, req.session.user.id, req.params.id);
     if (!essay) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
     const refQ = String(req.query.ref_q || '').trim();
     const activeTab = req.query.tab === 'materials' ? 'materials' : 'past';
-    return renderEditorView(res, db, { userId, essay, refQ, activeTab });
+    return renderEditorView(res, db, { userId: req.session.user.id, essay, refQ, activeTab });
   });
 
   router.put('/:id', (req, res, next) => {
@@ -111,12 +115,21 @@ function createEssaysRouter(db) {
     const title = req.body.title !== undefined ? String(req.body.title).trim() : existing.title;
     if (!title) return renderEditorView(res, db, { userId, essay: existing, status: 422, error: '자기소개서 제목을 입력해 주세요.' });
 
-    const appIdRaw = req.body.application_id;
-    const application_id = appIdRaw === undefined ? existing.application_id : appIdRaw ? Number(appIdRaw) : null;
+    let application_id = existing.application_id;
+    const rawAppId = req.body.application_id;
+    if (rawAppId !== undefined) {
+      application_id = rawAppId === null || String(rawAppId).trim() === '' ? null : parseId(rawAppId);
+      if (rawAppId !== null && String(rawAppId).trim() !== '' && !application_id) {
+        return renderEditorView(res, db, { userId, essay: existing, status: 422, error: '올바른 지원 내역을 선택해 주세요.' });
+      }
+    }
     if (application_id && !getOwnedApplication(db, userId, application_id)) return next(createHttpError(404, '연결할 지원 내역을 찾을 수 없습니다.'));
 
-    const answers = parseDraftAnswersFromBody(req.body, existing.questions);
-    saveEssayDraft(db, userId, { essayId: existing.id, title, application_id, answers });
+    try {
+      saveEssayDraft(db, userId, { essayId: existing.id, title, application_id, answers: parseDraftAnswersFromBody(req.body, existing.questions) });
+    } catch (err) {
+      return next(err);
+    }
     req.setFlash('success', '초안이 저장되었습니다.');
     return res.redirect(`/essays/${existing.id}`);
   });
@@ -125,14 +138,10 @@ function createEssaysRouter(db) {
     const userId = req.session.user.id;
     const existing = getEssayById(db, userId, req.params.id);
     if (!existing) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
-
-    const question = String(req.body.question || '').trim();
-    const char_limit = String(req.body.char_limit ?? '').trim();
+    const question = String(req.body.question || '').trim(), char_limit = String(req.body.char_limit ?? '').trim();
     if (!question || !isValidCharLimit(char_limit)) {
-      const error = !question ? '문항 질문을 입력해 주세요.' : '글자수 제한은 1 이상의 정수여야 합니다.';
-      return renderEditorView(res, db, { userId, essay: existing, status: 422, error });
+      return renderEditorView(res, db, { userId, essay: existing, status: 422, error: !question ? '문항 질문을 입력해 주세요.' : '글자수 제한은 1 이상의 정수여야 합니다.' });
     }
-
     addEssayQuestion(db, userId, { essayId: existing.id, question, char_limit, answer: req.body.answer || '' });
     req.setFlash('success', '새 문항이 추가되었습니다.');
     return res.redirect(`/essays/${existing.id}`);
@@ -142,16 +151,13 @@ function createEssaysRouter(db) {
     const userId = req.session.user.id;
     const existing = getEssayById(db, userId, req.params.id);
     if (!existing) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
-
-    const question = String(req.body.question || '').trim();
-    const char_limit = String(req.body.char_limit ?? '').trim();
+    const question = String(req.body.question || '').trim(), char_limit = String(req.body.char_limit ?? '').trim();
     if (!question || !isValidCharLimit(char_limit)) {
-      const error = !question ? '문항 질문을 입력해 주세요.' : '글자수 제한은 1 이상의 정수여야 합니다.';
-      return renderEditorView(res, db, { userId, essay: existing, status: 422, error });
+      return renderEditorView(res, db, { userId, essay: existing, status: 422, error: !question ? '문항 질문을 입력해 주세요.' : '글자수 제한은 1 이상의 정수여야 합니다.' });
     }
-
-    const updated = updateEssayQuestion(db, userId, { essayId: existing.id, questionId: req.params.qid, question, char_limit });
-    if (!updated) return next(createHttpError(404, '요청한 문항을 찾을 수 없습니다.'));
+    if (!updateEssayQuestion(db, userId, { essayId: existing.id, questionId: req.params.qid, question, char_limit })) {
+      return next(createHttpError(404, '요청한 문항을 찾을 수 없습니다.'));
+    }
     req.setFlash('success', '문항 정보가 수정되었습니다.');
     return res.redirect(`/essays/${existing.id}`);
   });
@@ -171,17 +177,17 @@ function createEssaysRouter(db) {
   router.post('/:id/questions/:qid/move', (req, res, next) => {
     const dir = String(req.body.dir || '').trim();
     if (dir !== 'up' && dir !== 'down') return res.status(422).send('유효하지 않은 이동 방향입니다.');
-    const moved = moveEssayQuestion(db, req.session.user.id, { essayId: req.params.id, questionId: req.params.qid, dir });
-    if (!moved) return next(createHttpError(404, '요청한 문항을 찾을 수 없습니다.'));
+    if (!moveEssayQuestion(db, req.session.user.id, { essayId: req.params.id, questionId: req.params.qid, dir })) {
+      return next(createHttpError(404, '요청한 문항을 찾을 수 없습니다.'));
+    }
     return res.redirect(`/essays/${req.params.id}`);
   });
 
   router.post('/:id/versions', (req, res, next) => {
-    const label = String(req.body.label || '').trim();
-    const version = createEssayVersion(db, req.session.user.id, { essayId: req.params.id, label });
+    const version = createEssayVersion(db, req.session.user.id, { essayId: req.params.id, label: String(req.body.label || '').trim() });
     if (!version) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
     req.setFlash('success', `v${version.version_no} 버전이 생성되었습니다.`);
-    return res.redirect(req.body.redirect_to || `/essays/${req.params.id}`);
+    return res.redirect(safeRedirectPath(req.body.redirect_to, `/essays/${req.params.id}`));
   });
 
   router.get('/:id/versions', (req, res, next) => {
@@ -241,8 +247,7 @@ function createEssaysRouter(db) {
   });
 
   router.delete('/:id', (req, res, next) => {
-    const deleted = deleteEssay(db, req.session.user.id, req.params.id);
-    if (!deleted) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
+    if (!deleteEssay(db, req.session.user.id, req.params.id)) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
     req.setFlash('success', '자기소개서가 삭제되었습니다.');
     return res.redirect('/essays');
   });
@@ -253,6 +258,8 @@ function createEssaysRouter(db) {
 function createEssaysApiRouter(db) {
   const router = express.Router();
   router.use(requireAuth);
+
+  router.param('id', (req, res, next, v) => (req.params.id = parseId(v)) ? next() : res.status(404).json({ error: '요청한 자기소개서를 찾을 수 없습니다.' }));
 
   router.get('/search', (req, res) => {
     const q = String(req.query.q || '').trim();
@@ -266,12 +273,14 @@ function createEssaysApiRouter(db) {
     const userId = req.session.user.id;
     const existing = getEssayById(db, userId, req.params.id);
     if (!existing) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
-
     const rawAnswers = req.body.answers || req.body.questions;
     if (!Array.isArray(rawAnswers)) return res.status(422).json({ error: 'answers 배열이 필요합니다.' });
-    const answers = parseDraftAnswersFromBody(req.body, existing.questions);
-    const saved = saveEssayDraft(db, userId, { essayId: existing.id, title: req.body.title, answers });
-    return res.json({ saved_at: saved.saved_at, essay_id: saved.essay_id });
+    try {
+      const saved = saveEssayDraft(db, userId, { essayId: existing.id, title: req.body.title, answers: parseDraftAnswersFromBody(req.body, existing.questions) });
+      return res.json({ saved_at: saved.saved_at, essay_id: saved.essay_id });
+    } catch (err) {
+      return next(err);
+    }
   });
 
   return router;

@@ -127,7 +127,29 @@ function updateApplication(db, userId, id, { stage, result, board_order, applied
 
     const nextStage = stage || existing.stage;
     const nextResult = result || existing.result;
-    const nextBoardOrder = board_order !== undefined && board_order !== '' ? Number(board_order) : existing.board_order;
+
+    if (existing.stage !== nextStage && (board_order === undefined || board_order === null || board_order === '')) {
+      db.prepare(
+        "UPDATE applications SET applied_at = ?, memo = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?"
+      ).run(
+        applied_at && String(applied_at).trim() ? String(applied_at).trim() : null,
+        String(memo || '').trim(),
+        existing.id,
+        userId
+      );
+      return moveApplication(db, userId, existing.id, nextStage, undefined, nextResult);
+    }
+
+    let nextBoardOrder = existing.board_order;
+    if (board_order !== undefined && board_order !== null && board_order !== '') {
+      nextBoardOrder = Number(board_order);
+      if (typeof board_order === 'boolean' || !Number.isInteger(nextBoardOrder) || nextBoardOrder < 0) {
+        const err = new Error('유효하지 않은 순서(board_order)입니다.');
+        err.status = 422;
+        err.expose = true;
+        throw err;
+      }
+    }
 
     db.prepare(
       "UPDATE applications SET stage = ?, result = ?, board_order = ?, applied_at = ?, memo = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?"
@@ -218,7 +240,26 @@ function patchApplicationStage(db, userId, id, { stage, result, index, board_ord
 }
 
 function deleteApplication(db, userId, id) {
-  return db.prepare('DELETE FROM applications WHERE id = ? AND user_id = ?').run(Number(id), userId).changes > 0;
+  const uid = Number(userId);
+  const appId = Number(id);
+  return db.transaction(() => {
+    const existing = db.prepare('SELECT id, stage FROM applications WHERE id = ? AND user_id = ?').get(appId, uid);
+    if (!existing) return false;
+
+    const res = db.prepare('DELETE FROM applications WHERE id = ? AND user_id = ?').run(appId, uid);
+    if (res.changes === 0) return false;
+
+    const remaining = db
+      .prepare('SELECT id FROM applications WHERE user_id = ? AND stage = ? ORDER BY board_order ASC, updated_at DESC, id DESC')
+      .all(uid, existing.stage);
+
+    const updateOrderStmt = db.prepare('UPDATE applications SET board_order = ? WHERE id = ? AND user_id = ?');
+    for (let i = 0; i < remaining.length; i += 1) {
+      updateOrderStmt.run(i, remaining[i].id, uid);
+    }
+
+    return true;
+  })();
 }
 
 module.exports = {

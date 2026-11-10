@@ -1,6 +1,11 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
-const { EVENT_TYPES, isValidDateTime } = require('../middleware/validation');
+const {
+  EVENT_TYPES,
+  isValidDateTime,
+  safeRedirectPath,
+  parseId,
+} = require('../middleware/validation');
 const { createHttpError } = require('../middleware/error');
 const { listApplications, getApplicationById } = require('../services/applicationsService');
 const {
@@ -34,12 +39,33 @@ function createEventsRouter(db) {
 
   router.post('/', (req, res, next) => {
     const userId = req.session.user.id;
-    const application_id = req.body.application_id ? Number(req.body.application_id) : null;
+    let application_id = null;
+    const rawAppId = req.body.application_id;
+    if (rawAppId !== undefined && rawAppId !== null && String(rawAppId).trim() !== '') {
+      application_id = parseId(rawAppId);
+      if (!application_id) {
+        const events = listEvents(db, userId);
+        const applications = listApplications(db, userId);
+        return res.status(422).render('events/index', {
+          title: '일정 관리',
+          events,
+          applications,
+          error: '올바른 지원 내역을 선택해 주세요.',
+          values: {
+            application_id: '',
+            title: String(req.body.title || '').trim(),
+            type: String(req.body.type || 'other').trim(),
+            starts_at: String(req.body.starts_at || '').trim(),
+            memo: String(req.body.memo || '').trim(),
+          },
+        });
+      }
+    }
     const title = String(req.body.title || '').trim();
     const type = String(req.body.type || 'other').trim();
     const starts_at = String(req.body.starts_at || '').trim();
     const memo = String(req.body.memo || '').trim();
-    const redirectTo = req.body.redirect_to || '/events';
+    const redirectTo = safeRedirectPath(req.body.redirect_to, '/events');
 
     const renderInvalid = (errorMessage) => {
       const events = listEvents(db, userId);
@@ -78,25 +104,33 @@ function createEventsRouter(db) {
       }
     }
 
-    createEvent(db, userId, {
-      application_id,
-      title,
-      type,
-      starts_at,
-      memo,
-    });
+    try {
+      createEvent(db, userId, {
+        application_id,
+        title,
+        type,
+        starts_at,
+        memo,
+      });
+    } catch (err) {
+      return next(err);
+    }
 
     req.setFlash('success', '일정이 등록되었습니다.');
     return res.redirect(redirectTo);
   });
 
   router.delete('/:id', (req, res, next) => {
-    const deleted = deleteEvent(db, req.session.user.id, req.params.id);
+    const eventId = parseId(req.params.id);
+    if (!eventId) {
+      return next(createHttpError(404, '요청한 일정을 찾을 수 없습니다.'));
+    }
+    const deleted = deleteEvent(db, req.session.user.id, eventId);
     if (!deleted) {
       return next(createHttpError(404, '요청한 일정을 찾을 수 없습니다.'));
     }
     req.setFlash('success', '일정이 삭제되었습니다.');
-    const redirectTo = req.body.redirect_to || '/events';
+    const redirectTo = safeRedirectPath(req.body.redirect_to, '/events');
     return res.redirect(redirectTo);
   });
 

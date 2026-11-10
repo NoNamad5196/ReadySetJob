@@ -61,26 +61,87 @@ const EVENT_TYPE_LABELS = {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const DATETIME_REGEX = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/;
+const SAFE_REDIRECT_REGEX = /^\/(?![\/\\])/;
+const CONTROL_CHARS_REGEX = /[\x00-\x1F\x7F]/;
+const POSITIVE_INTEGER_REGEX = /^\s*\d+\s*$/;
 
 function isValidEmail(email) {
   return typeof email === 'string' && EMAIL_REGEX.test(email.trim());
 }
 
 function isValidDate(dateStr) {
-  if (!dateStr) return true;
-  if (typeof dateStr !== 'string' || !DATE_REGEX.test(dateStr.trim())) {
-    return false;
-  }
-  const d = new Date(`${dateStr.trim()}T00:00:00Z`);
-  return !Number.isNaN(d.getTime());
+  if (dateStr === undefined || dateStr === null) return true;
+  if (typeof dateStr !== 'string') return false;
+  const trimmed = dateStr.trim();
+  if (!trimmed) return true;
+  if (!DATE_REGEX.test(trimmed)) return false;
+
+  const [yStr, mStr, dStr] = trimmed.split('-');
+  const year = Number(yStr);
+  const month = Number(mStr);
+  const day = Number(dStr);
+  if (month < 1 || month > 12) return false;
+
+  const d = new Date(Date.UTC(year, month - 1, day));
+  return (
+    d.getUTCFullYear() === year &&
+    d.getUTCMonth() === month - 1 &&
+    d.getUTCDate() === day
+  );
 }
 
 function isValidDateTime(dtStr) {
   if (typeof dtStr !== 'string' || !dtStr.trim()) {
     return false;
   }
-  const d = new Date(dtStr.trim());
-  return !Number.isNaN(d.getTime());
+  const trimmed = dtStr.trim();
+  const match = trimmed.match(DATETIME_REGEX);
+  if (!match) return false;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = match[6] !== undefined ? Number(match[6]) : 0;
+
+  if (month < 1 || month > 12) return false;
+  if (hour < 0 || hour > 23) return false;
+  if (minute < 0 || minute > 59) return false;
+  if (second < 0 || second > 59) return false;
+
+  const d = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  return (
+    d.getUTCFullYear() === year &&
+    d.getUTCMonth() === month - 1 &&
+    d.getUTCDate() === day
+  );
+}
+
+function safeRedirectPath(value, fallback = '/') {
+  if (typeof value !== 'string') return fallback;
+  const trimmed = value.trim();
+  if (
+    !SAFE_REDIRECT_REGEX.test(trimmed) ||
+    trimmed.includes('://') ||
+    trimmed.includes('\\') ||
+    CONTROL_CHARS_REGEX.test(trimmed)
+  ) {
+    return fallback;
+  }
+  return trimmed;
+}
+
+function parseId(value) {
+  if (value === null || value === undefined || typeof value === 'boolean') {
+    return null;
+  }
+  if (typeof value === 'string' && !POSITIVE_INTEGER_REGEX.test(value)) {
+    return null;
+  }
+  const num = Number(value);
+  return Number.isInteger(num) && num > 0 ? num : null;
 }
 
 function isValidUrl(urlStr) {
@@ -157,6 +218,8 @@ module.exports = {
   isValidDate,
   isValidDateTime,
   isValidUrl,
+  safeRedirectPath,
+  parseId,
   calculateDday,
   normalizeTags,
   attachUiHelpers,

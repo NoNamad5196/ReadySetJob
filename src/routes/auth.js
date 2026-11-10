@@ -66,7 +66,25 @@ function createAuthRouter(db) {
       });
     }
 
-    const createdUser = createUser(db, { email, password, name });
+    let createdUser;
+    try {
+      createdUser = createUser(db, { email, password, name });
+    } catch (err) {
+      // Catch duplicate email race condition from SQLite UNIQUE constraint.
+      // Trade-off: returning "이미 사용 중인 이메일입니다." permits user enumeration,
+      // but for this personal job-tracking application, user-friendly feedback is preferred.
+      if (
+        err.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+        (err.message && err.message.includes('UNIQUE constraint failed'))
+      ) {
+        return res.status(422).render('auth/signup', {
+          title: '회원가입',
+          error: '이미 사용 중인 이메일입니다.',
+          values: { email, name },
+        });
+      }
+      return next(err);
+    }
 
     return req.session.regenerate((regenErr) => {
       if (regenErr) {
@@ -148,7 +166,12 @@ function createAuthRouter(db) {
       if (err) {
         return next(err);
       }
-      res.clearCookie('readysetjob.sid');
+      res.clearCookie('readysetjob.sid', {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      });
       return res.redirect('/login');
     });
   });

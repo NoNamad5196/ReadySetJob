@@ -6,6 +6,7 @@ require('./essays.test.js');
 require('./essay-versions.test.js');
 require('./dashboard.test.js');
 require('./materials.test.js');
-require('./dashboard.test.js');
-require('./materials.test.js');
+require('./review-fixes.test.js');
+require('./review-fixes-2.test.js');
+require('./review-fixes-2.test.js');
 

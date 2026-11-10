@@ -33,6 +33,8 @@ function createEvent(db, userId, { application_id = null, title, type = 'other',
     if (!appRow) {
       const err = new Error('연결할 지원 내역을 찾을 수 없습니다.');
       err.code = 'APPLICATION_NOT_FOUND';
+      err.status = 404;
+      err.expose = true;
       throw err;
     }
     targetAppId = appRow.id;

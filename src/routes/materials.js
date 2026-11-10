@@ -1,6 +1,6 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
-const { MATERIAL_KINDS } = require('../middleware/validation');
+const { MATERIAL_KINDS, parseId } = require('../middleware/validation');
 const { createHttpError } = require('../middleware/error');
 const {
   listMaterials,
@@ -81,7 +81,9 @@ function createMaterialsRouter(db) {
 
   router.get('/:id', (req, res, next) => {
     const userId = req.session.user.id;
-    const material = getMaterialWithEssays(db, userId, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 자료를 찾을 수 없습니다.'));
+    const material = getMaterialWithEssays(db, userId, id);
     if (!material) {
       return next(createHttpError(404, '요청한 자료를 찾을 수 없습니다.'));
     }
@@ -93,7 +95,9 @@ function createMaterialsRouter(db) {
 
   router.get('/:id/edit', (req, res, next) => {
     const userId = req.session.user.id;
-    const material = getMaterialById(db, userId, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 자료를 찾을 수 없습니다.'));
+    const material = getMaterialById(db, userId, id);
     if (!material) {
       return next(createHttpError(404, '요청한 자료를 찾을 수 없습니다.'));
     }
@@ -107,7 +111,9 @@ function createMaterialsRouter(db) {
 
   router.put('/:id', (req, res, next) => {
     const userId = req.session.user.id;
-    const existing = getMaterialById(db, userId, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 자료를 찾을 수 없습니다.'));
+    const existing = getMaterialById(db, userId, id);
     if (!existing) {
       return next(createHttpError(404, '요청한 자료를 찾을 수 없습니다.'));
     }
@@ -135,7 +141,9 @@ function createMaterialsRouter(db) {
   });
 
   router.delete('/:id', (req, res, next) => {
-    const deleted = deleteMaterial(db, req.session.user.id, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 자료를 찾을 수 없습니다.'));
+    const deleted = deleteMaterial(db, req.session.user.id, id);
     if (!deleted) {
       return next(createHttpError(404, '요청한 자료를 찾을 수 없습니다.'));
     }

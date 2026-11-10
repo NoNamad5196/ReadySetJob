@@ -4,6 +4,8 @@ const {
   EMPLOYMENT_TYPES,
   isValidDate,
   isValidUrl,
+  safeRedirectPath,
+  parseId,
 } = require('../middleware/validation');
 const { createHttpError } = require('../middleware/error');
 const { listCompanies, getCompanyById } = require('../services/companiesService');
@@ -15,6 +17,32 @@ const {
   toggleJobBookmark,
   deleteJobPost,
 } = require('../services/jobsService');
+
+function extractJobValues(body, existing = {}) {
+  const isBm = body.is_bookmarked;
+  return {
+    title: String(body.title || '').trim(),
+    position: String(body.position || '').trim(),
+    employment_type: String(body.employment_type || existing.employment_type || 'new_grad').trim(),
+    url: String(body.url || '').trim(),
+    deadline: String(body.deadline || '').trim(),
+    memo: String(body.memo || '').trim(),
+    is_bookmarked:
+      isBm === undefined
+        ? (existing.is_bookmarked || 0)
+        : isBm === '1' || isBm === 'on' || isBm === true
+          ? 1
+          : 0,
+  };
+}
+
+function validateJobFields({ title, employment_type, deadline, url }) {
+  if (!title) return '공고 제목을 입력해 주세요.';
+  if (!EMPLOYMENT_TYPES.includes(employment_type)) return '올바른 채용 형태를 선택해 주세요.';
+  if (!isValidDate(deadline)) return '마감일 형식이 올바르지 않습니다 (YYYY-MM-DD).';
+  if (!isValidUrl(url)) return 'URL은 http:// 또는 https://로 시작해야 합니다.';
+  return null;
+}
 
 function createJobsRouter(db) {
   const router = express.Router();
@@ -43,19 +71,7 @@ function createJobsRouter(db) {
       isEdit: false,
       error: null,
       companies,
-      job: {
-        company_id: preselectedCompanyId,
-        new_company_name: '',
-        new_company_industry: '',
-        new_company_website: '',
-        title: '',
-        position: '',
-        employment_type: 'new_grad',
-        url: '',
-        deadline: '',
-        memo: '',
-        is_bookmarked: 0,
-      },
+      job: { company_id: preselectedCompanyId, new_company_name: '', new_company_industry: '', new_company_website: '', title: '', position: '', employment_type: 'new_grad', url: '', deadline: '', memo: '', is_bookmarked: 0 },
     });
   });
 
@@ -63,35 +79,31 @@ function createJobsRouter(db) {
     const userId = req.session.user.id;
     const companies = listCompanies(db, userId);
 
-    const company_id = req.body.company_id ? Number(req.body.company_id) : '';
+    let company_id = '';
+    const rawCompanyId = req.body.company_id;
+    if (rawCompanyId !== undefined && rawCompanyId !== null && String(rawCompanyId).trim() !== '') {
+      company_id = parseId(rawCompanyId);
+      if (!company_id) {
+        return res.status(422).render('jobs/form', {
+          title: '채용 공고 등록',
+          isEdit: false,
+          error: '올바른 기업을 선택해 주세요.',
+          companies,
+          job: req.body,
+        });
+      }
+    }
+    const baseValues = extractJobValues(req.body);
     const new_company_name = String(req.body.new_company_name || '').trim();
     const new_company_industry = String(req.body.new_company_industry || '').trim();
     const new_company_website = String(req.body.new_company_website || '').trim();
-    const title = String(req.body.title || '').trim();
-    const position = String(req.body.position || '').trim();
-    const employment_type = String(req.body.employment_type || 'new_grad').trim();
-    const url = String(req.body.url || '').trim();
-    const deadline = String(req.body.deadline || '').trim();
-    const memo = String(req.body.memo || '').trim();
-    const is_bookmarked =
-      req.body.is_bookmarked === '1' ||
-      req.body.is_bookmarked === 'on' ||
-      req.body.is_bookmarked === true
-        ? 1
-        : 0;
 
     const formValues = {
+      ...baseValues,
       company_id,
       new_company_name,
       new_company_industry,
       new_company_website,
-      title,
-      position,
-      employment_type,
-      url,
-      deadline,
-      memo,
-      is_bookmarked,
     };
 
     const renderInvalid = (errorMessage) =>
@@ -103,23 +115,14 @@ function createJobsRouter(db) {
         job: formValues,
       });
 
-    if (!title) {
-      return renderInvalid('공고 제목을 입력해 주세요.');
-    }
+    const fieldError = validateJobFields(formValues);
+    if (fieldError) return renderInvalid(fieldError);
 
     if (!company_id && !new_company_name) {
       return renderInvalid('기존 기업을 선택하거나 새 기업명을 입력해 주세요.');
     }
 
-    if (!EMPLOYMENT_TYPES.includes(employment_type)) {
-      return renderInvalid('올바른 채용 형태를 선택해 주세요.');
-    }
-
-    if (!isValidDate(deadline)) {
-      return renderInvalid('마감일 형식이 올바르지 않습니다 (YYYY-MM-DD).');
-    }
-
-    if (!isValidUrl(url) || !isValidUrl(new_company_website)) {
+    if (!isValidUrl(new_company_website)) {
       return renderInvalid('URL은 http:// 또는 https://로 시작해야 합니다.');
     }
 
@@ -136,7 +139,11 @@ function createJobsRouter(db) {
   });
 
   router.get('/:id', (req, res, next) => {
-    const job = getJobPostById(db, req.session.user.id, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) {
+      return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
+    }
+    const job = getJobPostById(db, req.session.user.id, id);
     if (!job) {
       return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
     }
@@ -148,7 +155,11 @@ function createJobsRouter(db) {
 
   router.get('/:id/edit', (req, res, next) => {
     const userId = req.session.user.id;
-    const job = getJobPostById(db, userId, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) {
+      return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
+    }
+    const job = getJobPostById(db, userId, id);
     if (!job) {
       return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
     }
@@ -164,40 +175,35 @@ function createJobsRouter(db) {
 
   router.put('/:id', (req, res, next) => {
     const userId = req.session.user.id;
-    const existing = getJobPostById(db, userId, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) {
+      return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
+    }
+    const existing = getJobPostById(db, userId, id);
     if (!existing) {
       return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
     }
 
     const companies = listCompanies(db, userId);
-    const company_id = req.body.company_id ? Number(req.body.company_id) : existing.company_id;
-    const title = String(req.body.title || '').trim();
-    const position = String(req.body.position || '').trim();
-    const employment_type = String(
-      req.body.employment_type || existing.employment_type || 'new_grad'
-    ).trim();
-    const url = String(req.body.url || '').trim();
-    const deadline = String(req.body.deadline || '').trim();
-    const memo = String(req.body.memo || '').trim();
-    const is_bookmarked =
-      req.body.is_bookmarked === undefined
-        ? existing.is_bookmarked
-        : req.body.is_bookmarked === '1' ||
-            req.body.is_bookmarked === 'on' ||
-            req.body.is_bookmarked === true
-          ? 1
-          : 0;
-
+    let company_id = existing.company_id;
+    const rawCompanyId = req.body.company_id;
+    if (rawCompanyId !== undefined && rawCompanyId !== null && String(rawCompanyId).trim() !== '') {
+      company_id = parseId(rawCompanyId);
+      if (!company_id) {
+        return res.status(422).render('jobs/form', {
+          title: '채용 공고 수정',
+          isEdit: true,
+          error: '올바른 기업을 선택해 주세요.',
+          companies,
+          job: { ...existing, ...req.body },
+        });
+      }
+    }
+    const baseValues = extractJobValues(req.body, existing);
     const formValues = {
       id: existing.id,
       company_id,
-      title,
-      position,
-      employment_type,
-      url,
-      deadline,
-      memo,
-      is_bookmarked,
+      ...baseValues,
     };
 
     const renderInvalid = (errorMessage) =>
@@ -209,21 +215,8 @@ function createJobsRouter(db) {
         job: formValues,
       });
 
-    if (!title) {
-      return renderInvalid('공고 제목을 입력해 주세요.');
-    }
-
-    if (!EMPLOYMENT_TYPES.includes(employment_type)) {
-      return renderInvalid('올바른 채용 형태를 선택해 주세요.');
-    }
-
-    if (!isValidDate(deadline)) {
-      return renderInvalid('마감일 형식이 올바르지 않습니다 (YYYY-MM-DD).');
-    }
-
-    if (!isValidUrl(url)) {
-      return renderInvalid('URL은 http:// 또는 https://로 시작해야 합니다.');
-    }
+    const fieldError = validateJobFields(formValues);
+    if (fieldError) return renderInvalid(fieldError);
 
     const ownedCompany = getCompanyById(db, userId, company_id);
     if (!ownedCompany) {
@@ -236,7 +229,11 @@ function createJobsRouter(db) {
   });
 
   router.post('/:id/bookmark', (req, res, next) => {
-    const updated = toggleJobBookmark(db, req.session.user.id, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) {
+      return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
+    }
+    const updated = toggleJobBookmark(db, req.session.user.id, id);
     if (!updated) {
       return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
     }
@@ -249,12 +246,16 @@ function createJobsRouter(db) {
       'success',
       updated.is_bookmarked ? '관심 공고로 북마크했습니다.' : '북마크를 해제했습니다.'
     );
-    const redirectTo = req.body.redirect_to || `/jobs/${updated.id}`;
+    const redirectTo = safeRedirectPath(req.body.redirect_to, `/jobs/${updated.id}`);
     return res.redirect(redirectTo);
   });
 
   router.delete('/:id', (req, res, next) => {
-    const deleted = deleteJobPost(db, req.session.user.id, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) {
+      return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
+    }
+    const deleted = deleteJobPost(db, req.session.user.id, id);
     if (!deleted) {
       return next(createHttpError(404, '요청한 채용 공고를 찾을 수 없습니다.'));
     }

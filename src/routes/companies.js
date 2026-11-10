@@ -1,6 +1,6 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
-const { isValidUrl } = require('../middleware/validation');
+const { isValidUrl, parseId } = require('../middleware/validation');
 const { createHttpError } = require('../middleware/error');
 const {
   listCompanies,
@@ -77,7 +77,9 @@ function createCompaniesRouter(db) {
   });
 
   router.get('/:id', (req, res, next) => {
-    const company = getCompanyWithJobs(db, req.session.user.id, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 기업을 찾을 수 없습니다.'));
+    const company = getCompanyWithJobs(db, req.session.user.id, id);
     if (!company) {
       return next(createHttpError(404, '요청한 기업을 찾을 수 없습니다.'));
     }
@@ -88,7 +90,9 @@ function createCompaniesRouter(db) {
   });
 
   router.get('/:id/edit', (req, res, next) => {
-    const company = getCompanyById(db, req.session.user.id, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 기업을 찾을 수 없습니다.'));
+    const company = getCompanyById(db, req.session.user.id, id);
     if (!company) {
       return next(createHttpError(404, '요청한 기업을 찾을 수 없습니다.'));
     }
@@ -102,7 +106,9 @@ function createCompaniesRouter(db) {
 
   router.put('/:id', (req, res, next) => {
     const userId = req.session.user.id;
-    const existing = getCompanyById(db, userId, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 기업을 찾을 수 없습니다.'));
+    const existing = getCompanyById(db, userId, id);
     if (!existing) {
       return next(createHttpError(404, '요청한 기업을 찾을 수 없습니다.'));
     }
@@ -147,7 +153,9 @@ function createCompaniesRouter(db) {
   });
 
   router.delete('/:id', (req, res, next) => {
-    const deleted = deleteCompany(db, req.session.user.id, req.params.id);
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 기업을 찾을 수 없습니다.'));
+    const deleted = deleteCompany(db, req.session.user.id, id);
     if (!deleted) {
       return next(createHttpError(404, '요청한 기업을 찾을 수 없습니다.'));
     }

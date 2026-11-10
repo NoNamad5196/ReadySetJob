@@ -45,6 +45,10 @@ function createApp({ dbPath } = {}) {
   app.locals.db = db;
   app.db = db;
 
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+  }
+
   app.set('views', path.join(__dirname, '../views'));
   app.set('view engine', 'ejs');
   app.use(expressLayouts);
@@ -96,6 +100,11 @@ function createApp({ dbPath } = {}) {
 
   let sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'SESSION_SECRET environment variable is required in production mode.'
+      );
+    }
     if (process.env.NODE_ENV !== 'test') {
       console.warn(
         '[ReadySetJob] Warning: SESSION_SECRET is not set. Using development fallback secret.'
@@ -118,8 +127,10 @@ function createApp({ dbPath } = {}) {
       resave: false,
       saveUninitialized: false,
       cookie: {
+        path: '/',
         httpOnly: true,
         sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 1000 * 60 * 60 * 24 * 7,
       },
     })
