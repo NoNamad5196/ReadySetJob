@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>지원 보드 — ReadySetJob</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidenav">
+      <a class="brand" href="index.html">ReadySetJob</a>
+      <nav class="nav" aria-label="주 메뉴">
+        <a class="nav-link" href="dashboard.html">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2.8 7.1 8 2.8l5.2 4.3V13a.7.7 0 0 1-.7.7H3.5a.7.7 0 0 1-.7-.7V7.1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          홈
+        </a>
+        <a class="nav-link" href="kanban.html" aria-current="page">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2.6 2.8h3.4v10.4H2.6zM10 2.8h3.4v6.6H10z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          지원 보드
+        </a>
+        <a class="nav-link" href="editor.html">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M9.4 2.8 13.2 6.6 6.1 13.7H2.3V9.9L9.4 2.8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          자소서
+        </a>
+      </nav>
+      <div class="sidenav-foot">
+        <p>이선우</p>
+        <button type="button" class="btn-text" data-theme-toggle>어둡게</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="mobile-bar">
+        <strong>ReadySetJob</strong>
+        <button type="button" class="btn-text" data-theme-toggle>어둡게</button>
+      </header>
+
+      <header class="page-head">
+        <h1>지원 현황</h1>
+        <p class="lead">전체 18개 중 11개가 진행 중이에요</p>
+      </header>
+
+      <div class="seg" role="tablist" aria-label="전형 단계">
+        <button class="seg-btn stage-doc" type="button" role="tab" aria-selected="true" data-stage="doc">서류</button>
+        <button class="seg-btn stage-code" type="button" role="tab" aria-selected="false" data-stage="code">코테</button>
+        <button class="seg-btn stage-task" type="button" role="tab" aria-selected="false" data-stage="task">과제</button>
+        <button class="seg-btn stage-int1" type="button" role="tab" aria-selected="false" data-stage="int1">1차</button>
+        <button class="seg-btn stage-int2" type="button" role="tab" aria-selected="false" data-stage="int2">2차</button>
+        <button class="seg-btn stage-final" type="button" role="tab" aria-selected="false" data-stage="final">최종</button>
+      </div>
+
+      <div class="board">
+        <section class="column is-on" data-stage="doc" aria-label="서류 6">
+          <header class="col-head stage-doc">
+            <h2 class="col-name">서류</h2>
+            <span class="col-count">6</span>
+          </header>
+          <div class="stack">
+            <article class="card stage-doc">
+              <div class="card-top"><h3>토스</h3><p class="card-when">D-2</p></div>
+              <p class="card-role">프론트엔드 개발자</p>
+              <p class="card-meta">신입 · 11.13 마감</p>
+            </article>
+            <article class="card stage-doc">
+              <div class="card-top"><h3>무신사</h3><p class="card-when">D-3</p></div>
+              <p class="card-role">웹 프론트엔드 엔지니어</p>
+              <p class="card-meta">신입 · 11.14 마감</p>
+            </article>
+            <article class="card stage-doc">
+              <div class="card-top"><h3>쿠팡</h3><p class="card-when">D-5</p></div>
+              <p class="card-role">Software Engineer</p>
+              <p class="card-meta">신입 · 11.16 마감</p>
+            </article>
+            <article class="card stage-doc">
+              <div class="card-top"><h3>리디</h3><p class="card-when">D-9</p></div>
+              <p class="card-role">프론트엔드 엔지니어</p>
+              <p class="card-meta">인턴 · 11.20 마감</p>
+            </article>
+            <article class="card is-failed">
+              <div class="card-top"><h3>네이버</h3><p class="card-when">불합격</p></div>
+              <p class="card-role">하계 인턴십</p>
+              <p class="card-meta">인턴 · 10.28 종료</p>
+            </article>
+            <article class="card is-failed">
+              <div class="card-top"><h3>쿠팡</h3><p class="card-when">불합격</p></div>
+              <p class="card-role">여름 인턴</p>
+              <p class="card-meta">인턴 · 11.02 종료</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="column" data-stage="code" aria-label="코딩테스트 4">
+          <header class="col-head stage-code">
+            <h2 class="col-name">코딩테스트</h2>
+            <span class="col-count">4</span>
+          </header>
+          <div class="stack">
+            <article class="card stage-code">
+              <div class="card-top"><h3>카카오</h3><p class="card-when">11.15</p></div>
+              <p class="card-role">웹 클라이언트 엔지니어</p>
+              <p class="card-meta">신입 · 10:00 코딩테스트</p>
+            </article>
+            <article class="card stage-code">
+              <div class="card-top"><h3>네이버</h3><p class="card-when">11.14</p></div>
+              <p class="card-role">프론트엔드 개발</p>
+              <p class="card-meta">신입 · 14:00 코딩테스트</p>
+            </article>
+            <article class="card stage-code is-dragging" aria-grabbed="true">
+              <span class="sr-only">드래그 중</span>
+              <div class="card-top"><h3>하이퍼커넥트</h3><p class="card-when">11.18</p></div>
+              <p class="card-role">Web Engineer</p>
+              <p class="card-meta">인턴 · 20:00 코딩테스트</p>
+            </article>
+            <article class="card is-failed">
+              <div class="card-top"><h3>카카오</h3><p class="card-when">불합격</p></div>
+              <p class="card-role">하계 인턴</p>
+              <p class="card-meta">인턴 · 10.30 종료</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="column" data-stage="task" aria-label="과제 2">
+          <header class="col-head stage-task">
+            <h2 class="col-name">과제</h2>
+            <span class="col-count">2</span>
+          </header>
+          <div class="stack">
+            <article class="card stage-task">
+              <div class="card-top"><h3>라인플러스</h3><p class="card-when">D-4</p></div>
+              <p class="card-role">프론트엔드 엔지니어</p>
+              <p class="card-meta">신입 · 11.15 제출</p>
+            </article>
+            <article class="card is-failed">
+              <div class="card-top"><h3>무신사</h3><p class="card-when">불합격</p></div>
+              <p class="card-role">프론트엔드</p>
+              <p class="card-meta">신입 · 11.07 종료</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="column" data-stage="int1" aria-label="1차 면접 3">
+          <header class="col-head stage-int1">
+            <h2 class="col-name">1차 면접</h2>
+            <span class="col-count">3</span>
+          </header>
+          <div class="stack">
+            <article class="card stage-int1">
+              <div class="card-top"><h3>우아한형제들</h3><p class="card-when">11.13</p></div>
+              <p class="card-role">배민 프론트엔드 개발</p>
+              <p class="card-meta">신입 · 14:00 기술면접</p>
+            </article>
+            <article class="card stage-int1">
+              <div class="card-top"><h3>당근</h3><p class="card-when">11.17</p></div>
+              <p class="card-role">프론트엔드 엔지니어</p>
+              <p class="card-meta">인턴 · 15:30 직무면접</p>
+            </article>
+            <article class="card is-failed">
+              <div class="card-top"><h3>하이퍼커넥트</h3><p class="card-when">불합격</p></div>
+              <p class="card-role">프론트엔드</p>
+              <p class="card-meta">신입 · 11.05 종료</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="column" data-stage="int2" aria-label="2차 면접 1">
+          <header class="col-head stage-int2">
+            <h2 class="col-name">2차 면접</h2>
+            <span class="col-count">1</span>
+          </header>
+          <div class="stack">
+            <article class="card stage-int2">
+              <div class="card-top"><h3>당근</h3><p class="card-when">11.19</p></div>
+              <p class="card-role">플랫폼 프론트엔드</p>
+              <p class="card-meta">신입 · 16:00 임원면접</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="column" data-stage="final" aria-label="최종 2">
+          <header class="col-head stage-final">
+            <h2 class="col-name">최종</h2>
+            <span class="col-count">2</span>
+          </header>
+          <div class="stack">
+            <article class="card stage-final is-passed">
+              <div class="card-top">
+                <h3>토스</h3>
+                <p class="card-when"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.2 8.3 6.3 11.4 12.8 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>합격</p>
+              </div>
+              <p class="card-role">프론트엔드 인턴십</p>
+              <p class="card-meta">인턴 · 처우 안내 대기</p>
+            </article>
+            <article class="card stage-final is-passed">
+              <div class="card-top">
+                <h3>우아한형제들</h3>
+                <p class="card-when"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.2 8.3 6.3 11.4 12.8 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>합격</p>
+              </div>
+              <p class="card-role">정규직 전환형 인턴</p>
+              <p class="card-meta">인턴 · 오퍼 레터 수령</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <nav class="tabbar" aria-label="모바일 메뉴">
+    <a class="tab" href="dashboard.html">
+      <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path d="M2.8 7.1 8 2.8l5.2 4.3V13a.7.7 0 0 1-.7.7H3.5a.7.7 0 0 1-.7-.7V7.1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      홈
+    </a>
+    <a class="tab" href="kanban.html" aria-current="page">
+      <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path d="M2.6 2.8h3.4v10.4H2.6zM10 2.8h3.4v6.6H10z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      보드
+    </a>
+    <a class="tab" href="editor.html">
+      <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path d="M9.4 2.8 13.2 6.6 6.1 13.7H2.3V9.9L9.4 2.8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      자소서
+    </a>
+  </nav>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      function apply(theme) {
+        if (theme === "dark") root.dataset.theme = "dark";
+        else delete root.dataset.theme;
+        document.querySelectorAll("[data-theme-toggle]").forEach(function (btn) {
+          btn.textContent = theme === "dark" ? "밝게" : "어둡게";
+        });
+      }
+      apply(localStorage.getItem("rsj-theme") || "light");
+      document.querySelectorAll("[data-theme-toggle]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var next = root.dataset.theme === "dark" ? "light" : "dark";
+          localStorage.setItem("rsj-theme", next);
+          apply(next);
+        });
+      });
+      document.querySelectorAll("[data-stage].seg-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var id = btn.getAttribute("data-stage");
+          document.querySelectorAll(".seg-btn").forEach(function (b) {
+            b.setAttribute("aria-selected", b === btn ? "true" : "false");
+          });
+          document.querySelectorAll(".column").forEach(function (col) {
+            col.classList.toggle("is-on", col.getAttribute("data-stage") === id);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
