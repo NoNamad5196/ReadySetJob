@@ -1,0 +1,125 @@
+<div class="page-header">
+  <h1 class="page-header__title">통계 및 분석</h1>
+  <div class="inline-actions">
+    <a href="/applications" class="btn">지원 목록</a>
+    <a href="/applications/board" class="btn">지원 보드</a>
+  </div>
+</div>
+
+<section class="stats-grid">
+  <div class="card">
+    <div class="stat-card__label">총 지원 수</div>
+    <div class="stat-card__value"><%= stats.totals.totalApplications %>건</div>
+  </div>
+  <div class="card">
+    <div class="stat-card__label">서류 합격률 (결정 완료 기준)</div>
+    <div class="stat-card__value"><%= stats.documentPassRate %>%</div>
+    <div class="text-muted">
+      통과 <%= stats.documentStats.movedPast %>건 / 결정 <%= stats.documentStats.decided %>건
+    </div>
+  </div>
+  <div class="card">
+    <div class="stat-card__label">이번 달 지원 (<%= stats.monthComparison.thisMonthKey %>)</div>
+    <div class="stat-card__value"><%= stats.thisMonthCount %>건</div>
+    <div class="text-muted">
+      지난달(<%= stats.lastMonthCount %>건) 대비
+      <%= stats.monthDelta >= 0 ? '+' + stats.monthDelta : stats.monthDelta %>건
+    </div>
+  </div>
+  <div class="card">
+    <div class="stat-card__label">진행 중 / 최종 합격</div>
+    <div class="stat-card__value"><%= stats.totals.inProgress %> / <%= stats.totals.passed %>건</div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="page-header">
+    <h2>전형 단계별 도달 수 (Funnel) 및 통과율</h2>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>전형 단계</th>
+          <th>도달 지원 수 (Funnel)</th>
+          <th>다음 단계 진출 (통과)</th>
+          <th>해당 단계 불합격</th>
+          <th>도달 대비 통과율</th>
+          <th>결정 대비 합격률</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const item of stats.passRateList) { %>
+          <tr>
+            <td>
+              <span class="badge badge--stage-<%= item.stage %>"><%= item.label %></span>
+            </td>
+            <td><strong><%= item.reached %>건</strong></td>
+            <td><%= item.movedPast %>건</td>
+            <td><%= item.failed %>건</td>
+            <td><%= item.rate %>%</td>
+            <td><%= item.decidedRate %>%</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="dashboard-charts-grid">
+  <div class="card chart-card">
+    <h2 class="chart-card__title">전형 단계별 도달 퍼널 (Funnel)</h2>
+    <div class="chart-container">
+      <% if (stats.totals.totalApplications === 0) { %>
+        <div class="chart-empty">
+          <p>집계된 지원 데이터가 없습니다.</p>
+        </div>
+      <% } else { %>
+        <canvas id="stats-chart-funnel"></canvas>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <h2 class="chart-card__title">진행 중 전형 단계별 분포</h2>
+    <div class="chart-container">
+      <% if (stats.totals.inProgress === 0) { %>
+        <div class="chart-empty">
+          <p>진행 중인 전형이 없습니다.</p>
+        </div>
+      <% } else { %>
+        <canvas id="stats-chart-stage"></canvas>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <h2 class="chart-card__title">전형 결과 비율</h2>
+    <div class="chart-container">
+      <% if (stats.totals.totalApplications === 0) { %>
+        <div class="chart-empty">
+          <p>지원 내역이 없습니다.</p>
+        </div>
+      <% } else { %>
+        <canvas id="stats-chart-result"></canvas>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <h2 class="chart-card__title">최근 6개월 지원 추이</h2>
+    <div class="chart-container">
+      <% if (stats.monthlyTrend.total === 0) { %>
+        <div class="chart-empty">
+          <p>최근 6개월 지원 이력이 없습니다.</p>
+        </div>
+      <% } else { %>
+        <canvas id="stats-chart-monthly"></canvas>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<script type="application/json" id="stats-data"><%- statsDataJson %></script>
+<script src="/vendor/chart.js/chart.umd.js"></script>
+<script src="/js/stats.js"></script>

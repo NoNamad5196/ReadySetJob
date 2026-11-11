@@ -1,0 +1,75 @@
+<div class="page-header">
+  <h1 class="page-header__title">설정</h1>
+</div>
+
+<section class="card">
+  <h2>프로필 및 시즌 목표 설정</h2>
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form action="/settings" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="form-field">
+      <label for="settings-name">이름 *</label>
+      <input
+        type="text"
+        id="settings-name"
+        name="name"
+        class="input"
+        maxlength="60"
+        required
+        value="<%= values.name %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="settings-season-label">취업 준비 시즌 라벨</label>
+      <input
+        type="text"
+        id="settings-season-label"
+        name="season_label"
+        class="input"
+        maxlength="80"
+        placeholder="예: 2026 하반기 취업 준비"
+        value="<%= values.season_label %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="settings-target">이번 달(<%= goal.label %>) 지원 목표 (1 ~ 200건)</label>
+      <input
+        type="number"
+        id="settings-target"
+        name="target"
+        class="input"
+        min="1"
+        max="200"
+        placeholder="예: 20"
+        value="<%= values.target %>"
+      >
+      <p class="text-muted">
+        현재 <%= goal.label %> 지원 달성 현황:
+        <strong><%= goal.current %>건</strong>
+        <% if (goal.target) { %>
+          / 목표 <%= goal.target %>건
+        <% } %>
+      </p>
+    </div>
+
+    <button type="submit" class="btn btn-primary">설정 저장</button>
+  </form>
+  <p class="text-muted">
+    <a href="/settings/ai">AI 기능 상태와 모델 설정 보기</a>
+  </p>
+</section>
+
+<section class="card">
+  <h2>화면 테마 안내</h2>
+  <p class="text-muted">
+    라이트 모드와 다크 모드 전환은 상단 또는 사이드바의 테마 전환 버튼을 통해 브라우저에 자동 저장됩니다.
+  </p>
+</section>
+
+<%- include('../partials/ai/status', { aiEnabled, aiConfig }) %>

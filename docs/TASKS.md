@@ -91,60 +91,63 @@
 ### Phase P2. 대시보드 시각화, 경험 자료함 CRUD 및 검색 고도화
 
 **P2 완료 기준 (Completion Criteria):**
-1. Chart.js를 npm으로 설치하고 `/vendor` 정적 라우트로 서빙하여(CDN 미사용) 대시보드에 전형 단계별·결과별 차트를 표시한다.
+1. Chart.js를 npm으로 설치하고 `/vendor/chart.js` 정적 라우트로 서빙하여(CDN 미사용) 대시보드에 전형 단계별·결과별 차트를 표시한다.
 2. 대시보드에 마감 임박 공고(D-7) 및 다가오는 전형 일정 위젯을 연동한다.
 3. 경험 자료함(`/materials`) CRUD 및 분류(`kind`)·태그 검색을 구현하고 테스트로 검증한다.
 
 | 구분 | 작업 항목 | 관련 파일 / 경로 | 상태 |
 |---|---|---|---|
-| P2-01 | Chart.js 로컬 정적 서빙(`/vendor`) 및 대시보드 단계별·결과별 차트 구현 | `src/app.js`, `src/routes/dashboard.js`, `views/dashboard/index.ejs` | `계획` |
-| P2-02 | 대시보드 D-7 마감 임박 공고 및 다가오는 일정 요약 위젯 | `src/services/usersService.js`, `views/dashboard/index.ejs` | `계획` |
-| P2-03 | 경험 자료함(`materials`) CRUD 라우터·서비스·뷰 및 태그 필터링 | `src/routes/materials.js`, `src/services/materialsService.js`, `views/materials/*` | `계획` |
-| P2-04 | P2 대시보드 및 자료함 통합 테스트 작성 및 검증 | `test/` | `계획` |
+| P2-01 | Chart.js 로컬 정적 서빙(`/vendor`) 및 대시보드 단계별·결과별 차트 구현 | `src/app.js`, `src/routes/dashboard.js`, `views/dashboard/index.ejs` | `검증 완료` |
+| P2-02 | 대시보드 D-7 마감 임박 공고 및 다가오는 일정 요약 위젯 | `src/services/usersService.js`, `views/dashboard/index.ejs` | `검증 완료` |
+| P2-03 | 경험 자료함(`materials`) CRUD 라우터·서비스·뷰 및 태그 필터링 | `src/routes/materials.js`, `src/services/materialsService.js`, `views/materials/*` | `검증 완료` |
+| P2-04 | P2 대시보드 및 자료함 통합 테스트 작성 및 검증 | `test/crud-and-ownership.test.js` | `검증 완료` |
 
 ---
 
 ### Phase P3. 디자인 시스템 반영, 반응형·접근성 및 UX 폴리싱
 
 **P3 완료 기준 (Completion Criteria):**
-1. 사용자 승인된 디자인 시안(`docs/DESIGN_SYSTEM.md`)을 전체 EJS 뷰와 CSS 토큰에 일관되게 반영한다.
-2. 라이트/다크 모드 색상 대비, 키보드 포커스 이동, 모바일/태블릿 반응형 레이아웃, 빈 상태(Empty State) 및 에러 페이지 UX를 점검·완료한다.
+1. 사용자 승인된 Figma 대시보드 디자인 및 디자인 시스템(`docs/DESIGN_SYSTEM.md`)을 전체 EJS 뷰와 CSS 토큰에 일관되게 반영한다.
+2. Pretendard Variable 폰트를 로컬 정적 서빙(`/vendor/pretendard`)하고, 3D 일러스트 제거, 블루 과용 축소, 이니셜 아바타, 실제 날짜 기반 데모 데이터를 적용한다.
+3. 엄격한 CSP 정책(`default-src 'self'`)을 준수하여 뷰 템플릿 전역에서 인라인 `style=""` 0건을 달성한다.
+4. 라이트/다크 모드(`data-theme`), 키보드 포커스 이동, 빈 상태(Empty State) 및 에러 페이지 UX를 완성한다.
 
 | 구분 | 작업 항목 | 관련 파일 / 경로 | 상태 |
 |---|---|---|---|
-| P3-01 | 승인된 디자인 시스템(`docs/DESIGN_SYSTEM.md`) 전체 페이지 적용 | `public/css/tokens.css`, `public/css/app.css`, `views/**/*.ejs` | `계획` |
-| P3-02 | 다크 모드(`data-theme="dark"`), 반응형 레이아웃, 키보드 접근성 검수 | `public/css/*`, `views/**/*.ejs` | `계획` |
-| P3-03 | 전체 기능 회귀 테스트 및 시각적 QA 검증 | `test/` | `계획` |
+| P3-01 | Figma 승인 디자인 시스템(`docs/DESIGN_SYSTEM.md`, `tokens.css`, `app.css`, `pages.css`, `board.css`, `essay.css`, `ai.css`) 전 화면 적용 | `public/css/*`, `views/**/*.ejs` | `검증 완료` |
+| P3-02 | 엄격한 CSP 준수: `views/` 내 인라인 `style=""` 0건 달성 및 동적 바 너비 `data-progress` 전환 | `views/**/*.ejs`, `public/js/app.js` | `검증 완료` |
+| P3-03 | 다크 모드(`data-theme="dark"`), Pretendard 로컬 서빙, 반응형 네비게이션 및 에러 뷰 고도화 | `public/css/tokens.css`, `views/layouts/main.ejs`, `views/error.ejs` | `검증 완료` |
+| P3-04 | 전체 기능 회귀 테스트 및 시각적 검증 통과 | `test/`, Playwright 헤드리스 검증 | `검증 완료` |
 
 ---
 
-### Phase P4. AI 면접 예상 질문 생성 및 최종 보고서
+### Phase P4. OpenAI Responses API 연동 AI 4종 기능 및 시스템 완성
 
 **P4 완료 기준 (Completion Criteria):**
-1. `POST /applications/:id/interview-questions/generate`가 서버 사이드에서 Gemini API를 호출하여 지원 공고·자소서 기반 면접 예상 질문을 생성·저장한다.
-2. `GEMINI_API_KEY` 미설정 환경에서는 AI 생성 버튼이 비활성화(`disabled`)되고 안내 문구가 표시되며 가짜 응답을 반환하지 않는다.
-3. 기말 최종 보고서(`docs/FINAL_REPORT.md`)와 시연 시나리오(`README.md`)를 완성한다.
+1. 기존 면접 질문 생성을 포함하여 총 4종의 실용적 AI 기능을 OpenAI Responses API(Structured Outputs) 기반으로 완성한다:
+   - 기능 1: 지원 공고·자소서 연계 면접 예상 질문 생성 (`POST /applications/:id/interview-questions/generate`, `OPENAI_MODEL_INTERVIEW || 'gpt-6.1-terra'`)
+   - 기능 2: 자기소개서 문항 실시간 AI 첨삭 피드백 (`POST/GET /api/essays/:id/questions/:qid/feedback`, `OPENAI_MODEL_FEEDBACK || 'gpt-6.1-terra'`, `essay_feedback` 영속화)
+   - 기능 3: 경험 소재 기반 AI STAR 초안 생성 및 본문 반영 (`POST /api/materials/:id/star-draft`, `POST /materials/:id/star-draft/:draftId/apply`, `OPENAI_MODEL_DRAFT || 'gpt-6.1-terra'`, `material_star_drafts` 영속화)
+   - 기능 4: 복사한 채용 공고 텍스트 자동 파싱 및 폼 채우기 (`POST /api/jobs/parse`, `OPENAI_MODEL_EXTRACT || 'gpt-6-luna'`, DB 미저장 폼 자동 완성)
+2. `OPENAI_API_KEY` 미설정 시 안전한 비활성화(`503`, 가짜 응답 없음), 4개 기능 통합 슬라이딩 윈도우 속도 제한(사용자당 10분 20회), 전역 및 기능별 모델 환경 변수 오버라이드를 지원한다.
+3. API 키는 서버 `.env`로만 관리하며 브라우저·응답·로그에 절대 노출하지 않는다 (`GET /settings/ai` 포함).
+4. 자동화 테스트 15개 스위트, 66개 테스트 전체 100% 통과(`npm test`).
 
 | 구분 | 작업 항목 | 관련 파일 / 경로 | 상태 |
 |---|---|---|---|
-| P4-01 | 서버 사이드 Gemini 면접 질문 생성 라우터·서비스 및 키 미설정 비활성 처리 | `src/routes/ai.js`, `src/services/aiService.js`, `views/applications/detail.ejs` | `계획` |
-| P4-02 | 수동/AI 면접 질문 관리 및 테스트 검증 | `test/` | `계획` |
-| P4-03 | 최종 보고서(`docs/FINAL_REPORT.md`, 2026-12-16 마감) 및 시연 가이드 완성 | `docs/FINAL_REPORT.md`, `README.md` | `계획` |
+| P4-01 | OpenAI Responses API 클라이언트, 모델 환경 변수, 에러 매핑, 통합 속도 제한 모듈 구현 | `src/services/aiService.js`, `src/services/aiSchemas.js` | `검증 완료` |
+| P4-02 | AI 4종 기능 라우터 및 영속화 서비스 구현 (`interview-questions`, `essay_feedback`, `material_star_drafts`, `jobs/parse`) | `src/routes/ai.js`, `src/services/aiFeaturesService.js` | `검증 완료` |
+| P4-03 | AI 전용 EJS 파셜 4종 및 CSS/JS 프론트엔드 모듈 구현 | `views/partials/ai/*`, `public/css/ai.css`, `public/js/ai.js` | `검증 완료` |
+| P4-04 | AI 비활성 상태(`503`), 권한/CSRF, 응답 검증, 속도 제한, 모델 오버라이드 자동화 테스트 | `test/ai-features.test.js`, `test/ai-errors-and-limits.test.js` | `검증 완료` |
+| P4-05 | 전체 66개 통합 테스트 검증 및 기술 문서 갱신 | `npm test`, `docs/*.md`, `README.md` | `검증 완료` |
 
 ---
 
 ## 4. 변경 이력 (Changelog)
 
-### 2026-11-10
-- **저장소 및 스캐폴딩 구축 (`검증 완료`)**: Node.js 22 + Express 4 + EJS + `better-sqlite3` 프로젝트 초기화, GitHub 연결 완료.
-- **데이터베이스 스키마 및 한국어 시드 구현 (`검증 완료`)**: `src/db/schema.sql`(12개 테이블, 14개 인덱스), `src/db/migrate.js`, `src/db/seed.js`(`demo@readysetjob.dev` 외 6개 기업·공고·지원·일정) 구현 및 테스트 통과.
-- **인증·세션·보안 미들웨어 구현 (`검증 완료`)**: `bcryptjs` 비밀번호 해싱, 로그인/회원가입 시 세션 재생성(`req.session.regenerate`), `requireAuth`, `crypto.timingSafeEqual` CSRF 검증(`_csrf` 바디 및 `X-CSRF-Token` 헤더), `helmet` CSP 적용 및 `test/auth-and-security.test.js` 통과.
-- **핵심 도메인 CRUD 및 소유권 격리 구현 (`검증 완료`)**: 기업(`/companies`), 채용 공고(`/jobs`, 인라인 기업 생성 트랜잭션 및 북마크 토글), 지원 현황(`/applications`, `/api/applications/:id/stage`, `stage_logs` 기록), 일정(`/events`), 대시보드 카운트(`/dashboard`) 구현 및 `test/crud-and-ownership.test.js`, `test/ownership-and-seed.test.js` 통과.
-- **기술 문서 4종 작성 (`구현 완료`)**: 실제 코드 및 P1 계획 명세를 바탕으로 `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DB_DESIGN.md`, `docs/TASKS.md` 작성 완료.
-- **진행 중 작업 (`개발 중`)**: `docs/PROJECT_PROPOSAL.md`(11/16 제출 계획서), 디자인 시안 A/B/C(`design/mockups/`), P1 칸반 보드 및 자기소개서 버전 관리 모듈 병행 개발 진행 중.
-- **P1 완료 (`검증 완료`)**: 칸반 보드(드래그앤드롭·키보드·no-JS 폴백, 트랜잭션 재정렬)와 자기소개서 에디터·불변 버전·jsdiff 비교·이력 보존형 복원 구현. `npm test` 25/25 통과, 헤드리스 브라우저에서 카드 드래그 → PATCH 200 → 새로고침 후 단계 유지, 에디터 Ctrl+S 초안 저장 유지, 콘솔 오류 0건 확인. 화면 스타일은 디자인 승인 전 중립 스타일.
-- **계획서 초안 완성**: `docs/PROJECT_PROPOSAL.md` (20개 장) — 사용자 검토 대기.
-- **P2 핵심 구현 (`검증 완료`)**: 대시보드 통계(KPI, 단계별 분포·결과 비율·월별 추이 Chart.js 차트, 마감 임박·일정·최근 활동)와 경험 자료함 CRUD 구현. Chart.js는 npm 패키지를 `/vendor/chart.js`로 자체 서빙(CDN 미사용).
-- **코드 리뷰 반영 (`검증 완료`)**: Momus(Grok) 리뷰 9건 수정 — 프로덕션 SESSION_SECRET 필수화, secure 쿠키, 오픈 리다이렉트 차단(`safeRedirectPath`), 달력 기준 엄격한 날짜 검증, 수정/삭제 시 board_order 재정렬, 정수 id 파싱(`parseId`), 자소서 서비스 계층 소유권 검증, 가입 UNIQUE 경합 처리. CSP에 차단되던 인라인 style 제거. `npm test` 42/42 통과, 브라우저 시나리오 콘솔 오류 0건.
-- **남은 작업**: 디자인 승인 → `docs/DESIGN_SYSTEM.md` 확정 및 전 화면 적용(P3), 다크모드 완성, AI 예상 면접 질문(P4), 통합 테스트·시연 데이터·최종 보고서·발표 자료. Notion 동기화는 Notion MCP 인증 만료(Unauthorized)로 보류 — 로컬 `docs/notion/*.md`에 보존.
-- **P4 AI 예상 면접 질문 (`구현 완료`, 실호출 미검증)**: 지원 상세에 예상 면접 질문 섹션(직접 작성 CRUD + AI 생성). 서버 측 Gemini REST 호출(`x-goog-api-key` 헤더, 15초 타임아웃, 응답 JSON 검증, 사용자별 10분 5회 제한). `GEMINI_API_KEY` 미설정 시 버튼 비활성·안내 표시, 가짜 응답 없음. stub fetch 기반 테스트 포함 `npm test` 50/50 통과. 실제 API 키로의 호출은 아직 미검증.
+### 2026-11-11
+- **Figma 승인 디자인 시스템 전면 적용 (`검증 완료`)**: 승인된 Figma 대시보드 디자인을 기반으로 `docs/DESIGN_SYSTEM.md`, `tokens.css`, `app.css`, `pages.css`, `board.css`, `essay.css`, `ai.css` 확정. 전체 EJS 뷰에 일관된 헤더, 사이드바, 통계 카드, 퍼널 테이블, 필터 칩 적용.
+- **엄격한 CSP 준수 (`검증 완료`)**: `views/` 디렉터리 내 모든 인라인 `style=""` 속성을 0건으로 제거하고, 동적 바 너비는 `data-progress` 및 CSS 어트리뷰트 셀렉터로 처리하여 CSP 위반을 완벽 차단.
+- **OpenAI Responses API 전환 및 AI 4종 기능 완성 (`검증 완료`)**: 기존 Gemini 연동을 OpenAI Responses API로 전면 전환하고, 면접 질문 생성(1) 외에 자소서 피드백(2), 경험 자료 STAR 초안(3), 공고 텍스트 자동 추출(4) 기능을 추가 구현 및 영속화(`essay_feedback`, `material_star_drafts`).
+- **안전한 API 키 관리 및 비활성화 처리 (`검증 완료`)**: `OPENAI_API_KEY` 미설정 시 정직한 비활성화 안내 및 503 반환, 전역(`OPENAI_MODEL`) 및 기능별(`OPENAI_MODEL_*`) 모델 오버라이드 지원, 사용자당 10분 20회 통합 속도 제한 적용, `/settings/ai` 안내 화면 제공.
+- **전체 자동화 테스트 66/66 100% 통과 (`검증 완료`)**: 인증, CRUD, 소유권 격리, 칸반 보드, 자소서 불변 버전/Diff/복원, 대시보드 통계, 자료함, 리뷰 수정 9건, 인터뷰 질문, 할일/설정, 통계/검색/홈, AI 4종 기능, AI 에러/제한 등 15개 스위트 66개 테스트 무결점 통과.

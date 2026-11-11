@@ -1,0 +1,63 @@
+<%
+  /*
+    Partial: views/partials/ai/job-parse.ejs
+    Include location: views/jobs/form.ejs (at the top of the page above the main job form card)
+    Example: include('../partials/ai/job-parse', { aiEnabled, csrfToken })
+    Required locals:
+      - aiEnabled: boolean (defaults to res.locals.aiEnabled)
+      - csrfToken: string (defaults to res.locals.csrfToken)
+  */
+%>
+<%
+  const isEnabled = typeof aiEnabled !== 'undefined' ? Boolean(aiEnabled) : false;
+  const disabledMsg = typeof AI_DISABLED_MESSAGE !== 'undefined'
+    ? AI_DISABLED_MESSAGE
+    : 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)';
+%>
+<section class="card ai-job-parse-card" data-ai-job-parse-root>
+  <div class="card__header">
+    <div>
+      <div class="inline-actions">
+        <h2 class="card__title">AI 채용 공고 텍스트 자동 추출</h2>
+        <span class="badge ai-badge">OpenAI</span>
+      </div>
+      <p class="text-muted text-sm">
+        채용 공고 본문을 붙여넣으면 기업명·공고 제목·직무·채용 형태·마감일·요약 메모를 추출해 아래 입력 폼에 자동으로 채워 줍니다 (저장 전 직접 확인·수정 가능).
+      </p>
+    </div>
+  </div>
+
+  <div class="form-field">
+    <label for="ai-job-raw-text">채용 공고 원문 텍스트 (최대 12,000자)</label>
+    <textarea
+      id="ai-job-raw-text"
+      class="input"
+      rows="5"
+      maxlength="12000"
+      placeholder="채용 사이트의 모집 요강, 주요 업무, 자격 요건, 전형 일정 텍스트를 여기에 붙여넣으세요..."
+      data-ai-job-text
+      <%= isEnabled ? '' : 'disabled' %>
+    ></textarea>
+  </div>
+
+  <div class="inline-actions">
+    <% if (isEnabled) { %>
+      <button type="button" class="btn btn-sm btn-primary" data-ai-job-parse-btn>
+        공고 내용 분석하여 폼 채우기
+      </button>
+      <span class="text-muted text-sm" data-ai-job-status></span>
+    <% } else { %>
+      <button type="button" class="btn btn-sm btn-primary" disabled aria-disabled="true">
+        공고 내용 분석하여 폼 채우기
+      </button>
+      <span class="text-muted text-sm"><%= disabledMsg %></span>
+    <% } %>
+  </div>
+
+  <div class="ai-alert ai-alert--error ai-hidden" data-ai-job-error role="alert"></div>
+
+  <div class="ai-job-questions ai-hidden" data-ai-job-questions-panel>
+    <h4 class="ai-feedback-section__title">추출된 자기소개서 문항</h4>
+    <ul class="ai-list" data-ai-job-questions-list></ul>
+  </div>
+</section>

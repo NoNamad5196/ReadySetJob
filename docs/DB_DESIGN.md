@@ -304,7 +304,50 @@ erDiagram
 | `user_id` | `INTEGER` | `NOT NULL REFERENCES users(id) ON DELETE CASCADE` | - | 소유 사용자 ID |
 | `application_id` | `INTEGER` | `NOT NULL REFERENCES applications(id) ON DELETE CASCADE` | - | 대상 지원 내역 ID |
 | `question` | `TEXT` | `NOT NULL` | - | 면접 예상 질문 내용 |
-| `source` | `TEXT` | `NOT NULL CHECK (source IN ('ai', 'manual'))` | `'manual'` | 생성 출처 (`ai`: Gemini 생성, `manual`: 사용자 직접 등록) |
+| `source` | `TEXT` | `NOT NULL CHECK (source IN ('ai', 'manual'))` | `'manual'` | 생성 출처 (`ai`: OpenAI 생성, `manual`: 사용자 직접 등록) |
+| `created_at` | `DATETIME` | `NOT NULL` | `(datetime('now'))` | 생성 일시 |
+
+### 3.13 `todos` (할 일 관리)
+| 컬럼명 | 타입 | 제약 조건 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | - | 할 일 고유 식별자 |
+| `user_id` | `INTEGER` | `NOT NULL REFERENCES users(id) ON DELETE CASCADE` | - | 소유 사용자 ID |
+| `application_id` | `INTEGER` | `REFERENCES applications(id) ON DELETE SET NULL` | `NULL` | 연관 지원 내역 ID |
+| `title` | `TEXT` | `NOT NULL` | - | 할 일 제목 (최대 120자) |
+| `category` | `TEXT` | `NOT NULL CHECK (category IN ('essay', 'interview', 'coding_test', 'assignment', 'other'))` | `'other'` | 할 일 분류 |
+| `due_date` | `TEXT` | `CHECK (due_date IS NULL OR due_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')` | `NULL` | 마감 기한 (YYYY-MM-DD) |
+| `is_done` | `INTEGER` | `NOT NULL CHECK (is_done IN (0, 1))` | `0` | 완료 여부 (0: 진행중, 1: 완료) |
+| `created_at` | `DATETIME` | `NOT NULL` | `(datetime('now'))` | 등록 일시 |
+| `updated_at` | `DATETIME` | `NOT NULL` | `(datetime('now'))` | 수정 일시 |
+
+### 3.14 `monthly_goals` (월간 지원 목표)
+| 컬럼명 | 타입 | 제약 조건 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `user_id` | `INTEGER` | `NOT NULL REFERENCES users(id) ON DELETE CASCADE` | - | 소유 사용자 ID |
+| `month` | `TEXT` | `NOT NULL` | - | 연월 식별자 (YYYY-MM) |
+| `target` | `INTEGER` | `NOT NULL CHECK (target >= 1 AND target <= 200)` | - | 해당 월 목표 지원 건수 (1~200) |
+
+*기본키: `PRIMARY KEY (user_id, month)`*
+
+### 3.15 `essay_feedback` (자기소개서 AI 첨삭 피드백)
+| 컬럼명 | 타입 | 제약 조건 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | - | 피드백 식별자 |
+| `user_id` | `INTEGER` | `NOT NULL REFERENCES users(id) ON DELETE CASCADE` | - | 소유 사용자 ID |
+| `essay_id` | `INTEGER` | `NOT NULL REFERENCES essays(id) ON DELETE CASCADE` | - | 대상 자기소개서 ID |
+| `question_id` | `INTEGER` | `NOT NULL REFERENCES essay_questions(id) ON DELETE CASCADE` | - | 대상 자기소개서 문항 ID |
+| `model` | `TEXT` | `NOT NULL` | - | 생성에 사용된 OpenAI 모델명 |
+| `result_json` | `TEXT` | `NOT NULL` | - | 구조화된 피드백 본문 (총평, 강점, 개선점, 제안, 예시) |
+| `created_at` | `DATETIME` | `NOT NULL` | `(datetime('now'))` | 생성 일시 |
+
+### 3.16 `material_star_drafts` (경험 자료 AI STAR 초안)
+| 컬럼명 | 타입 | 제약 조건 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | - | STAR 초안 식별자 |
+| `user_id` | `INTEGER` | `NOT NULL REFERENCES users(id) ON DELETE CASCADE` | - | 소유 사용자 ID |
+| `material_id` | `INTEGER` | `NOT NULL REFERENCES materials(id) ON DELETE CASCADE` | - | 대상 경험 자료 ID |
+| `model` | `TEXT` | `NOT NULL` | - | 생성에 사용된 OpenAI 모델명 |
+| `result_json` | `TEXT` | `NOT NULL` | - | STAR 구조화 초안 (S, T, A, R, 한 줄 요약, 보완 정보) |
 | `created_at` | `DATETIME` | `NOT NULL` | `(datetime('now'))` | 생성 일시 |
 
 ---

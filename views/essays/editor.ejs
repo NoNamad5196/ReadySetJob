@@ -240,6 +240,8 @@
             글자수 제한 초과!
           </span>
         </div>
+
+        <%- include('../partials/ai/essay-feedback', { essay, question: q, aiEnabled, csrfToken }) %>
       </section>
     <% }); %>
 

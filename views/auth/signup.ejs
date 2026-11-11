@@ -1,8 +1,14 @@
-<section class="card">
-  <div class="page-header">
-    <h1 class="page-header__title">회원가입</h1>
+<div class="auth-card">
+  <div class="auth-header">
+    <a href="/signup" class="auth-brand">
+      <svg class="sidebar__brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span>ReadySetJob<span class="sidebar__brand-dot">.</span></span>
+    </a>
+    <h1 class="auth-title">회원가입</h1>
+    <p class="auth-desc">새 계정을 생성하고 채용 지원 현황을 체계적으로 관리하세요.</p>
   </div>
-  <p class="text-muted">새 계정을 생성하고 채용 지원 현황을 체계적으로 관리하세요.</p>
 
   <% if (error) { %>
     <div class="flash flash--error" role="alert"><%= error %></div>
@@ -18,7 +24,7 @@
         name="name"
         class="input"
         required
-        value="<%= values.name %>"
+        value="<%= (typeof values !== 'undefined' && values && values.name) || '' %>"
       >
     </div>
     <div class="form-field">
@@ -30,7 +36,7 @@
         class="input"
         required
         autocomplete="email"
-        value="<%= values.email %>"
+        value="<%= (typeof values !== 'undefined' && values && values.email) || '' %>"
       >
     </div>
     <div class="form-field">
@@ -45,9 +51,9 @@
         autocomplete="new-password"
       >
     </div>
-    <div class="inline-actions">
-      <button type="submit" class="btn btn-primary">가입하기</button>
-      <a href="/login" class="btn">이미 계정이 있으신가요? 로그인</a>
+    <div class="auth-actions">
+      <button type="submit" class="btn btn-primary btn-lg">가입하기</button>
+      <a href="/login" class="btn btn-lg">이미 계정이 있으신가요? 로그인</a>
     </div>
   </form>
-</section>
+</div>

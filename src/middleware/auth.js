@@ -1,6 +1,6 @@
 function attachSessionLocals(req, res, next) {
   res.locals.currentUser = (req.session && req.session.user) || null;
-  res.locals.currentPath = req.path;
+  res.locals.currentPath = (req.originalUrl ? req.originalUrl.split('?')[0] : req.path) || '/';
 
   const flash = req.session ? req.session.flash : null;
   if (req.session && req.session.flash) {

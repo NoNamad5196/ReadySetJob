@@ -5,6 +5,8 @@ const {
   EVENT_TYPE_LABELS,
   calculateDday,
 } = require('../middleware/validation');
+const { computeConversionStats } = require('./statsService');
+const { getDashboardHome } = require('./dashboardHomeService');
 
 function getLast6Months(now = new Date()) {
   const months = [];
@@ -213,4 +215,6 @@ module.exports = {
   getDashboardStats,
   serializeDashboardData,
   getLast6Months,
+  computeConversionStats,
+  getDashboardHome,
 };

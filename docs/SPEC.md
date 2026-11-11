@@ -10,7 +10,7 @@
 | 우선순위 | `P1` | 칸반 보드 드래그앤드롭 및 자기소개서 에디터·버전 스냅샷·Diff 비교·복원 |
 | 우선순위 | `P2` | 대시보드 통계 차트(Chart.js), 경험 자료함(Materials) CRUD, 전체 필터·정렬 고도화 |
 | 우선순위 | `P3` | 승인된 디자인 시스템 적용, 다크 모드 완성, 반응형·접근성·에러 UX 폴리싱 |
-| 우선순위 | `P4` | Gemini API 기반 면접 예상 질문 생성 (선택 기능, 키 미설정 시 비활성화) |
+| 우선순위 | `P4` | OpenAI Responses API 기반 AI 4종 기능 (면접 질문·자소서 피드백·STAR 초안·채용공고 파싱, 키 미설정 시 안전 비활성화) |
 | 상태 | `검증 완료` | 코드 구현이 완료되었으며 자동화 테스트(`node --test`)로 동작이 검증됨 |
 | 상태 | `구현 완료` | 코드 또는 스키마가 구현되었으나 별도 통합 검증이 추가될 예정임 |
 | 상태 | `개발 중` | 현재 P1 단계에서 병행 개발 중인 기능 (계획된 명세 기준) |
@@ -84,13 +84,17 @@
 
 ---
 
-### 모듈 F. AI 면접 예상 질문 생성 (AI)
+### 모듈 F. OpenAI Responses API 연동 AI 4종 기능 (AI)
 
 | ID | 기능명 | 상세 요구사항 및 인수 조건 (Acceptance Criteria) | 우선순위 | 상태 |
 |---|---|---|---|---|
-| FR-AI-01 | Gemini 기반 면접 질문 서버 사이드 생성 | - `POST /applications/:id/interview-questions/generate`: 해당 지원 건의 기업·공고·직무 정보와 연결된 자기소개서 문항/답변을 조합하여 서버 사이드에서 Gemini API를 호출하고, 생성된 질문을 `interview_questions` 테이블(`source = 'ai'`)에 저장한다.<br>- 클라이언트에 API 키를 절대 노출하지 않는다. | P4 | 계획 |
-| FR-AI-02 | 수동 면접 질문 관리 | - 사용자가 직접 면접 질문(`source = 'manual'`)을 추가·삭제하며 AI 생성 질문과 함께 지원 상세 화면에서 복기·준비할 수 있다. | P4 | 계획 |
-| FR-AI-03 | `GEMINI_API_KEY` 미설정 시 우아한 비활성화 | - 환경 변수 `GEMINI_API_KEY`가 비어 있거나 설정되지 않은 경우 AI 생성 버튼을 비활성(`disabled`) 상태로 렌더링하고 안내 문구를 표시한다. 가짜(mock) 응답을 생성하지 않는다. | P4 | 계획 |
+| FR-AI-01 | OpenAI 기반 면접 질문 서버 사이드 생성 | - `POST /applications/:id/interview-questions/generate`: 해당 지원 건의 기업·공고·직무 정보와 연결된 자기소개서 문항/답변을 조합하여 서버 사이드에서 OpenAI Responses API(Structured Outputs, `OPENAI_MODEL_INTERVIEW || 'gpt-6.1-terra'`, effort `low`)를 호출하고 질문을 `interview_questions`(`source = 'ai'`)에 저장한다.<br>- 클라이언트에 API 키를 절대 노출하지 않는다. | P4 | 검증 완료 (`test/interview-questions.test.js`) |
+| FR-AI-02 | 수동 면접 질문 관리 | - 사용자가 직접 면접 질문(`source = 'manual'`)을 추가·삭제하며 AI 생성 질문과 함께 지원 상세 및 면접 준비 화면에서 복기·준비할 수 있다. | P4 | 검증 완료 (`test/interview-questions.test.js`) |
+| FR-AI-03 | `OPENAI_API_KEY` 미설정 시 우아한 비활성화 | - 환경 변수 `OPENAI_API_KEY`가 비어 있거나 설정되지 않은 경우 AI 기능 버튼을 비활성화하고 정직한 안내(`AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)`)를 표시하며, API 요청 시 HTTP `503`을 반환한다. 가짜(mock) 응답을 절대 반환하지 않는다. | P4 | 검증 완료 (`test/ai-features.test.js`, `test/ai-errors-and-limits.test.js`) |
+| FR-AI-04 | 자기소개서 문항별 AI 피드백 생성 및 조회 | - `POST /api/essays/:id/questions/:qid/feedback`: 질문, 답변, 글자수, 공고 직무 맥락을 바탕으로 구조화된 첨삭 피드백(총평, 강점, 개선점, 구체적 수정 제안, 예시 문장)을 생성하고 `essay_feedback` 테이블에 저장한다.<br>- `GET /api/essays/:id/questions/:qid/feedback`으로 최신 피드백을 조회한다. (`OPENAI_MODEL_FEEDBACK || 'gpt-6.1-terra'`, effort `medium`) | P4 | 검증 완료 (`test/ai-features.test.js`, `test/ai-errors-and-limits.test.js`) |
+| FR-AI-05 | 경험 소재 기반 STAR 구조화 초안 생성 및 반영 | - `POST /api/materials/:id/star-draft`: 경험 자료(제목, 분류, 기간, 본문, 태그)를 Situation, Task, Action, Result 및 한 줄 요약, 보완 필요 정보로 구조화하고 `material_star_drafts`에 저장한다. (`OPENAI_MODEL_DRAFT || 'gpt-6.1-terra'`, effort `low`)<br>- `POST /materials/:id/star-draft/:draftId/apply`: 생성된 초안 블록을 기존 자료 본문 하단에 포맷팅하여 추가한다. | P4 | 검증 완료 (`test/ai-features.test.js`, `test/ai-errors-and-limits.test.js`) |
+| FR-AI-06 | 채용 공고 텍스트 자동 파싱 및 폼 채우기 | - `POST /api/jobs/parse`: 복사한 채용 공고 원문 텍스트에서 기업명, 공고 제목, 직무, 고용 형태, 마감일, URL, 요약 메모, 자기소개서 문항 목록을 JSON Schema로 추출하여 반환한다. (`OPENAI_MODEL_EXTRACT || 'gpt-6-luna'`, effort `none`)<br>- DB에 자동 저장하지 않고 브라우저 폼 입력 필드를 자동으로 채워 오입력을 방지한다. | P4 | 검증 완료 (`test/ai-features.test.js`, `test/ai-errors-and-limits.test.js`) |
+| FR-AI-07 | 공통 모델 오버라이드 및 통합 속도 제한 | - 전역 `OPENAI_MODEL` 또는 기능별 `OPENAI_MODEL_*` 환경 변수를 지원하며, API 키 원문은 설정 화면(`GET /settings/ai`)과 로그에 절대 노출하지 않는다.<br>- 4가지 AI 기능을 통틀어 사용자당 10분 내 최대 20회의 통합 슬라이딩 윈도우 속도 제한(429)을 적용한다. | P4 | 검증 완료 (`test/ai-errors-and-limits.test.js`) |
 
 ---
 
@@ -102,7 +106,7 @@
 | NFR-SEC-02 | SQL 인젝션 방지 | 모든 DB 쿼리는 `better-sqlite3`의 `db.prepare(...).get/all/run(...)` 바인딩 파라미터만 사용하며, 사용자 입력값을 문자열 결합으로 SQL에 삽입하지 않는다. | 구현 완료 (`src/services/*.js`) |
 | NFR-SEC-03 | 세션 및 쿠키 보안 | `express-session` 쿠키(`readysetjob.sid`)는 `httpOnly: true`, `sameSite: 'lax'`, 유효기간 7일(`604800000ms`)로 설정하고 SQLite 세션 스토어에 영속화한다. 로그인/회원가입 직후 `req.session.regenerate()`를 수행한다. | 검증 완료 (`test/auth-and-security.test.js`) |
 | NFR-SEC-04 | 보안 헤더 및 CSP | `helmet`을 통해 `default-src 'self'`, `script-src 'self'`, `style-src 'self'`, `img-src 'self' data:`, `frame-ancestors 'none'`, `object-src 'none'` CSP 정책을 강제하여 외부 스크립트 주입 및 클릭재킹을 차단한다. | 구현 완료 (`src/app.js`) |
-| NFR-SEC-05 | 비밀값 관리 | `SESSION_SECRET`, `GEMINI_API_KEY` 등 민감 정보는 `.env`를 통해 주입하며 저장소에는 `.env.example`만 커밋한다. | 구현 완료 (`.gitignore`, `.env.example`) |
+| NFR-SEC-05 | 비밀값 관리 | `SESSION_SECRET`, `OPENAI_API_KEY` 등 민감 정보는 `.env`를 통해 주입하며 저장소에는 `.env.example`만 커밋한다. | 구현 완료 (`.gitignore`, `.env.example`) |
 | NFR-PERF-01 | 경량 실행 및 트랜잭션 | 헤드리스 리눅스 컨테이너 환경을 고려해 무거운 프론트엔드 번들러나 상주 워커 프로세스를 두지 않고, `better-sqlite3` WAL 모드(`PRAGMA journal_mode = WAL`)와 동기 트랜잭션(`db.transaction`)으로 데이터 정합성과 응답 속도를 확보한다. | 구현 완료 (`src/db/connection.js`) |
 | NFR-PERF-02 | 세션 만료 타이머 정리 | `SqliteSessionStore`의 만료 세션 정리 `setInterval` 타이머에 `timer.unref()`를 호출하여 테스트 종료 시 이벤트 루프가 블로킹되지 않도록 한다. | 구현 완료 (`src/app.js`) |
 | NFR-A11Y-01 | 시맨틱 마크업 및 접근성 | 모든 폼 입력 필드에 `<label for="...">`를 연결하고, 내비게이션에 `aria-label="주 메뉴"`, 비활성 메뉴에 `aria-disabled="true"`, 플래시 알림에 `role="status"`를 부여한다. | 구현 완료 (`views/layouts/main.ejs`, `views/**/*.ejs`) |

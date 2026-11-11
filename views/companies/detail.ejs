@@ -1,7 +1,25 @@
-<div class="page-header">
-  <h1 class="page-header__title"><%= company.name %></h1>
-  <div class="inline-actions">
-    <a href="/jobs/new?company_id=<%= company.id %>" class="btn btn-primary">이 기업의 공고 등록</a>
+<% const av = companyAvatar(company.name); %>
+
+<div class="entity-header">
+  <div class="entity-header__avatar">
+    <span class="avatar avatar--lg <%= av.className %>"><%= av.initial %></span>
+  </div>
+  <div class="entity-header__info">
+    <div class="entity-header__meta">
+      <% if (company.industry) { %>
+        <span class="badge"><%= company.industry %></span>
+      <% } %>
+      <% if (company.website) { %>
+        <a href="<%= company.website %>" target="_blank" rel="noopener noreferrer"><%= company.website %> ↗</a>
+      <% } %>
+    </div>
+    <h1 class="entity-header__title">
+      <span><%= company.name %></span>
+      <span class="badge num">공고 <%= company.jobPosts.length %>건</span>
+    </h1>
+  </div>
+  <div class="entity-header__actions">
+    <a href="/jobs/new?company_id=<%= company.id %>" class="btn btn-primary">+ 이 기업의 공고 등록</a>
     <a href="/companies/<%= company.id %>/edit" class="btn">기업 수정</a>
     <form
       action="/companies/<%= company.id %>?_method=DELETE"
@@ -12,32 +30,50 @@
       <input type="hidden" name="_method" value="DELETE">
       <button type="submit" class="btn btn-danger">삭제</button>
     </form>
+    <a href="/companies" class="btn">목록으로</a>
   </div>
 </div>
 
 <section class="card">
-  <h2>기업 기본 정보</h2>
-  <p><strong>산업군:</strong> <%= company.industry || '-' %></p>
-  <p>
-    <strong>웹사이트:</strong>
-    <% if (company.website) { %>
-      <a href="<%= company.website %>" target="_blank" rel="noopener noreferrer"><%= company.website %></a>
-    <% } else { %>
-      -
-    <% } %>
-  </p>
-  <p><strong>메모:</strong> <%= company.memo || '등록된 메모가 없습니다.' %></p>
+  <div class="card__header">
+    <h2 class="card__title">기업 기본 정보</h2>
+  </div>
+  <div class="info-list">
+    <div class="info-item">
+      <span class="info-item__label">산업군</span>
+      <span class="info-item__value"><%= company.industry || '-' %></span>
+    </div>
+    <div class="info-item">
+      <span class="info-item__label">웹사이트</span>
+      <span class="info-item__value">
+        <% if (company.website) { %>
+          <a href="<%= company.website %>" target="_blank" rel="noopener noreferrer"><%= company.website %></a>
+        <% } else { %>
+          -
+        <% } %>
+      </span>
+    </div>
+    <div class="info-item">
+      <span class="info-item__label">등록된 채용 공고</span>
+      <span class="info-item__value num"><%= company.jobPosts.length %>건</span>
+    </div>
+  </div>
+  <div class="form-field mt-4">
+    <label>기업 메모 / 인재상</label>
+    <p class="prose-pre text-muted"><%= company.memo || '등록된 메모가 없습니다.' %></p>
+  </div>
 </section>
 
 <section class="card">
-  <div class="page-header">
-    <h2>등록된 채용 공고 (<%= company.jobPosts.length %>건)</h2>
-    <a href="/jobs/new?company_id=<%= company.id %>" class="btn btn-sm">공고 추가</a>
+  <div class="card__header">
+    <h2 class="card__title">등록된 채용 공고 (<%= company.jobPosts.length %>건)</h2>
+    <a href="/jobs/new?company_id=<%= company.id %>" class="btn btn-sm">+ 공고 추가</a>
   </div>
 
   <% if (company.jobPosts.length === 0) { %>
-    <div class="empty-state">
+    <div class="empty-state empty-state--compact">
       <p>이 기업에 등록된 채용 공고가 없습니다.</p>
+      <a href="/jobs/new?company_id=<%= company.id %>" class="btn btn-sm btn-primary">첫 채용 공고 등록하기</a>
     </div>
   <% } else { %>
     <div class="table-wrap">
@@ -59,12 +95,12 @@
               <td><%= job.position || '-' %></td>
               <td><span class="badge"><%= EMPLOYMENT_TYPE_LABELS[job.employment_type] || job.employment_type %></span></td>
               <td>
-                <%= job.deadline || '상시' %>
+                <span class="num"><%= job.deadline || '상시' %></span>
                 <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
               </td>
               <td>
                 <% if (job.application_id) { %>
-                  <a href="/applications/<%= job.application_id %>">
+                  <a href="/applications/<%= job.application_id %>" class="inline-actions">
                     <span class="badge badge--stage-<%= job.application_stage %>"><%= STAGE_LABELS[job.application_stage] %></span>
                     <span class="badge badge--result-<%= job.application_result %>"><%= RESULT_LABELS[job.application_result] %></span>
                   </a>

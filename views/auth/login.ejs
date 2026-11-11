@@ -1,8 +1,14 @@
-<section class="card">
-  <div class="page-header">
-    <h1 class="page-header__title">로그인</h1>
+<div class="auth-card">
+  <div class="auth-header">
+    <a href="/login" class="auth-brand">
+      <svg class="sidebar__brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span>ReadySetJob<span class="sidebar__brand-dot">.</span></span>
+    </a>
+    <h1 class="auth-title">로그인</h1>
+    <p class="auth-desc">ReadySetJob 취업·인턴 지원 현황 및 자기소개서 관리</p>
   </div>
-  <p class="text-muted">ReadySetJob 취업·인턴 지원 현황 및 자기소개서 관리</p>
 
   <% if (error) { %>
     <div class="flash flash--error" role="alert"><%= error %></div>
@@ -19,7 +25,7 @@
         class="input"
         required
         autocomplete="email"
-        value="<%= values.email %>"
+        value="<%= (typeof values !== 'undefined' && values && values.email) || '' %>"
       >
     </div>
     <div class="form-field">
@@ -33,9 +39,9 @@
         autocomplete="current-password"
       >
     </div>
-    <div class="inline-actions">
-      <button type="submit" class="btn btn-primary">로그인</button>
-      <a href="/signup" class="btn">회원가입</a>
+    <div class="auth-actions">
+      <button type="submit" class="btn btn-primary btn-lg">로그인</button>
+      <a href="/signup" class="btn btn-lg">회원가입</a>
     </div>
   </form>
-</section>
+</div>

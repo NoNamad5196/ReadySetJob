@@ -5,67 +5,376 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="<%= csrfToken %>">
   <title><%= typeof title !== 'undefined' && title ? `${title} | ReadySetJob` : 'ReadySetJob' %></title>
+  <link rel="stylesheet" href="/vendor/pretendard/pretendardvariable.css">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/app.css">
   <link rel="stylesheet" href="/css/board.css">
+  <link rel="stylesheet" href="/css/essay.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/ai.css">
 </head>
 <body>
   <% if (currentUser) { %>
+    <%
+      const s = typeof shell !== 'undefined' && shell ? shell : {};
+      const sCounts = s.counts || { applications_in_progress: 0, todos_open: 0 };
+      const sFavorites = s.favorites || [];
+      const sGoal = s.goal || null;
+      const sNotifications = s.notifications || [];
+      const seasonLabel = (s.user && s.user.season_label) || '2026 하반기 취업 준비';
+      const userAvatar = companyAvatar(currentUser.name || '김');
+    %>
+    <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+
     <div class="app-shell">
-      <aside class="sidebar">
-        <a href="/dashboard" class="sidebar__brand">ReadySetJob</a>
-        <nav aria-label="주 메뉴">
-          <ul class="sidebar__nav">
-            <li>
-              <a href="/dashboard" class="sidebar__link <%= currentPath.startsWith('/dashboard') ? 'sidebar__link--active' : '' %>">
-                <span>대시보드</span>
-              </a>
-            </li>
-            <li>
-              <a href="/applications/board" class="sidebar__link <%= currentPath.startsWith('/applications') ? 'sidebar__link--active' : '' %>">
-                <span>지원 현황</span>
-              </a>
-            </li>
-            <li>
-              <a href="/jobs" class="sidebar__link <%= currentPath.startsWith('/jobs') ? 'sidebar__link--active' : '' %>">
-                <span>채용 공고</span>
-              </a>
-            </li>
-            <li>
-              <a href="/companies" class="sidebar__link <%= currentPath.startsWith('/companies') ? 'sidebar__link--active' : '' %>">
-                <span>기업</span>
-              </a>
-            </li>
-            <li>
-              <a href="/essays" class="sidebar__link <%= currentPath.startsWith('/essays') ? 'sidebar__link--active' : '' %>">
-                <span>자기소개서</span>
-              </a>
-            </li>
-            <li>
-              <a href="/materials" class="sidebar__link <%= currentPath.startsWith('/materials') ? 'sidebar__link--active' : '' %>">
-                <span>자료함</span>
-              </a>
-            </li>
-            <li>
-              <a href="/events" class="sidebar__link <%= currentPath.startsWith('/events') ? 'sidebar__link--active' : '' %>">
-                <span>일정</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar__header">
+          <a href="/dashboard" class="sidebar__brand">
+            <svg class="sidebar__brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>ReadySetJob<span class="sidebar__brand-dot">.</span></span>
+          </a>
+
+          <a href="/settings" class="sidebar__season" title="시즌 설정">
+            <div class="sidebar__season-left">
+              <span class="avatar avatar--sm <%= userAvatar.className %>"><%= userAvatar.initial %></span>
+              <span class="sidebar__season-text"><%= seasonLabel %></span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </a>
+        </div>
+
+        <div class="sidebar__content">
+          <div class="sidebar__section">
+            <div class="sidebar__section-header">
+              <span class="sidebar__section-label">메뉴</span>
+            </div>
+            <nav aria-label="주 메뉴">
+              <ul class="sidebar__nav">
+                <li>
+                  <a href="/dashboard" class="sidebar__link <%= currentPath === '/dashboard' || currentPath === '/' ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                          <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                          <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                          <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                        </svg>
+                      </span>
+                      <span>대시보드</span>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="/applications/board" class="sidebar__link <%= currentPath.startsWith('/applications') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                          <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+                          <path d="M9 12h6"></path>
+                          <path d="M9 16h6"></path>
+                        </svg>
+                      </span>
+                      <span>지원 관리</span>
+                    </div>
+                    <% if (sCounts.applications_in_progress > 0) { %>
+                      <span class="sidebar__badge"><%= sCounts.applications_in_progress %></span>
+                    <% } %>
+                  </a>
+                </li>
+                <li>
+                  <a href="/essays" class="sidebar__link <%= currentPath.startsWith('/essays') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                          <polyline points="14 2 14 8 20 8"></polyline>
+                          <line x1="16" y1="13" x2="8" y2="13"></line>
+                          <line x1="16" y1="17" x2="8" y2="17"></line>
+                          <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                      </span>
+                      <span>자기소개서</span>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="/jobs" class="sidebar__link <%= currentPath.startsWith('/jobs') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg>
+                      </span>
+                      <span>채용 공고</span>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="/companies" class="sidebar__link <%= currentPath.startsWith('/companies') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M3 21h18"></path>
+                          <path d="M5 21V7l8-4v18"></path>
+                          <path d="M19 21V11l-6-4"></path>
+                          <line x1="9" y1="9" x2="9" y2="9.01"></line>
+                          <line x1="9" y1="13" x2="9" y2="13.01"></line>
+                          <line x1="9" y1="17" x2="9" y2="17.01"></line>
+                        </svg>
+                      </span>
+                      <span>기업</span>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="/materials" class="sidebar__link <%= currentPath.startsWith('/materials') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                      </span>
+                      <span>자료함</span>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="/events" class="sidebar__link <%= currentPath.startsWith('/events') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                      </span>
+                      <span>일정</span>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="/todos" class="sidebar__link <%= currentPath.startsWith('/todos') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="9 11 12 14 22 4"></polyline>
+                          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                      </span>
+                      <span>할 일</span>
+                    </div>
+                    <% if (sCounts.todos_open > 0) { %>
+                      <span class="sidebar__badge"><%= sCounts.todos_open %></span>
+                    <% } %>
+                  </a>
+                </li>
+                <li>
+                  <a href="/interview-prep" class="sidebar__link <%= currentPath.startsWith('/interview-prep') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                          <path d="M8 9h8"></path>
+                          <path d="M8 13h5"></path>
+                        </svg>
+                      </span>
+                      <span>면접 준비</span>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="/stats" class="sidebar__link <%= currentPath.startsWith('/stats') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="18" y1="20" x2="18" y2="10"></line>
+                          <line x1="12" y1="20" x2="12" y2="4"></line>
+                          <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                      </span>
+                      <span>통계</span>
+                    </div>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+
+          <% if (sFavorites.length > 0) { %>
+            <div class="sidebar__section">
+              <div class="sidebar__section-header">
+                <span class="sidebar__section-label">즐겨찾는 지원</span>
+                <span class="sidebar__section-count"><%= sFavorites.length %></span>
+              </div>
+              <ul class="sidebar__fav-list">
+                <% for (const f of sFavorites) { %>
+                  <% const favAv = companyAvatar(f.company_name); %>
+                  <li>
+                    <a href="/applications/<%= f.id %>" class="sidebar__fav-link">
+                      <span class="avatar avatar--sm <%= favAv.className %>"><%= favAv.initial %></span>
+                      <div class="sidebar__fav-info">
+                        <span class="sidebar__fav-name"><%= f.company_name %></span>
+                        <span class="sidebar__fav-pos"><%= f.position || f.job_title || '' %></span>
+                      </div>
+                    </a>
+                  </li>
+                <% } %>
+              </ul>
+            </div>
+          <% } %>
+        </div>
+
+        <div class="sidebar__footer">
+          <% if (sGoal) { %>
+            <div class="sidebar__goal">
+              <div class="sidebar__goal-header">
+                <span class="sidebar__goal-label"><%= sGoal.label %> 지원 목표</span>
+                <span class="sidebar__goal-fraction num"><%= sGoal.current %> / <%= sGoal.target || 20 %></span>
+              </div>
+              <div class="sidebar__goal-progress" role="progressbar" aria-valuenow="<%= sGoal.current %>" aria-valuemin="0" aria-valuemax="<%= sGoal.target || 20 %>">
+                <div class="sidebar__goal-bar" data-progress="<%= sGoal.percent %>"></div>
+              </div>
+              <a href="/settings" class="sidebar__goal-link">목표 설정 ›</a>
+            </div>
+          <% } %>
+
+          <a href="/settings" class="sidebar__link <%= currentPath.startsWith('/settings') ? 'sidebar__link--active' : '' %>">
+            <div class="sidebar__link-left">
+              <span class="sidebar__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+              </span>
+              <span>설정</span>
+            </div>
+          </a>
+
+          <div class="sidebar__profile-row">
+            <a href="/settings" class="sidebar__profile-user">
+              <span class="avatar avatar--sm <%= userAvatar.className %>"><%= userAvatar.initial %></span>
+              <div class="sidebar__profile-info">
+                <span class="sidebar__profile-name"><%= currentUser.name %></span>
+                <span class="sidebar__profile-email"><%= currentUser.email %></span>
+              </div>
+            </a>
+            <div class="sidebar__profile-actions">
+              <button type="button" id="theme-toggle" class="topbar__icon-btn" aria-label="테마 전환" title="테마 전환">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              </button>
+              <form action="/logout" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="topbar__icon-btn" aria-label="로그아웃" title="로그아웃">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
       </aside>
 
       <div class="main-area">
         <header class="topbar">
-          <div>
-            <strong><%= currentUser.name %></strong>님 (<%= currentUser.email %>)
+          <div class="topbar__left">
+            <button type="button" class="topbar__toggle" id="sidebar-toggle" aria-label="사이드바 열기/닫기">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+            <div class="topbar__breadcrumb">
+              <span class="topbar__breadcrumb-root">워크스페이스</span>
+              <span class="topbar__breadcrumb-sep">›</span>
+              <span class="topbar__breadcrumb-current"><%= typeof title !== 'undefined' && title ? title : '대시보드' %></span>
+            </div>
           </div>
-          <div class="topbar__actions">
-            <button type="button" id="theme-toggle" class="btn btn-sm">테마 전환</button>
-            <form action="/logout" method="POST">
-              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button type="submit" class="btn btn-sm">로그아웃</button>
+
+          <div class="topbar__right">
+            <form action="/search" method="GET" class="topbar__search-form" role="search">
+              <svg class="topbar__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                name="q"
+                id="global-search-input"
+                class="topbar__search-input"
+                placeholder="기업, 공고, 자료 검색"
+                autocomplete="off"
+              >
+              <span class="topbar__search-kbd"><kbd class="kbd">⌘K</kbd></span>
             </form>
+
+            <details class="dropdown-wrapper">
+              <summary class="btn btn-sm">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>빠른 실행</span>
+              </summary>
+              <div class="dropdown-menu">
+                <a href="/applications/new" class="dropdown-item">지원 추가</a>
+                <a href="/jobs/new" class="dropdown-item">공고 추가</a>
+                <a href="/essays/new" class="dropdown-item">자기소개서 작성</a>
+                <a href="/todos" class="dropdown-item">할 일 추가</a>
+                <a href="/events" class="dropdown-item">일정 추가</a>
+              </div>
+            </details>
+
+            <details class="dropdown-wrapper notification-menu">
+              <summary class="topbar__icon-btn" aria-label="알림">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <% if (sNotifications.length > 0) { %>
+                  <span class="notification-dot" aria-hidden="true"></span>
+                <% } %>
+              </summary>
+              <div class="dropdown-menu">
+                <div class="dropdown-header">다가오는 일정 &amp; 마감</div>
+                <% if (sNotifications.length === 0) { %>
+                  <div class="notification-empty">예정된 알림이 없습니다.</div>
+                <% } else { %>
+                  <% for (const n of sNotifications) { %>
+                    <a href="<%= n.href %>" class="notification-item">
+                      <div class="notification-item-top">
+                        <span class="notification-item-title"><%= n.title %></span>
+                        <span class="badge <%= n.ddayObj && n.ddayObj.state ? 'badge--dday-' + n.ddayObj.state : '' %>"><%= n.dday %></span>
+                      </div>
+                      <span class="notification-item-date"><%= n.date %></span>
+                    </a>
+                  <% } %>
+                <% } %>
+              </div>
+            </details>
+
+            <a href="/settings" class="avatar avatar--sm <%= userAvatar.className %>" title="<%= currentUser.name %>"><%= userAvatar.initial %></a>
           </div>
         </header>
 
@@ -90,5 +399,6 @@
     </main>
   <% } %>
   <script src="/js/app.js"></script>
+  <script src="/js/ai.js"></script>
 </body>
 </html>

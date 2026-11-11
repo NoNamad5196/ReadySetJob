@@ -1,4 +1,5 @@
 const { normalizeTags } = require('../middleware/validation');
+const { getLatestMaterialStarDraft } = require('./aiFeaturesService');
 
 function buildFilterClause(userId, { kind = '', q = '' } = {}) {
   const conditions = ['m.user_id = ?'];
@@ -65,7 +66,9 @@ function getMaterialWithEssays(db, userId, id) {
     `)
     .all(material.id, Number(userId));
 
-  return { ...material, linkedEssays };
+  const { draft: latestStarDraft } = getLatestMaterialStarDraft(db, userId, material.id);
+
+  return { ...material, linkedEssays, latestStarDraft };
 }
 
 function createMaterial(

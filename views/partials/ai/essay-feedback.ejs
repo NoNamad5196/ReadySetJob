@@ -1,0 +1,126 @@
+<%
+  /*
+    Partial: views/partials/ai/essay-feedback.ejs
+    Include location: views/essays/editor.ejs (inside each essay.questions loop item, below .essay-counter-bar)
+    Example: include('../partials/ai/essay-feedback', { essay, question: q, aiEnabled, csrfToken })
+    Required locals:
+      - essay: { id }
+      - question (or q): { id, answer, char_limit, latest_feedback? }
+      - aiEnabled: boolean (defaults to res.locals.aiEnabled)
+      - csrfToken: string (defaults to res.locals.csrfToken)
+  */
+%>
+<%
+  const qItem = typeof question !== 'undefined' ? question : (typeof q !== 'undefined' ? q : {});
+  const isEnabled = typeof aiEnabled !== 'undefined' ? Boolean(aiEnabled) : false;
+  const disabledMsg = typeof AI_DISABLED_MESSAGE !== 'undefined'
+    ? AI_DISABLED_MESSAGE
+    : 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)';
+  const latest = qItem && qItem.latest_feedback ? qItem.latest_feedback : null;
+  const fb = latest && latest.result ? latest.result : latest;
+%>
+<div
+  class="ai-feedback-box"
+  data-ai-feedback-root
+  data-essay-id="<%= essay.id %>"
+  data-question-id="<%= qItem.id %>"
+>
+  <div class="ai-feedback-box__bar">
+    <div class="ai-feedback-box__title-group">
+      <span class="badge ai-badge">OpenAI 첨삭</span>
+      <span class="text-muted text-sm">구체성·직무적합성·구조·분량 4대 지표 진단 (원문 대필 없음)</span>
+    </div>
+    <div class="inline-actions">
+      <% if (isEnabled) { %>
+        <button
+          type="button"
+          class="btn btn-sm btn-primary"
+          data-ai-feedback-btn
+          data-essay-id="<%= essay.id %>"
+          data-question-id="<%= qItem.id %>"
+        >
+          AI 문항 피드백 받기
+        </button>
+      <% } else { %>
+        <button
+          type="button"
+          class="btn btn-sm btn-primary"
+          disabled
+          aria-disabled="true"
+        >
+          AI 문항 피드백 받기
+        </button>
+        <span class="text-muted text-sm"><%= disabledMsg %></span>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="ai-alert ai-alert--error ai-hidden" data-ai-feedback-error role="alert"></div>
+
+  <div
+    class="ai-feedback-panel <%= fb ? '' : 'ai-hidden' %>"
+    data-ai-feedback-panel
+    aria-live="polite"
+  >
+    <div class="ai-feedback-panel__header">
+      <strong class="ai-feedback-panel__summary" data-ai-fb-summary><%= fb ? fb.summary : '' %></strong>
+      <span class="text-muted text-sm num" data-ai-fb-meta>
+        <% if (latest && latest.model) { %><%= latest.model %> · <%= latest.created_at || '' %><% } %>
+      </span>
+    </div>
+
+    <div class="ai-score-grid">
+      <div class="ai-score-item">
+        <span class="ai-score-item__label">구체성</span>
+        <strong class="ai-score-item__value num" data-ai-score-specificity><%= fb && fb.scores ? `${fb.scores.specificity} / 5` : '- / 5' %></strong>
+      </div>
+      <div class="ai-score-item">
+        <span class="ai-score-item__label">직무 적합성</span>
+        <strong class="ai-score-item__value num" data-ai-score-relevance><%= fb && fb.scores ? `${fb.scores.relevance} / 5` : '- / 5' %></strong>
+      </div>
+      <div class="ai-score-item">
+        <span class="ai-score-item__label">논리 구조</span>
+        <strong class="ai-score-item__value num" data-ai-score-structure><%= fb && fb.scores ? `${fb.scores.structure} / 5` : '- / 5' %></strong>
+      </div>
+      <div class="ai-score-item">
+        <span class="ai-score-item__label">분량 적합도</span>
+        <strong class="ai-score-item__value num" data-ai-score-length-fit><%= fb && fb.scores ? `${fb.scores.length_fit} / 5` : '- / 5' %></strong>
+      </div>
+    </div>
+
+    <div class="ai-feedback-columns">
+      <div class="ai-feedback-section">
+        <h4 class="ai-feedback-section__title">강점 포인트</h4>
+        <ul class="ai-list" data-ai-fb-strengths>
+          <% if (fb && Array.isArray(fb.strengths)) { %>
+            <% for (const st of fb.strengths) { %>
+              <li><%= st %></li>
+            <% } %>
+          <% } %>
+        </ul>
+      </div>
+
+      <div class="ai-feedback-section">
+        <h4 class="ai-feedback-section__title">보완 제안</h4>
+        <ul class="ai-list ai-list--improvements" data-ai-fb-improvements>
+          <% if (fb && Array.isArray(fb.improvements)) { %>
+            <% for (const imp of fb.improvements) { %>
+              <li class="ai-improvement-item">
+                <div class="ai-improvement-item__issue"><%= imp.issue %></div>
+                <div class="ai-improvement-item__suggestion"><%= imp.suggestion %></div>
+                <% if (imp.quote) { %>
+                  <blockquote class="ai-improvement-item__quote"><%= imp.quote %></blockquote>
+                <% } %>
+              </li>
+            <% } %>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ai-feedback-panel__footer">
+      <span class="badge">분량 진단</span>
+      <span class="text-muted text-sm" data-ai-fb-length-note><%= fb ? fb.length_note : '' %></span>
+    </div>
+  </div>
+</div>

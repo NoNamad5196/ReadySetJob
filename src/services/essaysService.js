@@ -1,4 +1,5 @@
 const { diffWordsWithSpace } = require('diff');
+const { getLatestEssayFeedback } = require('./aiFeaturesService');
 
 const ESSAY_JOIN_SQL = 'LEFT JOIN applications a ON a.id = e.application_id AND a.user_id = e.user_id LEFT JOIN job_posts jp ON jp.id = a.job_post_id AND jp.user_id = e.user_id LEFT JOIN companies c ON c.id = jp.company_id AND c.user_id = e.user_id';
 const ESSAY_SELECT_COLS = 'e.*, a.stage AS application_stage, a.result AS application_result, jp.id AS job_post_id, jp.title AS job_title, jp.position AS job_position, c.id AS company_id, c.name AS company_name';
@@ -41,7 +42,10 @@ const listEssayVersions = (db, userId, essayId) => {
 function getEssayById(db, userId, essayId) {
   const essay = getEssayHeader(db, userId, essayId);
   if (!essay) return null;
-  const questions = getEssayQuestions(db, essay.id);
+  const questions = getEssayQuestions(db, essay.id).map((q) => {
+    const { feedback } = getLatestEssayFeedback(db, userId, { essayId: essay.id, questionId: q.id });
+    return { ...q, latest_feedback: feedback };
+  });
   const versions = listEssayVersions(db, userId, essay.id);
   const linkedMaterials = db.prepare('SELECT m.* FROM materials m INNER JOIN essay_materials em ON em.material_id = m.id WHERE em.essay_id = ? AND m.user_id = ? ORDER BY m.updated_at DESC, m.id DESC').all(essay.id, userId);
   const linkedIds = new Set(linkedMaterials.map((m) => m.id));

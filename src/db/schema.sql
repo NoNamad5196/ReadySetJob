@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   name TEXT NOT NULL,
+  season_label TEXT NULL,
   created_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS applications (
   board_order INTEGER NOT NULL DEFAULT 0,
   applied_at DATE,
   memo TEXT DEFAULT '',
+  is_favorite INTEGER NOT NULL DEFAULT 0 CHECK (is_favorite IN (0, 1)),
   created_at DATETIME NOT NULL DEFAULT (datetime('now')),
   updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
@@ -126,6 +128,45 @@ CREATE TABLE IF NOT EXISTS interview_questions (
   created_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS todos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  application_id INTEGER NULL REFERENCES applications(id) ON DELETE SET NULL,
+  title TEXT NOT NULL CHECK (length(title) <= 120),
+  category TEXT NOT NULL DEFAULT 'other' CHECK (category IN ('essay', 'interview', 'coding_test', 'assignment', 'other')),
+  due_date DATE NULL,
+  is_done INTEGER NOT NULL DEFAULT 0 CHECK (is_done IN (0, 1)),
+  done_at DATETIME NULL,
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS monthly_goals (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  month TEXT NOT NULL,
+  target INTEGER NOT NULL CHECK (target >= 1 AND target <= 200),
+  PRIMARY KEY (user_id, month)
+);
+
+CREATE TABLE IF NOT EXISTS essay_feedback (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  essay_id INTEGER NOT NULL REFERENCES essays(id) ON DELETE CASCADE,
+  question_id INTEGER NOT NULL REFERENCES essay_questions(id) ON DELETE CASCADE,
+  model TEXT NOT NULL,
+  result_json TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS material_star_drafts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+  model TEXT NOT NULL,
+  result_json TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_user_id ON job_posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_company_id ON job_posts(company_id);
@@ -140,3 +181,6 @@ CREATE INDEX IF NOT EXISTS idx_essay_questions_essay_id ON essay_questions(essay
 CREATE INDEX IF NOT EXISTS idx_essay_versions_essay_id ON essay_versions(essay_id);
 CREATE INDEX IF NOT EXISTS idx_materials_user_id ON materials(user_id);
 CREATE INDEX IF NOT EXISTS idx_interview_questions_user_id ON interview_questions(user_id);
+CREATE INDEX IF NOT EXISTS idx_todos_user_done_due ON todos(user_id, is_done, due_date);
+CREATE INDEX IF NOT EXISTS idx_essay_feedback_lookup ON essay_feedback(user_id, essay_id, question_id, id);
+CREATE INDEX IF NOT EXISTS idx_material_star_drafts_lookup ON material_star_drafts(user_id, material_id, id);

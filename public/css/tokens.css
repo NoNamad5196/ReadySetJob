@@ -1,7 +1,19 @@
 :root {
-  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Noto Sans KR', sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  /* Typography */
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
+  /* Typography scale */
+  --font-size-page-title: 27px;
+  --font-weight-page-title: 700;
+  --font-size-section-title: 17px;
+  --font-weight-section-title: 700;
+  --font-size-body: 15px;
+  --font-size-small: 13px;
+  --font-size-caption: 12px;
+
+  /* Spacing Scale (4px base) */
+  --space-0: 0px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -10,103 +22,183 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
+  --space-12: 48px;
 
+  /* Radii */
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-pill: 9999px;
 
-  --color-bg: #f8fafc;
-  --color-surface: #ffffff;
-  --color-surface-subtle: #f1f5f9;
-  --color-surface-hover: #e2e8f0;
-  --color-border: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  /* Layout dimensions */
+  --sidebar-width: 248px;
+  --topbar-height: 56px;
+  --content-max-width: 1200px;
+  --right-rail-width: 300px;
 
-  --color-text: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-  --color-text-inverse: #ffffff;
+  /* Surfaces & Canvas (Light) */
+  --color-bg: #F7F8FA;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F2F4F6;
+  --color-surface-hover: #E8ECF2;
+  --color-surface-selected: #EFF3F8;
 
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-soft: #dbeafe;
-  --color-primary-text: #1e40af;
+  /* Borders (Light) */
+  --color-border: #E4E9EF;
+  --color-border-subtle: #EDF1F5;
+  --color-border-strong: #D3D9E1;
 
-  --color-success: #16a34a;
-  --color-success-soft: #dcfce7;
-  --color-success-text: #166534;
+  /* Text (Light) */
+  --color-text: #191F28;
+  --color-text-secondary: #4E5968;
+  --color-text-muted: #697889;
+  --color-text-subtle: #8B95A1;
+  --color-text-inverse: #FFFFFF;
 
-  --color-warning: #d97706;
-  --color-warning-soft: #fef3c7;
-  --color-warning-text: #92400e;
+  /* Primary Accent (#3182F6 only for primary buttons, active nav, focus rings, links, single key number) */
+  --color-primary: #3182F6;
+  --color-primary-hover: #1B64DA;
+  --color-primary-soft: #EDF4FF;
+  --color-primary-text: #1B64DA;
 
-  --color-danger: #dc2626;
-  --color-danger-hover: #b91c1c;
-  --color-danger-soft: #fee2e2;
-  --color-danger-text: #991b1b;
+  /* Status Colors (Light: text-level usage & subtle badges) */
+  --color-success: #0CA678;
+  --color-success-hover: #099268;
+  --color-success-soft: #E6FCF5;
+  --color-success-text: #099268;
 
-  --color-stage-document-bg: #e0f2fe;
-  --color-stage-document-text: #0369a1;
-  --color-stage-coding-bg: #ede9fe;
-  --color-stage-coding-text: #6d28d9;
-  --color-stage-assignment-bg: #fce7f3;
-  --color-stage-assignment-text: #be185d;
-  --color-stage-interview1-bg: #fef3c7;
-  --color-stage-interview1-text: #b45309;
-  --color-stage-interview2-bg: #ffedd5;
-  --color-stage-interview2-text: #c2410c;
-  --color-stage-final-bg: #dcfce7;
-  --color-stage-final-text: #15803d;
+  --color-warning: #F59F00;
+  --color-warning-hover: #D9480F;
+  --color-warning-soft: #FFF9DB;
+  --color-warning-text: #D9480F;
 
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --color-danger: #F03E3E;
+  --color-danger-hover: #C92A2A;
+  --color-danger-soft: #FFF5F5;
+  --color-danger-text: #C92A2A;
+
+  /* Restrained 6-Stage Scale (Subtle dot colors & badges) */
+  --color-stage-document: #697889;
+  --color-stage-document-bg: #EFF2F5;
+  --color-stage-document-text: #4E5968;
+
+  --color-stage-coding: #3182F6;
+  --color-stage-coding-bg: #EDF4FF;
+  --color-stage-coding-text: #1B64DA;
+
+  --color-stage-assignment: #7950F2;
+  --color-stage-assignment-bg: #F3E8FF;
+  --color-stage-assignment-text: #6741D9;
+
+  --color-stage-interview1: #F59F00;
+  --color-stage-interview1-bg: #FFF9DB;
+  --color-stage-interview1-text: #D9480F;
+
+  --color-stage-interview2: #D9480F;
+  --color-stage-interview2-bg: #FFE8CC;
+  --color-stage-interview2-text: #C92A2A;
+
+  --color-stage-final: #0CA678;
+  --color-stage-final-bg: #E6FCF5;
+  --color-stage-final-text: #099268;
+
+  /* 8 Muted Avatar Hues (.avatar--0 ... .avatar--7) */
+  --color-avatar-0: #4E5968;
+  --color-avatar-1: #3182F6;
+  --color-avatar-2: #0CA678;
+  --color-avatar-3: #D97706;
+  --color-avatar-4: #7950F2;
+  --color-avatar-5: #D6336C;
+  --color-avatar-6: #099268;
+  --color-avatar-7: #495057;
+  --color-avatar-text: #FFFFFF;
+
+  /* Elevation Shadows (2 levels, very soft) */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(15, 23, 42, 0.02);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
 [data-theme="dark"] {
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-subtle: #334155;
-  --color-surface-hover: #475569;
-  --color-border: #334155;
-  --color-border-strong: #475569;
+  /* Surfaces & Canvas (Dark) */
+  --color-bg: #0E1117;
+  --color-surface: #161B22;
+  --color-surface-subtle: #21262D;
+  --color-surface-hover: #30363D;
+  --color-surface-selected: #282E37;
 
-  --color-text: #f8fafc;
-  --color-text-secondary: #cbd5e1;
-  --color-text-muted: #64748b;
-  --color-text-inverse: #ffffff;
+  /* Borders (Dark) */
+  --color-border: #30363D;
+  --color-border-subtle: #21262D;
+  --color-border-strong: #484F58;
 
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-soft: #1e3a8a;
-  --color-primary-text: #bfdbfe;
+  /* Text (Dark) */
+  --color-text: #F0F6FC;
+  --color-text-secondary: #C9D1D9;
+  --color-text-muted: #8B949E;
+  --color-text-subtle: #6E7681;
+  --color-text-inverse: #FFFFFF;
 
-  --color-success: #22c55e;
-  --color-success-soft: #14532d;
-  --color-success-text: #bbf7d0;
+  /* Primary Accent (Dark) */
+  --color-primary: #3182F6;
+  --color-primary-hover: #4C94F8;
+  --color-primary-soft: #172A45;
+  --color-primary-text: #70B1FF;
 
-  --color-warning: #f59e0b;
-  --color-warning-soft: #78350f;
-  --color-warning-text: #fde68a;
+  /* Status Colors (Dark) */
+  --color-success: #2EA043;
+  --color-success-hover: #3FB950;
+  --color-success-soft: #143823;
+  --color-success-text: #3FB950;
 
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
-  --color-danger-soft: #7f1d1d;
-  --color-danger-text: #fecaca;
+  --color-warning: #D29922;
+  --color-warning-hover: #E3B341;
+  --color-warning-soft: #342A14;
+  --color-warning-text: #E3B341;
 
-  --color-stage-document-bg: #0c4a6e;
-  --color-stage-document-text: #bae6fd;
-  --color-stage-coding-bg: #4c1d95;
-  --color-stage-coding-text: #ddd6fe;
-  --color-stage-assignment-bg: #831843;
-  --color-stage-assignment-text: #fbcfe8;
-  --color-stage-interview1-bg: #78350f;
-  --color-stage-interview1-text: #fde68a;
-  --color-stage-interview2-bg: #7c2d12;
-  --color-stage-interview2-text: #fed7aa;
-  --color-stage-final-bg: #14532d;
-  --color-stage-final-text: #bbf7d0;
+  --color-danger: #F85149;
+  --color-danger-hover: #FF7B72;
+  --color-danger-soft: #381E20;
+  --color-danger-text: #FF7B72;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  /* 6-Stage Scale (Dark) */
+  --color-stage-document: #8B949E;
+  --color-stage-document-bg: #21262D;
+  --color-stage-document-text: #C9D1D9;
+
+  --color-stage-coding: #3182F6;
+  --color-stage-coding-bg: #172A45;
+  --color-stage-coding-text: #70B1FF;
+
+  --color-stage-assignment: #A371F7;
+  --color-stage-assignment-bg: #2B1E4A;
+  --color-stage-assignment-text: #D2A8FF;
+
+  --color-stage-interview1: #D29922;
+  --color-stage-interview1-bg: #342A14;
+  --color-stage-interview1-text: #E3B341;
+
+  --color-stage-interview2: #DB6D28;
+  --color-stage-interview2-bg: #382012;
+  --color-stage-interview2-text: #FFA657;
+
+  --color-stage-final: #2EA043;
+  --color-stage-final-bg: #143823;
+  --color-stage-final-text: #56D364;
+
+  /* 8 Muted Avatar Hues (Dark) */
+  --color-avatar-0: #5C6775;
+  --color-avatar-1: #2B73DD;
+  --color-avatar-2: #138E68;
+  --color-avatar-3: #B86704;
+  --color-avatar-4: #6E44E6;
+  --color-avatar-5: #BF265B;
+  --color-avatar-6: #0A7A57;
+  --color-avatar-7: #5A626A;
+  --color-avatar-text: #FFFFFF;
+
+  /* Elevation Shadows (Dark) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
 }

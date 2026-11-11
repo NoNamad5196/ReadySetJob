@@ -1,0 +1,125 @@
+<%
+  /*
+    Partial: views/partials/ai/material-star.ejs
+    Include location: views/materials/detail.ejs (below the 상세 내용 section card)
+    Example: include('../partials/ai/material-star', { material, aiEnabled, csrfToken })
+    Required locals:
+      - material: { id, title, content, latestStarDraft? }
+      - aiEnabled: boolean (defaults to res.locals.aiEnabled)
+      - csrfToken: string (defaults to res.locals.csrfToken)
+  */
+%>
+<%
+  const isEnabled = typeof aiEnabled !== 'undefined' ? Boolean(aiEnabled) : false;
+  const disabledMsg = typeof AI_DISABLED_MESSAGE !== 'undefined'
+    ? AI_DISABLED_MESSAGE
+    : 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)';
+  const latestDraft = material && material.latestStarDraft ? material.latestStarDraft : null;
+  const star = latestDraft && latestDraft.result ? latestDraft.result : latestDraft;
+%>
+<section
+  class="card ai-star-card"
+  data-ai-star-root
+  data-material-id="<%= material.id %>"
+>
+  <div class="card__header">
+    <div>
+      <div class="inline-actions">
+        <h2 class="card__title">AI STAR 구조화 초안</h2>
+        <span class="badge ai-badge">OpenAI</span>
+      </div>
+      <p class="text-muted text-sm">
+        등록된 경험 원문에 있는 사실만을 추출해 STAR(Situation·Task·Action·Result) 구조로 정리합니다. 없는 수치는 지어내지 않고 보완 필요 항목으로 안내합니다.
+      </p>
+    </div>
+
+    <div class="inline-actions">
+      <% if (isEnabled) { %>
+        <form
+          action="/materials/<%= material.id %>/star-draft"
+          method="POST"
+          data-ai-star-form
+          data-material-id="<%= material.id %>"
+        >
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-sm btn-primary" data-ai-star-btn>
+            STAR 초안 생성
+          </button>
+        </form>
+      <% } else { %>
+        <button type="button" class="btn btn-sm btn-primary" disabled aria-disabled="true">
+          STAR 초안 생성
+        </button>
+        <span class="text-muted text-sm"><%= disabledMsg %></span>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="ai-alert ai-alert--error ai-hidden" data-ai-star-error role="alert"></div>
+
+  <div
+    class="ai-star-panel <%= star ? '' : 'ai-hidden' %>"
+    data-ai-star-panel
+    aria-live="polite"
+  >
+    <div class="ai-star-summary-bar">
+      <div>
+        <span class="badge badge--stage-coding_test">핵심 한 줄 요약</span>
+        <strong data-ai-star-oneliner><%= star ? star.one_liner : '' %></strong>
+      </div>
+      <span class="text-muted text-sm num" data-ai-star-meta>
+        <% if (latestDraft && latestDraft.model) { %><%= latestDraft.model %> · <%= latestDraft.created_at || '' %><% } %>
+      </span>
+    </div>
+
+    <div class="ai-star-grid">
+      <div class="ai-star-item">
+        <span class="ai-star-item__label">S · Situation (상황/배경)</span>
+        <p class="ai-star-item__text" data-ai-star-situation><%= star ? star.situation : '' %></p>
+      </div>
+      <div class="ai-star-item">
+        <span class="ai-star-item__label">T · Task (해결 과제/목표)</span>
+        <p class="ai-star-item__text" data-ai-star-task><%= star ? star.task : '' %></p>
+      </div>
+      <div class="ai-star-item">
+        <span class="ai-star-item__label">A · Action (구체적 행동)</span>
+        <p class="ai-star-item__text" data-ai-star-action><%= star ? star.action : '' %></p>
+      </div>
+      <div class="ai-star-item">
+        <span class="ai-star-item__label">R · Result (성과/배운 점)</span>
+        <p class="ai-star-item__text" data-ai-star-result><%= star ? star.result : '' %></p>
+      </div>
+    </div>
+
+    <div class="ai-star-missing">
+      <h4 class="ai-feedback-section__title">보완하면 좋은 정보 (원문 미기재 항목)</h4>
+      <ul class="ai-list" data-ai-star-missing>
+        <% if (star && Array.isArray(star.missing_info) && star.missing_info.length > 0) { %>
+          <% for (const info of star.missing_info) { %>
+            <li><%= info %></li>
+          <% } %>
+        <% } else if (star) { %>
+          <li>추가로 보완할 누락 정보가 없습니다.</li>
+        <% } %>
+      </ul>
+    </div>
+
+    <div class="ai-star-actions">
+      <form
+        action="<%= latestDraft ? `/materials/${material.id}/star-draft/${latestDraft.id}/apply` : '#' %>"
+        method="POST"
+        data-ai-star-apply-form
+      >
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button
+          type="submit"
+          class="btn btn-sm btn-primary"
+          data-ai-star-apply-btn
+          <%= latestDraft ? '' : 'disabled' %>
+        >
+          자료 상세 내용 끝에 STAR 블록 추가
+        </button>
+      </form>
+    </div>
+  </div>
+</section>

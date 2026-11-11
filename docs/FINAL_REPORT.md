@@ -59,9 +59,9 @@ ReadySetJob의 모든 기능은 "문서 작성 완료 ≠ 기능 완료"라는 �
 | 자기소개서 | 경험 자료 연계 | 과거 문항 검색 API(/api/essays/search), 경험 자료함 N:M 연결 | 검증 완료 |
 | 대시보드 | 통계 및 시각화 | 단계별 깔때기 분석, 합불 도넛 차트, 월별 추이, Chart.js 로컬 서빙 | 검증 완료 |
 | 경험 자료함 | 스펙 및 활동 정리 | 경험/프로젝트/수상/대외활동 CRUD, 태그 필터링, 키워드 검색 | 검증 완료 |
-| AI 어시스턴트 | 면접 질문 생성 | 수동 질문 CRUD 및 Gemini API 기반 직무/자소서 맞춤 예상 질문 도출 | 구현 완료 (실호출 미검증) |
-| AI 어시스턴트 | 안전한 비활성화 | API 키 미설정 시 버튼 비활성화 안내, 모의 응답 없는 투명한 동작 | 검증 완료 |
-| 디자인 시스템 | 일관된 UI 적용 | A/B/C 시안 중 사용자 승인 시안 채택 및 전 화면 토큰 적용 | 개발 중 (승인 대기) |
+| AI 어시스턴트 | AI 4종 기능 지원 | 면접 질문·자소서 피드백·경험 STAR 초안·공고 추출 (OpenAI Responses API) | 검증 완료 |
+| AI 어시스턴트 | 안전한 비활성화 | API 키 미설정 시 503 및 안내 표시, 모의 응답 없는 투명한 동작, 10분 20회 속도 제한 | 검증 완료 |
+| 디자인 시스템 | 일관된 UI 적용 | Figma 승인 디자인 전면 적용, Pretendard 로컬 서빙, 인라인 style 0건 엄격 CSP 준수 | 검증 완료 |
 
 ## 4. 기술 스택
 
@@ -78,7 +78,7 @@ ReadySetJob의 모든 기능은 "문서 작성 완료 ≠ 기능 완료"라는 �
 | 텍스트 차이 분석 | `diff` (jsdiff) | ^7.0.0 | 자소서 버전 간 단어 단위(word-level) 정밀 비교 및 HTML 이스케이프 |
 | 데이터 시각화 | Chart.js | ^4.4.6 | npm 설치 후 `/vendor`로 로컬 정적 서빙, 외부 CDN 의존 차단 |
 | 테스트 도구 | `supertest`, `node:test` | ^7.0.0 / 내장 | 별도 테스팅 프레임워크(Jest 등) 없이 빠른 속도의 통합 테스트 수행 |
-| 인공지능 API | Google Gemini REST API | gemini-2.5-flash | 서버 사이드 fetch 호출, 표준 JSON 스키마 기반 면접 질문 추출 |
+| 인공지능 API | OpenAI Responses API | gpt-6.1-terra / gpt-6-luna | 서버 사이드 Structured Outputs(JSON Schema) 기반 AI 4종 기능 구현 |
 
 ## 5. 시스템 구조
 
@@ -108,7 +108,7 @@ ReadySetJob은 전형적인 3계층 아키텍처(Presentation - Business Logic -
     ├── 비즈니스 규칙 처리, 입력 데이터 가공, 트랜잭션 조율
     ├── applicationsService (보드 재정렬, stage_logs 감사 기록)
     ├── essaysService (불변 버전 생성, jsdiff 비교, 이력 보존 복원)
-    └── aiService (Gemini API 통신, 속도 제한, 응답 검증)
+    └── aiService & aiFeaturesService (OpenAI Responses API 통신, 속도 제한, 스키마 검증)
     │
     ▼
 [ 데이터베이스 계층 (SQLite WAL) ]
@@ -269,31 +269,33 @@ function safeRedirectPath(value, fallback = '/') {
 }
 ```
 
-### 8.5 헤더 기반 API 키 전달 및 JSON 배열 검증 (`src/services/aiService.js`)
+### 8.5 Authorization 헤더 기반 API 키 전달 및 Structured Outputs 검증 (`src/services/aiService.js`)
 
-URL 쿼리 스트링에 키를 노출하지 않고 `x-goog-api-key` 헤더를 통해 Gemini API를 호출하며, 수신된 응답의 JSON 구조를 방어적으로 검증한다.
+URL 쿼리 스트링에 키를 절대 노출하지 않고 `Authorization: Bearer ${apiKey}` 헤더를 통해 OpenAI Responses API를 서버 사이드에서만 호출하며, 수신된 응답의 JSON 스키마를 엄격히 검증한다.
 
 ```javascript
-  const res = await fetchFn(url, {
+  const res = await fetchFn('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey,
+      Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify(requestBody),
+    body: JSON.stringify({
+      model,
+      instructions,
+      input,
+      text: {
+        format: {
+          type: 'json_schema',
+          name: schemaConfig.name,
+          strict: true,
+          schema: schemaConfig.schema,
+        },
+      },
+      reasoning: { effort: reasoningEffort },
+    }),
     signal: controller.signal,
   });
-
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  let parsed;
-  try {
-    parsed = JSON.parse(rawText.trim());
-  } catch {
-    throw new AiError('AI 응답이 유효한 JSON 형식이 아닙니다.', 502);
-  }
-  if (!Array.isArray(parsed) || parsed.length === 0) {
-    throw new AiError('AI 응답이 올바른 면접 질문 배열 형식이 아닙니다.', 502);
-  }
 ```
 
 ## 9. 발생한 문제와 해결 과정
@@ -417,25 +419,24 @@ ReadySetJob 개발 과정에서는 AI를 단순 보조 도구가 아닌 체계�
 * **Notion MCP (협업 로그 관리)**: 개발 일지와 기술 문서를 구조화하고 Notion 워크스페이스 연동을 시도했으며, 인증 장애 시 로컬 마크다운 백업으로 기민하게 전환했다.
 * **인간 및 자동화 검증 원칙**: AI가 생성한 모든 산출물은 `node --test` 50개 테스트를 통과하고 브라우저 실제 구동을 확인한 후에만 브랜치에 반영하는 엄격한 품질 원칙을 견지했다.
 
-## 12. 최종 성과 (2026-11-10 기준)
+## 12. 최종 성과 (2026-11-11 기준)
 
-2026년 11월 10일 현재 기준 ReadySetJob 프로젝트의 실증적 성과는 다음과 같다.
+2026년 11월 11일 현재 기준 ReadySetJob 프로젝트의 실증적 성과는 다음과 같다.
 
 1. **기반 인프라 및 핵심 CRUD 완성 (Phase P0)**: Node.js 22, Express 4, SQLite(`better-sqlite3`), 세션 저장소, `bcryptjs` 인증 및 CSRF 방어 기반 위에 기업, 채용 공고, 지원 현황, 일정 관리 CRUD를 완성하고 `user_id` 기반 소유권 격리를 100% 확립했다.
 2. **인터랙티브 칸반 보드 및 자소서 버전 관리 (Phase P1)**: 6단계 전형 칸반 보드(HTML5 드래그앤드롭, 키보드 조작, no-JS 폼 폴백, 연속 번호 압축 재정렬)와 다중 문항 자소서 에디터, 불변 스냅샷 생성, 서버 사이드 `jsdiff` 단어 단위 대조 뷰, 복원 출처를 보존하는 안전한 버전 복원 시스템을 구축했다.
 3. **통계 시각화 및 경험 자료함 (Phase P2)**: npm 설치 기반 Chart.js 로컬 서빙을 통해 단계별 깔때기 분석, 합불 도넛 차트, 월별 지원 추이 차트를 구현하고, 프로젝트 및 대외활동을 관리하는 경험 자료함을 자소서와 연결했다.
-4. **AI 면접 예상 질문 시스템 (Phase P4 구현 완료)**: 지원 공고와 자소서 답변을 분석하여 면접 질문을 추출하는 Gemini REST 통신 계층과 10분당 5회 속도 제한을 구현했다. API 키 미설정 시 버튼을 비활성화하고 정직한 안내를 제공하도록 처리했다.
-5. **품질 및 안정성 지표**: 총 11개 테스트 파일, 50개 테스트 케이스 전원 통과(`pass 50`, `fail 0`), 실행 시간 약 2.09초, 브라우저 콘솔 오류 0건, Momus 코드 리뷰 9대 취약점 100% 개선 조치를 완료했다.
-6. **디자인 시안 3종 및 스크린샷 완비**: Linear 스타일(A안), Huntr 스타일(B안), Craft 스타일(C안)의 정적 HTML 목업 9종과 데스크톱/모바일 스크린샷 12장을 완성하여 사용자 최종 승인을 준비했다.
+4. **Figma 승인 디자인 시스템 전면 적용 (Phase P3 완성)**: 사용자 승인된 Figma 대시보드 디자인을 전 화면에 반영하고 Pretendard Variable 로컬 서빙, CSS 변수 토큰화, 인라인 `style=""` 0건을 달성하여 엄격한 Helmet CSP(`default-src 'self'`)를 완벽히 준수했다.
+5. **OpenAI Responses API 연동 AI 4종 기능 (Phase P4 완성)**: 면접 질문 생성(1), 자소서 문항 실시간 피드백(2), 경험 자료 STAR 구조화 초안(3), 공고 텍스트 자동 파싱(4)을 구축하고 영속화(`essay_feedback`, `material_star_drafts`) 및 사용자당 10분 20회 통합 속도 제한, 키 미설정 시 안전한 비활성화(503)를 구현했다.
+6. **품질 및 안정성 지표**: 총 15개 테스트 스위트, 66개 테스트 케이스 전원 통과(`pass 66`, `fail 0`), 실행 시간 약 2.8초, 브라우저 콘솔 오류 0건, 인라인 스타일 0건을 달성했다.
 
 ## 13. 개선점 및 한계
 
 현재 시스템은 핵심 기능과 보안 검증을 충실히 통과했으나, 다음과 같은 기술적 한계와 개선 과제를 안고 있다.
 
-1. **디자인 시스템 전면 적용 대기 (Phase P3 과제)**: 현재의 EJS 뷰 화면들은 비즈니스 로직과 데이터 정합성을 검증하기 위한 중립적 스캐폴딩 스타일로 동작하고 있다. 사용자 시안(A/B/C) 확정 후 승인된 디자인 토큰(`tokens.css`)과 다크 모드(`[data-theme="dark"]`)를 전체 화면에 체계적으로 반영해야 한다.
-2. **실제 Gemini API 호출 미검증**: AI 면접 질문 생성 기능은 모의 스텁(Stub) 환경에서 HTTP 헤더(`x-goog-api-key`), 타임아웃, 예외 처리, 속도 제한을 검증했으나, 실제 상용 API 키를 연동한 실호출 환경의 응답 품질과 지연 시간은 아직 검증하지 못했다.
-3. **모바일 뷰포트 최적화**: 6열 칸반 보드는 데스크톱(1440px) 환경에 맞춰 설계되어 모바일 뷰포트(390px)에서는 수평 스크롤이 불가피하다. 모바일 전용 탭형 단계 전환 또는 아코디언 뷰 도입이 필요하다.
-4. **파일 첨부 지원 부재**: 이력서나 포트폴리오 PDF 파일을 데이터베이스나 로컬 스토리지에 업로드하는 기능이 아직 없으며, 텍스트 형태의 경험 자료함으로만 스펙을 관리하고 있다.
+1. **실제 상용 OpenAI API 실호출 검증**: AI 4종 기능은 모의 스텁(Stub) 환경에서 HTTP 인증 헤더(`Bearer`), 스키마 유효성, 타임아웃, 예외 처리, 통합 속도 제한, 비활성화(503)를 철저히 검증했으나, 실제 상용 API 키를 연동한 실호출 환경의 응답 품질과 토큰 비용 최적화는 키 주입 후 지속 관찰이 필요하다.
+2. **모바일 뷰포트 최적화**: 6열 칸반 보드는 데스크톱(1440px) 환경에 맞춰 설계되어 모바일 뷰포트(390px)에서는 수평 스크롤이 불가피하다. 모바일 전용 탭형 단계 전환 또는 아코디언 뷰 도입이 추후 과제이다.
+3. **파일 첨부 지원 부재**: 이력서나 포트폴리오 PDF 파일을 데이터베이스나 로컬 스토리지에 업로드하는 기능이 아직 없으며, 텍스트 형태의 경험 자료함으로만 스펙을 관리하고 있다.
 
 ## 14. 참고 자료
 
@@ -445,6 +446,7 @@ ReadySetJob 개발 과정에서는 AI를 단순 보조 도구가 아닌 체계�
   * 경쟁 서비스 기능 비교 및 요금제 분석 기록: `docs/RESEARCH_NOTES.md`
 * **UI/UX 디자인 및 서체 레퍼런스**:
   * 디자인 레퍼런스 분석서: `docs/DESIGN_REFERENCES.md`
+  * 승인된 디자인 시스템 정의서: `docs/DESIGN_SYSTEM.md`
   * 디자인 시안 A/B/C 및 스크린샷 보고서: `design/mockups/README.md`
   * 서체: Pretendard Variable (고정폭 숫자 `tabular-nums` 적용)
 * **공식 기술 문서 및 가이드**:
@@ -452,7 +454,7 @@ ReadySetJob 개발 과정에서는 AI를 단순 보조 도구가 아닌 체계�
   * Express 4.x 공식 가이드 및 Helmet 보안 권고
   * better-sqlite3 공식 저장소 (WiseLibs/better-sqlite3)
   * Chart.js 4.x 문서 및 로컬 번들링 가이드
-  * Google Generative AI REST API 개발자 가이드
+  * OpenAI Responses API 및 Structured Outputs 개발자 가이드
 * **프로젝트 내부 설계 및 관리 문서**:
   * 기능 요구사항 명세서: `docs/SPEC.md`
   * 시스템 아키텍처 정의서: `docs/ARCHITECTURE.md`

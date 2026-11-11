@@ -1,6 +1,13 @@
 <div class="page-header">
-  <h1 class="page-header__title">기업 관리</h1>
-  <a href="/companies/new" class="btn btn-primary">기업 등록</a>
+  <div class="page-header__meta">
+    <h1 class="page-header__title">기업 관리</h1>
+    <div class="page-header__summary">
+      총 <strong class="num"><%= companies ? companies.length : 0 %></strong>개 관심 기업 등록됨
+    </div>
+  </div>
+  <div class="page-header__actions">
+    <a href="/companies/new" class="btn btn-primary">+ 기업 등록</a>
+  </div>
 </div>
 
 <form action="/companies" method="GET" class="filter-bar">
@@ -38,20 +45,37 @@
         </thead>
         <tbody>
           <% for (const company of companies) { %>
+            <% const av = companyAvatar(company.name); %>
             <tr>
               <td>
-                <a href="/companies/<%= company.id %>"><strong><%= company.name %></strong></a>
+                <div class="cell-two-line">
+                  <span class="avatar avatar--md <%= av.className %>"><%= av.initial %></span>
+                  <div class="cell-two-line__content">
+                    <a href="/companies/<%= company.id %>" class="cell-two-line__title">
+                      <strong><%= company.name %></strong>
+                    </a>
+                    <% if (company.memo) { %>
+                      <span class="cell-two-line__sub"><%= company.memo %></span>
+                    <% } %>
+                  </div>
+                </div>
               </td>
-              <td><%= company.industry || '-' %></td>
               <td>
-                <% if (company.website) { %>
-                  <a href="<%= company.website %>" target="_blank" rel="noopener noreferrer"><%= company.website %></a>
+                <% if (company.industry) { %>
+                  <span class="badge"><%= company.industry %></span>
                 <% } else { %>
-                  -
+                  <span class="text-muted">-</span>
                 <% } %>
               </td>
-              <td><%= company.job_count %>건</td>
-              <td><%= company.application_count %>건</td>
+              <td>
+                <% if (company.website) { %>
+                  <a href="<%= company.website %>" target="_blank" rel="noopener noreferrer" class="text-sm"><%= company.website %></a>
+                <% } else { %>
+                  <span class="text-muted">-</span>
+                <% } %>
+              </td>
+              <td><span class="badge num"><%= company.job_count %>건</span></td>
+              <td><span class="badge badge--result-in_progress num"><%= company.application_count %>건</span></td>
               <td>
                 <div class="inline-actions">
                   <a href="/companies/<%= company.id %>" class="btn btn-sm">상세</a>

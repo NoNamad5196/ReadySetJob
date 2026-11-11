@@ -8,11 +8,11 @@ const { setFetchImpl, resetRateLimit } = require('../src/services/aiService');
 
 describe('Interview Questions Feature', () => {
   let ctx, userA, userB, appA, appB;
-  const origKey = process.env.GEMINI_API_KEY;
-  const origModel = process.env.GEMINI_MODEL;
+  const origKey = process.env.OPENAI_API_KEY;
+  const origModel = process.env.OPENAI_MODEL;
 
   before(async () => {
-    delete process.env.GEMINI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
     ctx = createTestContext();
     userA = await signupAndLogin(ctx.app, { email: 'iq_a@readysetjob.dev', password: 'password123!', name: '소유자A' });
     userB = await signupAndLogin(ctx.app, { email: 'iq_b@readysetjob.dev', password: 'password123!', name: '타인B' });
@@ -27,10 +27,10 @@ describe('Interview Questions Feature', () => {
   after(() => {
     setFetchImpl(null);
     resetRateLimit();
-    if (origKey !== undefined) process.env.GEMINI_API_KEY = origKey;
-    else delete process.env.GEMINI_API_KEY;
-    if (origModel !== undefined) process.env.GEMINI_MODEL = origModel;
-    else delete process.env.GEMINI_MODEL;
+    if (origKey !== undefined) process.env.OPENAI_API_KEY = origKey;
+    else delete process.env.OPENAI_API_KEY;
+    if (origModel !== undefined) process.env.OPENAI_MODEL = origModel;
+    else delete process.env.OPENAI_MODEL;
     ctx.cleanup();
   });
 
@@ -100,32 +100,43 @@ describe('Interview Questions Feature', () => {
   });
 
   it('generate with AI disabled creates no rows and shows disabled explanation', async () => {
-    delete process.env.GEMINI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
     const detailRes = await userA.agent.get(`/applications/${appA.id}`);
-    assert.match(detailRes.text, /AI 기능이 비활성화되어 있습니다 \(GEMINI_API_KEY 미설정\)/);
+    assert.match(detailRes.text, /AI 기능이 비활성화되어 있습니다 \(OPENAI_API_KEY 미설정\)/);
     assert.match(detailRes.text, /disabled/);
 
     const genRes = await userA.agent.post(`/applications/${appA.id}/interview-questions/generate`).type('form').send({ _csrf: userA.csrfToken });
     assert.equal(genRes.status, 302);
 
     const redirectRes = await userA.agent.get(`/applications/${appA.id}`);
-    assert.match(redirectRes.text, /AI 기능이 비활성화되어 있습니다 \(GEMINI_API_KEY 미설정\)/);
+    assert.match(redirectRes.text, /AI 기능이 비활성화되어 있습니다 \(OPENAI_API_KEY 미설정\)/);
     assert.equal(list(ctx.db, 1, appA.id).length, 0);
   });
 
   it('generate with stubbed fetch creates AI rows and verifies header authentication', async () => {
-    process.env.GEMINI_API_KEY = 'test-secret-api-key-999';
+    process.env.OPENAI_API_KEY = 'test-secret-api-key-999';
     let interceptedUrl = null;
     let interceptedHeaders = null;
+    let interceptedBody = null;
 
     setFetchImpl(async (url, init) => {
       interceptedUrl = url;
       interceptedHeaders = init.headers;
+      interceptedBody = JSON.parse(init.body);
       return {
         ok: true,
         status: 200,
         json: async () => ({
-          candidates: [{ content: { parts: [{ text: JSON.stringify(['AI 면접 질문 1', 'AI 면접 질문 2', 'AI 면접 질문 3']) }] } }],
+          status: 'completed',
+          output_text: JSON.stringify({
+            questions: [
+              'AI 면접 질문 1',
+              'AI 면접 질문 2',
+              'AI 면접 질문 3',
+              'AI 면접 질문 4',
+              'AI 면접 질문 5',
+            ],
+          }),
         }),
       };
     });
@@ -133,27 +144,35 @@ describe('Interview Questions Feature', () => {
     const genRes = await userA.agent.post(`/applications/${appA.id}/interview-questions/generate`).type('form').send({ _csrf: userA.csrfToken });
     assert.equal(genRes.status, 302);
 
-    assert.equal(interceptedHeaders['x-goog-api-key'], 'test-secret-api-key-999');
+    assert.equal(interceptedUrl, 'https://api.openai.com/v1/responses');
+    assert.equal(interceptedHeaders.Authorization, 'Bearer test-secret-api-key-999');
     assert.equal(interceptedUrl.includes('test-secret-api-key-999'), false);
     assert.equal(interceptedUrl.includes('key='), false);
+    assert.equal(interceptedBody.model, 'gpt-6.1-terra');
+    assert.equal(interceptedBody.text.format.type, 'json_schema');
+    assert.equal(interceptedBody.text.format.strict, true);
 
     const detailRes = await userA.agent.get(`/applications/${appA.id}`);
     assert.match(detailRes.text, /AI 면접 질문 1/);
     assert.match(detailRes.text, /AI 생성/);
 
     const rows = list(ctx.db, 1, appA.id);
-    assert.equal(rows.length, 3);
+    assert.equal(rows.length, 5);
     assert.ok(rows.every((r) => r.source === 'ai'));
   });
 
   it('stubbed fetch returning garbage creates no rows and reports error message', async () => {
-    process.env.GEMINI_API_KEY = 'test-secret-api-key-999';
+    process.env.OPENAI_API_KEY = 'test-secret-api-key-999';
     const beforeCount = list(ctx.db, 1, appA.id).length;
 
     setFetchImpl(async () => ({
       ok: true,
       status: 200,
-      json: async () => ({ candidates: [{ content: { parts: [{ text: 'THIS IS NOT VALID JSON' }] } }] }),
+      json: async () => ({
+        status: 'completed',
+        output_text: 'THIS IS NOT VALID JSON',
+        output: [{ type: 'message', content: [{ type: 'output_text', text: 'THIS IS NOT VALID JSON' }] }],
+      }),
     }));
 
     const genRes = await userA.agent.post(`/applications/${appA.id}/interview-questions/generate`).type('form').send({ _csrf: userA.csrfToken });
@@ -165,17 +184,20 @@ describe('Interview Questions Feature', () => {
   });
 
   it('rate limit triggers after maximum generations', async () => {
-    process.env.GEMINI_API_KEY = 'test-secret-api-key-999';
+    process.env.OPENAI_API_KEY = 'test-secret-api-key-999';
     resetRateLimit();
     setFetchImpl(async () => ({
       ok: true,
       status: 200,
       json: async () => ({
-        candidates: [{ content: { parts: [{ text: JSON.stringify(['질문 A', '질문 B']) }] } }],
+        status: 'completed',
+        output_text: JSON.stringify({
+          questions: ['질문 1', '질문 2', '질문 3', '질문 4', '질문 5'],
+        }),
       }),
     }));
 
-    for (let i = 0; i < 5; i += 1) {
+    for (let i = 0; i < 20; i += 1) {
       const res = await userA.agent.post(`/applications/${appA.id}/interview-questions/generate`).type('form').send({ _csrf: userA.csrfToken });
       assert.equal(res.status, 302);
     }

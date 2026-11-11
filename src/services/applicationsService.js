@@ -100,17 +100,11 @@ function createApplication(
       orderValue = maxRow ? maxRow.next_order : 0;
     }
 
+    const dateStr = applied_at && String(applied_at).trim() ? String(applied_at).trim() : null;
+    const memoStr = String(memo || '').trim();
     const info = db
       .prepare('INSERT INTO applications (user_id, job_post_id, stage, result, board_order, applied_at, memo) VALUES (?, ?, ?, ?, ?, ?, ?)')
-      .run(
-        userId,
-        jobPost.id,
-        stage,
-        result,
-        Number(orderValue) || 0,
-        applied_at && String(applied_at).trim() ? String(applied_at).trim() : null,
-        String(memo || '').trim()
-      );
+      .run(userId, jobPost.id, stage, result, Number(orderValue) || 0, dateStr, memoStr);
 
     const appId = Number(info.lastInsertRowid);
     db.prepare('INSERT INTO stage_logs (application_id, from_stage, to_stage, from_result, to_result) VALUES (?, ?, ?, ?, ?)')
@@ -127,16 +121,12 @@ function updateApplication(db, userId, id, { stage, result, board_order, applied
 
     const nextStage = stage || existing.stage;
     const nextResult = result || existing.result;
+    const dateStr = applied_at && String(applied_at).trim() ? String(applied_at).trim() : null;
+    const memoStr = String(memo || '').trim();
 
     if (existing.stage !== nextStage && (board_order === undefined || board_order === null || board_order === '')) {
-      db.prepare(
-        "UPDATE applications SET applied_at = ?, memo = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?"
-      ).run(
-        applied_at && String(applied_at).trim() ? String(applied_at).trim() : null,
-        String(memo || '').trim(),
-        existing.id,
-        userId
-      );
+      db.prepare("UPDATE applications SET applied_at = ?, memo = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?")
+        .run(dateStr, memoStr, existing.id, userId);
       return moveApplication(db, userId, existing.id, nextStage, undefined, nextResult);
     }
 
@@ -151,17 +141,8 @@ function updateApplication(db, userId, id, { stage, result, board_order, applied
       }
     }
 
-    db.prepare(
-      "UPDATE applications SET stage = ?, result = ?, board_order = ?, applied_at = ?, memo = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?"
-    ).run(
-      nextStage,
-      nextResult,
-      nextBoardOrder,
-      applied_at && String(applied_at).trim() ? String(applied_at).trim() : null,
-      String(memo || '').trim(),
-      existing.id,
-      userId
-    );
+    db.prepare("UPDATE applications SET stage = ?, result = ?, board_order = ?, applied_at = ?, memo = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?")
+      .run(nextStage, nextResult, nextBoardOrder, dateStr, memoStr, existing.id, userId);
 
     if (existing.stage !== nextStage || existing.result !== nextResult) {
       db.prepare('INSERT INTO stage_logs (application_id, from_stage, to_stage, from_result, to_result) VALUES (?, ?, ?, ?, ?)')
@@ -262,6 +243,24 @@ function deleteApplication(db, userId, id) {
   })();
 }
 
+function toggleApplicationFavorite(db, userId, id) {
+  const uid = Number(userId);
+  const appId = Number(id);
+  return db.transaction(() => {
+    const existing = db
+      .prepare('SELECT id, is_favorite FROM applications WHERE id = ? AND user_id = ?')
+      .get(appId, uid);
+    if (!existing) return null;
+
+    const nextFav = existing.is_favorite ? 0 : 1;
+    db.prepare(
+      "UPDATE applications SET is_favorite = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?"
+    ).run(nextFav, appId, uid);
+
+    return getApplicationById(db, uid, appId);
+  })();
+}
+
 module.exports = {
   listApplications,
   listBoardApplications,
@@ -271,4 +270,5 @@ module.exports = {
   moveApplication,
   patchApplicationStage,
   deleteApplication,
+  toggleApplicationFavorite,
 };

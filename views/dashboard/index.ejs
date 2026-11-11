@@ -1,229 +1,446 @@
+<%
+  const h = typeof home !== 'undefined' && home ? home : {};
+  const weekDays = Array.isArray(h.week) ? h.week : [];
+  let weekDeadlinesCount = 0;
+  let weekInterviewsCount = 0;
+  const allWeekItems = [];
+  for (const wd of weekDays) {
+    if (Array.isArray(wd.items)) {
+      for (const it of wd.items) {
+        allWeekItems.push({ ...it, dayLabel: wd.label, date: wd.date });
+        if (it.type === 'deadline') weekDeadlinesCount++;
+        if (it.type === 'interview') weekInterviewsCount++;
+      }
+    }
+  }
+  const inProgressList = Array.isArray(h.inProgress) ? h.inProgress : [];
+  const hd = h.heroDeadline || null;
+  const todosToday = h.todosToday || { items: [], doneCount: 0, totalCount: 0, remainingCount: 0 };
+  const todoItems = Array.isArray(todosToday.items) ? todosToday.items : (Array.isArray(todosToday) ? todosToday : []);
+  const todoDoneCount = todosToday.doneCount || 0;
+  const todoTotalCount = todosToday.totalCount || 0;
+  const todoRemainingCount = todosToday.remainingCount || 0;
+  const todoProgressPct = todoTotalCount > 0 ? Math.round((todoDoneCount / todoTotalCount) * 100) : 0;
+  const ni = h.nextInterview || null;
+  const recentList = Array.isArray(h.recent) ? h.recent : [];
+  const hStats = h.stats || { total: 0, inProgress: 0, passed: 0, failed: 0, documentPassRate: null, monthDelta: 0 };
+  const stageDist = (stats && stats.stageDistribution) || { stages: ['document', 'coding_test', 'assignment', 'interview1', 'interview2', 'final'], labels: ['서류', '코딩 테스트', '과제', '1차 면접', '2차 면접', '최종'], counts: [0, 0, 0, 0, 0, 0] };
+  const finalIdx = stageDist.stages.indexOf('final');
+  const finalActiveCount = finalIdx >= 0 ? (stageDist.counts[finalIdx] || 0) : 0;
+  const weekSpanLabel = weekDays.length === 7 ? `${ Number(weekDays[0].date.slice(5, 7)) }월 ${ weekDays[0].day }일 – ${ Number(weekDays[6].date.slice(5, 7)) }월 ${ weekDays[6].day }일` : '';
+%>
+
 <div class="page-header">
-  <h1 class="page-header__title">대시보드</h1>
-  <div class="inline-actions">
-    <a href="/applications/new" class="btn btn-primary">새 지원 등록</a>
-    <a href="/jobs/new" class="btn">새 채용 공고</a>
-    <a href="/companies/new" class="btn">새 기업 등록</a>
+  <div class="page-header__meta">
+    <span class="page-header__date"><%= (h.today && h.today.label) || '' %></span>
+    <h1 class="page-header__title">대시보드</h1>
+    <div class="page-header__summary num">
+      이번 주 마감 <%= weekDeadlinesCount %>건 · 예정된 면접 <%= weekInterviewsCount %>건 · 진행 중인 지원 <%= hStats.inProgress %>건
+    </div>
+  </div>
+  <div class="page-header__actions">
+    <a href="/applications/new" class="btn btn-primary">+ 지원 추가</a>
   </div>
 </div>
 
-<section class="stats-grid">
-  <div class="card">
-    <div class="stat-card__label">전체 지원</div>
-    <div class="stat-card__value"><%= stats.totals.totalApplications %>건</div>
-  </div>
-  <div class="card">
-    <div class="stat-card__label">진행 중 전형</div>
-    <div class="stat-card__value"><%= stats.totals.inProgress %>건</div>
-  </div>
-  <div class="card">
-    <div class="stat-card__label">합격</div>
-    <div class="stat-card__value"><%= stats.totals.passed %>건</div>
-  </div>
-  <div class="card">
-    <div class="stat-card__label">불합격 / 지원취소</div>
-    <div class="stat-card__value"><%= stats.totals.failed %> / <%= stats.totals.withdrawn %>건</div>
-  </div>
-  <div class="card">
-    <div class="stat-card__label">자기소개서 (버전)</div>
-    <div class="stat-card__value"><%= stats.totals.essaysCount %>건 (<%= stats.totals.essayVersionsCount %>)</div>
-  </div>
-  <div class="card">
-    <div class="stat-card__label">채용 공고 (북마크)</div>
-    <div class="stat-card__value"><%= stats.totals.jobsCount %>건 (<%= stats.totals.bookmarkedJobsCount %>)</div>
-  </div>
-  <div class="card">
-    <div class="stat-card__label">관심 기업</div>
-    <div class="stat-card__value"><%= stats.totals.companiesCount %>곳</div>
-  </div>
-  <div class="card">
-    <div class="stat-card__label">14일 내 일정</div>
-    <div class="stat-card__value"><%= stats.totals.upcomingEventsCount %>건</div>
-  </div>
-</section>
-
-<section class="dashboard-charts-grid">
-  <div class="card chart-card">
-    <h2 class="chart-card__title">진행 중 전형 단계별 분포</h2>
-    <div class="chart-container">
-      <% if (stats.totals.inProgress === 0) { %>
-        <div class="chart-empty">
-          <p>진행 중인 전형이 없습니다.</p>
-          <span class="text-muted">채용 공고에서 새 지원을 등록해 보세요.</span>
-        </div>
-      <% } else { %>
-        <canvas id="chart-stage"></canvas>
-      <% } %>
-    </div>
-  </div>
-  <div class="card chart-card">
-    <h2 class="chart-card__title">전형 결과 비율</h2>
-    <div class="chart-container">
-      <% if (stats.totals.totalApplications === 0) { %>
-        <div class="chart-empty">
-          <p>지원 내역이 없습니다.</p>
-          <span class="text-muted">지원서를 제출하고 결과를 기록해 보세요.</span>
-        </div>
-      <% } else { %>
-        <canvas id="chart-result"></canvas>
-      <% } %>
-    </div>
-  </div>
-  <div class="card chart-card">
-    <h2 class="chart-card__title">최근 6개월 지원 추이</h2>
-    <div class="chart-container">
-      <% if (stats.monthlyTrend.total === 0) { %>
-        <div class="chart-empty">
-          <p>최근 6개월 지원 이력이 없습니다.</p>
-          <span class="text-muted">꾸준한 지원 활동으로 추이를 채워보세요.</span>
-        </div>
-      <% } else { %>
-        <canvas id="chart-monthly"></canvas>
-      <% } %>
-    </div>
-  </div>
-</section>
-
-<div class="dashboard-sections-grid">
-  <section class="card">
-    <div class="page-header section-header--compact">
-      <h2 class="section-title-sm">마감 임박 공고 (14일 이내)</h2>
-      <a href="/jobs" class="btn btn-sm">공고 전체</a>
-    </div>
-    <% if (!stats.upcomingDeadlines || stats.upcomingDeadlines.length === 0) { %>
-      <div class="empty-state empty-state--compact">
-        <p>14일 이내 마감 예정인 채용 공고가 없습니다.</p>
+<div class="dashboard-layout">
+  <div class="dashboard-main">
+    <section class="hero-card">
+      <div class="hero-card__meta">
+        <span class="hero-card__tag">가장 가까운 마감</span>
+        <% if (hd && hd.dday) { %>
+          <span class="badge badge--dday-<%= hd.dday.state || 'upcoming' %>"><%= hd.dday.label %></span>
+        <% } %>
       </div>
-    <% } else { %>
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>D-Day</th>
-              <th>기업 / 공고</th>
-              <th>마감일</th>
-              <th>지원 현황</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% for (const job of stats.upcomingDeadlines) { %>
-              <tr>
-                <td>
-                  <span class="badge badge--dday-<%= job.dday.state %>"><%= job.dday.label %></span>
-                </td>
-                <td>
-                  <a href="/jobs/<%= job.id %>"><strong><%= job.title %></strong></a>
-                  <div class="text-muted"><%= job.company_name %></div>
-                </td>
-                <td><%= job.deadline %></td>
-                <td>
-                  <% if (job.application_id) { %>
-                    <a href="/applications/<%= job.application_id %>">
-                      <span class="badge badge--stage-<%= job.application_stage %>"><%= STAGE_LABELS[job.application_stage] %></span>
-                    </a>
-                  <% } else { %>
-                    <a href="/applications/new?job_post_id=<%= job.id %>" class="btn btn-sm">지원 등록</a>
-                  <% } %>
-                </td>
-              </tr>
+
+      <% if (!hd) { %>
+        <div class="empty-state empty-state--compact">
+          <p>예정된 서류 마감이나 전형 일정이 없습니다.</p>
+          <a href="/jobs/new" class="btn btn-sm">+ 새 채용 공고 등록</a>
+        </div>
+      <% } else { %>
+        <%
+          const hdAv = companyAvatar(hd.company);
+          const hdMonth = hd.date ? Number(String(hd.date).slice(5, 7)) : (h.today ? h.today.month : '');
+          const hdDay = hd.dayOfMonth || (hd.date ? Number(String(hd.date).slice(8, 10)) : '');
+          const essayTotal = (hd.essay && hd.essay.total) || 0;
+          const essayAnswered = (hd.essay && hd.essay.answered) || 0;
+          const essayPct = essayTotal > 0 ? Math.round((essayAnswered / essayTotal) * 100) : 0;
+        %>
+        <div class="hero-card__body">
+          <div class="hero-card__main">
+            <div>
+              <h2 class="hero-card__title"><%= hd.title %></h2>
+              <div class="hero-card__date num"><%= hd.dateLabel %></div>
+            </div>
+
+            <div class="hero-card__company">
+              <span class="avatar avatar--sm <%= hdAv.className %>"><%= hdAv.initial %></span>
+              <span class="hero-card__company-name"><%= hd.company %></span>
+              <span class="hero-card__company-pos"><%= hd.position %></span>
+              <span class="badge badge--stage-<%= hd.stage %>"><%= hd.stage_label %></span>
+            </div>
+
+            <% if (essayTotal > 0) { %>
+              <div class="hero-card__essay">
+                <div class="hero-card__essay-label num">
+                  자기소개서 <%= essayAnswered %> / <%= essayTotal %> 문항 작성
+                </div>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" data-progress="<%= essayPct %>"></div>
+                </div>
+              </div>
             <% } %>
-          </tbody>
-        </table>
-      </div>
-    <% } %>
-  </section>
 
-  <section class="card">
-    <div class="page-header section-header--compact">
-      <h2 class="section-title-sm">다가오는 일정 (14일 이내)</h2>
-      <a href="/events" class="btn btn-sm">일정 전체</a>
-    </div>
-    <% if (!stats.upcomingEvents || stats.upcomingEvents.length === 0) { %>
-      <div class="empty-state empty-state--compact">
-        <p>14일 이내 예정된 일정이 없습니다.</p>
-      </div>
-    <% } else { %>
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>일시</th>
-              <th>구분</th>
-              <th>일정명</th>
-              <th>관련 기업/공고</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% for (const evt of stats.upcomingEvents) { %>
-              <tr>
-                <td><%= evt.starts_at ? evt.starts_at.slice(0, 16).replace('T', ' ') : '-' %></td>
-                <td>
-                  <span class="badge"><%= EVENT_TYPE_LABELS[evt.type] || evt.type %></span>
-                </td>
-                <td><strong><%= evt.title %></strong></td>
-                <td>
-                  <% if (evt.company_name) { %>
-                    <%= evt.company_name %><% if (evt.job_title) { %> - <%= evt.job_title %><% } %>
-                  <% } else { %>
-                    -
-                  <% } %>
-                </td>
-              </tr>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
-    <% } %>
-  </section>
-</div>
+            <div class="hero-card__actions">
+              <% if (essayTotal > 0 || hd.essay_id) { %>
+                <a href="<%= hd.essayHref %>" class="btn btn-primary btn-sm">자기소개서 이어 쓰기</a>
+              <% } else if (hd.application_id) { %>
+                <a href="/essays/new?application_id=<%= hd.application_id %>" class="btn btn-primary btn-sm">자기소개서 작성</a>
+              <% } %>
+              <a href="<%= hd.jobHref %>" class="btn btn-sm">공고 보기</a>
+            </div>
+          </div>
 
-<section class="card">
-  <div class="page-header section-header--compact">
-    <h2 class="section-title-sm">최근 전형 변경 이력</h2>
-    <a href="/applications/board" class="btn btn-sm">칸반 보드</a>
-  </div>
-  <% if (!stats.recentActivity || stats.recentActivity.length === 0) { %>
-    <div class="empty-state empty-state--compact">
-      <p>최근 전형 변경 이력이 없습니다.</p>
-    </div>
-  <% } else { %>
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>기업명</th>
-            <th>공고명</th>
-            <th>변경 내역</th>
-            <th>변경 일시</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% for (const act of stats.recentActivity) { %>
-            <tr>
-              <td><%= act.company_name %></td>
-              <td>
-                <a href="/applications/<%= act.application_id %>"><%= act.job_title %></a>
-              </td>
-              <td>
-                <% if (act.from_stage && act.from_stage !== act.to_stage) { %>
-                  <span class="badge badge--stage-<%= act.from_stage %>"><%= STAGE_LABELS[act.from_stage] || act.from_stage %></span>
-                  &rarr;
-                <% } %>
-                <span class="badge badge--stage-<%= act.to_stage %>"><%= STAGE_LABELS[act.to_stage] || act.to_stage %></span>
-                <% if (act.to_result && act.to_result !== 'in_progress') { %>
-                  <span class="badge badge--result-<%= act.to_result %>"><%= RESULT_LABELS[act.to_result] || act.to_result %></span>
-                <% } %>
-              </td>
-              <td><%= act.changed_at ? act.changed_at.slice(0, 16).replace('T', ' ') : '-' %></td>
-            </tr>
+          <% if (hdDay) { %>
+            <div class="hero-date-block num" aria-label="마감일">
+              <span class="hero-date-block__month"><%= hdMonth %>월</span>
+              <span class="hero-date-block__day"><%= hdDay %></span>
+            </div>
           <% } %>
-        </tbody>
-      </table>
-    </div>
-  <% } %>
-</section>
+        </div>
 
-<%# CSP-safe: JSON is not executed as script, pre-escaped with < -> \u003c to prevent script tag breakout %>
+        <% if (hd.memo) { %>
+          <div class="hero-card__footer">
+            <span><%= hd.memo %></span>
+          </div>
+        <% } %>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <div class="inline-actions">
+          <h2 class="card__title">이번 주 일정</h2>
+          <% if (weekSpanLabel) { %>
+            <span class="text-muted num"><%= weekSpanLabel %></span>
+          <% } %>
+        </div>
+        <a href="/events" class="btn btn-sm">일정 전체</a>
+      </div>
+
+      <% if (weekDays.length > 0) { %>
+        <div class="week-strip">
+          <% for (const wd of weekDays) { %>
+            <%
+              const hasItems = Array.isArray(wd.items) && wd.items.length > 0;
+              const statusText = wd.isToday ? '오늘' : (hasItems ? wd.items[0].title : '일정 없음');
+            %>
+            <div class="week-strip__day <%= wd.isToday ? 'week-strip__day--today' : '' %> <%= hasItems ? 'week-strip__day--has-items' : '' %>">
+              <span class="week-strip__weekday"><%= wd.weekday %></span>
+              <span class="week-strip__day-num num"><%= wd.day %></span>
+              <span class="week-strip__status" title="<%= statusText %>"><%= statusText %></span>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
+
+      <% if (allWeekItems.length === 0) { %>
+        <div class="empty-state empty-state--compact">
+          <p>이번 주 예정된 마감이나 면접 일정이 없습니다.</p>
+        </div>
+      <% } else { %>
+        <div class="week-item-list">
+          <% for (const item of allWeekItems) { %>
+            <a href="<%= item.href %>" class="week-item-row">
+              <div class="week-item-left">
+                <span class="week-item-time num"><%= item.dayLabel %> <%= item.time %></span>
+                <% if (item.company) { %>
+                  <% const itemAv = companyAvatar(item.company); %>
+                  <span class="avatar avatar--sm <%= itemAv.className %>"><%= itemAv.initial %></span>
+                <% } %>
+                <span class="week-item-title"><%= item.title %></span>
+              </div>
+              <div class="week-item-right">
+                <span class="badge"><%= item.type === 'deadline' ? '서류 마감' : (typeof EVENT_TYPE_LABELS !== 'undefined' && EVENT_TYPE_LABELS[item.type]) || item.type %></span>
+                <% if (item.dday) { %>
+                  <span class="badge badge--dday-<%= item.dday.state || 'upcoming' %>"><%= item.dday.label %></span>
+                <% } %>
+              </div>
+            </a>
+          <% } %>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <div class="inline-actions">
+          <h2 class="card__title">진행 중인 지원</h2>
+          <span class="badge num"><%= inProgressList.length %></span>
+        </div>
+        <a href="/applications/board" class="btn btn-sm">지원 관리에서 보기</a>
+      </div>
+
+      <% if (inProgressList.length === 0) { %>
+        <div class="empty-state empty-state--compact">
+          <p>현재 진행 중인 채용 전형이 없습니다.</p>
+          <a href="/applications/new" class="btn btn-sm">+ 새 지원 등록</a>
+        </div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>기업 / 직무</th>
+                <th>전형</th>
+                <th>다음 일정</th>
+                <th>D-Day</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% for (const app of inProgressList) { %>
+                <% const appAv = companyAvatar(app.company); %>
+                <tr>
+                  <td>
+                    <a href="<%= app.href %>" class="cell-two-line">
+                      <span class="avatar avatar--md <%= appAv.className %>"><%= appAv.initial %></span>
+                      <div class="cell-two-line__content">
+                        <span class="cell-two-line__title"><%= app.company %></span>
+                        <span class="cell-two-line__sub"><%= app.position %></span>
+                      </div>
+                    </a>
+                  </td>
+                  <td>
+                    <div class="inline-actions">
+                      <span class="badge badge--stage-<%= app.stage %>"><%= app.stage_label %></span>
+                      <span class="stepper-dots" aria-label="전형 단계 <%= (app.stageIndex || 0) + 1 %> / 6">
+                        <% for (let i = 0; i < 6; i++) { %>
+                          <span class="stepper-dot <%= i < app.stageIndex ? 'stepper-dot--filled' : (i === app.stageIndex ? 'stepper-dot--current' : '') %>"></span>
+                        <% } %>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="num text-sm"><%= app.nextLabel %></td>
+                  <td>
+                    <% if (app.dday && app.dday.label) { %>
+                      <span class="badge badge--dday-<%= app.dday.state || 'upcoming' %>"><%= app.dday.label %></span>
+                    <% } else { %>
+                      <span class="text-subtle">—</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">지원 현황</h2>
+        <a href="/stats" class="btn btn-sm">상세 통계</a>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">진행 중인 지원</span>
+          <div class="kpi-tile__value num"><%= hStats.inProgress %><span class="kpi-tile__unit">건</span></div>
+          <% if (finalActiveCount > 0) { %>
+            <span class="kpi-tile__sub num">최종 전형 <%= finalActiveCount %>건</span>
+          <% } %>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">총 지원</span>
+          <div class="kpi-tile__value num"><%= hStats.total %><span class="kpi-tile__unit">건</span></div>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">서류 합격률</span>
+          <div class="kpi-tile__value num"><%= hStats.documentPassRate !== null && typeof hStats.documentPassRate !== 'undefined' ? hStats.documentPassRate + '%' : '—' %></div>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">합격</span>
+          <div class="kpi-tile__value num"><%= hStats.passed %>건</div>
+        </div>
+      </div>
+
+      <div class="stage-dist-section">
+        <div class="stage-dist-header">
+          <span class="stage-dist-title">전형별 분포</span>
+          <span class="stage-dist-delta num">지난달 대비 <%= hStats.monthDelta >= 0 ? '+' + hStats.monthDelta : hStats.monthDelta %></span>
+        </div>
+
+        <div class="stage-dist-bar">
+          <% for (let i = 0; i < stageDist.stages.length; i++) { %>
+            <% const stKey = stageDist.stages[i]; %>
+            <% const stCnt = stageDist.counts[i] || 0; %>
+            <% if (stCnt > 0) { %>
+              <div class="stage-dist-bar__seg stage-dist-bar__seg--<%= stKey %>" data-flex="<%= stCnt %>" title="<%= stageDist.labels[i] %>: <%= stCnt %>건"></div>
+            <% } %>
+          <% } %>
+        </div>
+
+        <div class="stage-dist-legend">
+          <% for (let i = 0; i < stageDist.stages.length; i++) { %>
+            <% const stKey = stageDist.stages[i]; %>
+            <% const stLabel = (typeof BOARD_STAGE_LABELS !== 'undefined' && BOARD_STAGE_LABELS[stKey]) || stageDist.labels[i] || stKey; %>
+            <div class="stage-dist-legend__item">
+              <span class="stage-dist-legend__dot stage-dist-legend__dot--<%= stKey %>"></span>
+              <span class="stage-dist-legend__name"><%= stLabel %></span>
+              <span class="stage-dist-legend__count num"><%= stageDist.counts[i] || 0 %></span>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-charts-grid">
+      <div class="card chart-card">
+        <h2 class="chart-card__title">진행 중 전형 단계별 분포</h2>
+        <div class="chart-container">
+          <% if (!stats || !stats.totals || stats.totals.inProgress === 0) { %>
+            <div class="chart-empty">
+              <p>진행 중인 전형이 없습니다.</p>
+              <span class="text-muted">채용 공고에서 새 지원을 등록해 보세요.</span>
+            </div>
+          <% } else { %>
+            <canvas id="chart-stage"></canvas>
+          <% } %>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <h2 class="chart-card__title">전형 결과 비율</h2>
+        <div class="chart-container">
+          <% if (!stats || !stats.totals || stats.totals.totalApplications === 0) { %>
+            <div class="chart-empty">
+              <p>지원 내역이 없습니다.</p>
+              <span class="text-muted">지원서를 제출하고 결과를 기록해 보세요.</span>
+            </div>
+          <% } else { %>
+            <canvas id="chart-result"></canvas>
+          <% } %>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <h2 class="chart-card__title">최근 6개월 지원 추이</h2>
+        <div class="chart-container">
+          <% if (!stats || !stats.monthlyTrend || stats.monthlyTrend.total === 0) { %>
+            <div class="chart-empty">
+              <p>최근 6개월 지원 이력이 없습니다.</p>
+              <span class="text-muted">꾸준한 지원 활동으로 추이를 채워보세요.</span>
+            </div>
+          <% } else { %>
+            <canvas id="chart-monthly"></canvas>
+          <% } %>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <aside class="dashboard-rail">
+    <section class="card todo-widget">
+      <div class="todo-widget__header">
+        <div>
+          <div class="todo-widget__date-box num">
+            <span class="todo-widget__day"><%= (h.today && h.today.day) || '' %></span>
+            <span class="todo-widget__month"><%= (h.today && h.today.month) ? h.today.month + '월' : '' %></span>
+          </div>
+          <div class="todo-widget__label"><%= (h.today && h.today.label) || '' %></div>
+        </div>
+        <span class="badge num">할 일 <%= todoRemainingCount %>개 남음</span>
+      </div>
+
+      <div class="todo-widget__progress-header">
+        <span>오늘 할 일</span>
+        <span class="num"><%= todoDoneCount %> / <%= todoTotalCount %></span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" data-progress="<%= todoProgressPct %>"></div>
+      </div>
+
+      <% if (todoItems.length === 0) { %>
+        <div class="empty-state empty-state--compact">
+          <p>오늘 남은 할 일이 없습니다.</p>
+        </div>
+      <% } else { %>
+        <ul class="dash-todo-list">
+          <% for (const t of todoItems) { %>
+            <li class="dash-todo-item <%= t.is_done ? 'dash-todo-item--done' : '' %>">
+              <form action="/todos/<%= t.id %>/toggle" method="POST" class="dash-todo-item__form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="redirect_to" value="/dashboard">
+                <button type="submit" class="dash-todo-item__check-btn" aria-label="완료 상태 전환"></button>
+              </form>
+              <div class="dash-todo-item__content">
+                <span class="dash-todo-item__title" title="<%= t.title %>"><%= t.title %></span>
+                <span class="badge"><%= t.category_label || '기타' %></span>
+              </div>
+            </li>
+          <% } %>
+        </ul>
+      <% } %>
+
+      <form action="/todos" method="POST" class="todo-quick-add">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="redirect_to" value="/dashboard">
+        <input type="hidden" name="category" value="other">
+        <input type="text" name="title" class="input input-sm" placeholder="할 일 빠르게 추가..." required>
+        <button type="submit" class="btn btn-sm">+ 추가</button>
+      </form>
+    </section>
+
+    <section class="interview-callout">
+      <div class="card__header section-header--compact">
+        <h2 class="section-title-sm">다음 면접 준비</h2>
+        <% if (ni && ni.dday) { %>
+          <span class="badge badge--dday-<%= ni.dday.state || 'upcoming' %>"><%= ni.dday.label %></span>
+        <% } %>
+      </div>
+      <% if (ni) { %>
+        <div class="text-muted num"><%= ni.dateLabel %></div>
+        <h3 class="interview-callout__title"><%= ni.title %></h3>
+        <% if (ni.company) { %>
+          <p class="interview-callout__sub"><%= ni.company %><% if (ni.position) { %> · <%= ni.position %><% } %></p>
+        <% } %>
+        <div class="inline-actions">
+          <a href="<%= ni.application_id ? `/applications/${ni.application_id}#interview-questions` : '/interview-prep' %>" class="btn btn-primary btn-sm">예상 질문 준비하기</a>
+          <a href="/interview-prep" class="btn btn-sm">면접 준비실</a>
+        </div>
+      <% } else { %>
+        <p class="interview-callout__sub">예정된 면접 일정이 없습니다.</p>
+        <a href="/interview-prep" class="btn btn-sm">면접 질문 관리하기</a>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <div class="card__header section-header--compact">
+        <h2 class="section-title-sm">최근 활동</h2>
+      </div>
+      <% if (recentList.length === 0) { %>
+        <div class="empty-state empty-state--compact">
+          <p>최근 기록된 활동이 없습니다.</p>
+        </div>
+      <% } else { %>
+        <ul class="activity-timeline">
+          <% for (const item of recentList) { %>
+            <li class="activity-timeline__item">
+              <span class="activity-timeline__dot"></span>
+              <div class="activity-timeline__content">
+                <a href="<%= item.href || '#' %>" class="activity-timeline__title"><%= item.title %></a>
+                <% if (item.subtitle) { %>
+                  <span class="activity-timeline__sub"><%= item.subtitle %></span>
+                <% } %>
+                <span class="activity-timeline__time num"><%= item.relativeTime %></span>
+              </div>
+            </li>
+          <% } %>
+        </ul>
+      <% } %>
+    </section>
+  </aside>
+</div>
+
 <script type="application/json" id="dashboard-data"><%- dashboardDataJson %></script>
 <script src="/vendor/chart.js/chart.umd.js"></script>
 <script src="/js/dashboard.js"></script>

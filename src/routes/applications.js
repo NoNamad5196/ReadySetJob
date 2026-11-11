@@ -1,13 +1,14 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
 const {
-  APPLICATION_STAGES, APPLICATION_RESULTS, isValidDate, parseId,
+  APPLICATION_STAGES, APPLICATION_RESULTS, isValidDate, parseId, safeRedirectPath,
 } = require('../middleware/validation');
 const { createHttpError } = require('../middleware/error');
 const { listJobPosts, getJobPostById } = require('../services/jobsService');
 const {
   listApplications, listBoardApplications, getApplicationById, createApplication,
   updateApplication, moveApplication, patchApplicationStage, deleteApplication,
+  toggleApplicationFavorite,
 } = require('../services/applicationsService');
 const { list: listInterviewQuestions } = require('../services/interviewQuestionsService');
 const { isAiEnabled } = require('../services/aiService');
@@ -221,6 +222,20 @@ function createApplicationsRouter(db) {
 
     req.setFlash('success', '전형 단계가 변경되었습니다.');
     return res.redirect('/applications/board');
+  });
+
+  router.post('/:id/favorite', (req, res, next) => {
+    const id = parseId(req.params.id);
+    if (!id) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
+    const updated = toggleApplicationFavorite(db, req.session.user.id, id);
+    if (!updated) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
+
+    req.setFlash(
+      'success',
+      updated.is_favorite ? '즐겨찾기에 추가되었습니다.' : '즐겨찾기가 해제되었습니다.'
+    );
+    const redirectTo = safeRedirectPath(req.body.redirect_to, `/applications/${id}`);
+    return res.redirect(redirectTo);
   });
 
   router.delete('/:id', (req, res, next) => {

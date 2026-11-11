@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1 class="page-header__title">통합 검색</h1>
+</div>
+
+<section class="card">
+  <form action="/search" method="GET">
+    <div class="inline-actions">
+      <input
+        type="search"
+        name="q"
+        class="input"
+        placeholder="기업, 채용 공고, 지원, 자기소개서, 자료 검색"
+        value="<%= q %>"
+      >
+      <button type="submit" class="btn btn-primary">검색</button>
+    </div>
+  </form>
+</section>
+
+<% if (!q) { %>
+  <section class="card">
+    <div class="empty-state">
+      <p>검색어를 입력해 기업, 채용 공고, 지원 현황, 자기소개서, 자료를 한 번에 찾아보세요.</p>
+    </div>
+  </section>
+<% } else if (results.total === 0) { %>
+  <section class="card">
+    <div class="empty-state">
+      <p>"<%= q %>"에 대한 검색 결과가 없습니다.</p>
+    </div>
+  </section>
+<% } else { %>
+  <section class="card">
+    <h2>기업 (<%= results.companies.length %>건)</h2>
+    <% if (results.companies.length === 0) { %>
+      <p class="text-muted">일치하는 기업이 없습니다.</p>
+    <% } else { %>
+      <ul>
+        <% for (const c of results.companies) { %>
+          <li>
+            <a href="<%= c.href %>"><strong><%= c.name %></strong></a>
+            <% if (c.industry) { %> · <span class="text-muted"><%= c.industry %></span><% } %>
+          </li>
+        <% } %>
+      </ul>
+    <% } %>
+  </section>
+
+  <section class="card">
+    <h2>채용 공고 (<%= results.jobs.length %>건)</h2>
+    <% if (results.jobs.length === 0) { %>
+      <p class="text-muted">일치하는 채용 공고가 없습니다.</p>
+    <% } else { %>
+      <ul>
+        <% for (const j of results.jobs) { %>
+          <li>
+            <a href="<%= j.href %>"><strong><%= j.title %></strong></a>
+            — <%= j.company_name %>
+            <% if (j.position) { %> (<%= j.position %>)<% } %>
+          </li>
+        <% } %>
+      </ul>
+    <% } %>
+  </section>
+
+  <section class="card">
+    <h2>지원 (<%= results.applications.length %>건)</h2>
+    <% if (results.applications.length === 0) { %>
+      <p class="text-muted">일치하는 지원 내역이 없습니다.</p>
+    <% } else { %>
+      <ul>
+        <% for (const a of results.applications) { %>
+          <li>
+            <a href="<%= a.href %>"><strong><%= a.company_name %></strong> — <%= a.job_title %></a>
+            <span class="badge badge--stage-<%= a.stage %>"><%= a.stage_label %></span>
+            <span class="badge badge--result-<%= a.result %>"><%= a.result_label %></span>
+          </li>
+        <% } %>
+      </ul>
+    <% } %>
+  </section>
+
+  <section class="card">
+    <h2>자기소개서 (<%= results.essays.length %>건)</h2>
+    <% if (results.essays.length === 0) { %>
+      <p class="text-muted">일치하는 자기소개서가 없습니다.</p>
+    <% } else { %>
+      <ul>
+        <% for (const e of results.essays) { %>
+          <li>
+            <a href="<%= e.href %>"><strong><%= e.title %></strong></a>
+            <% if (e.company_name) { %> — <span class="text-muted"><%= e.company_name %></span><% } %>
+          </li>
+        <% } %>
+      </ul>
+    <% } %>
+  </section>
+
+  <section class="card">
+    <h2>자료 (<%= results.materials.length %>건)</h2>
+    <% if (results.materials.length === 0) { %>
+      <p class="text-muted">일치하는 자료가 없습니다.</p>
+    <% } else { %>
+      <ul>
+        <% for (const m of results.materials) { %>
+          <li>
+            <a href="<%= m.href %>"><strong><%= m.title %></strong></a>
+            <span class="badge"><%= m.kind_label %></span>
+          </li>
+        <% } %>
+      </ul>
+    <% } %>
+  </section>
+<% } %>

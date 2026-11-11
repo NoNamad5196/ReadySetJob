@@ -140,7 +140,7 @@ ReadySetJob/
 ├── AGENTS.md                        # 에이전트 개발 규칙 및 제약 사항
 ├── README.md                        # 설치, 시드, 실행, 테스트 안내
 ├── package.json                     # 의존성 및 npm 스크립트 정의
-├── .env.example                     # 환경 변수 템플릿 (PORT, SESSION_SECRET, DB_PATH, GEMINI_API_KEY)
+├── .env.example                     # 환경 변수 템플릿 (PORT, SESSION_SECRET, DB_PATH, OPENAI_API_KEY 등)
 ├── data/
 │   └── readysetjob.db               # 런타임 SQLite 데이터베이스 파일 (Git 제외)
 ├── src/
@@ -165,7 +165,7 @@ ReadySetJob/
 │   │   ├── events.js                # /events 조회/등록/삭제
 │   │   ├── essays.js                # [P1 개발 중] /essays, /api/essays 버전/비교/복원/검색
 │   │   ├── materials.js             # [P2 계획] /materials 경험 자료함 CRUD
-│   │   └── ai.js                    # [P4 계획] Gemini 면접 예상 질문 생성 라우터
+│   │   └── ai.js                    # [P4 구현] OpenAI Responses API 기반 AI 기능 라우터 (피드백/STAR/공고파싱)
 │   └── services/
 │       ├── usersService.js          # 사용자 조회/생성/인증, 대시보드 카운트 집계
 │       ├── companiesService.js      # 기업 CRUD 및 공고/지원 수 집계
@@ -329,4 +329,8 @@ ReadySetJob/
 | Method | Path | 인증 | 설명 | 우선순위 및 상태 |
 |---|---|---|---|---|
 | `GET / POST / PUT / DELETE` | `/materials`, `/materials/:id` | `requireAuth` (+ CSRF) | 경험·프로젝트·수상·대외활동 자료함(`materials`) CRUD 및 분류(`kind`)·태그 검색 | P2: 계획 |
-| `POST` | `/applications/:id/interview-questions/generate` | `requireAuth` + CSRF | 지원 공고 및 연결 자기소개서 기반 서버 사이드 Gemini 면접 예상 질문 생성 (`GEMINI_API_KEY` 미설정 시 비활성화) | P4: 계획 |
+| `POST` | `/applications/:id/interview-questions/generate` | `requireAuth` + CSRF | 지원 공고 및 연결 자기소개서 기반 서버 사이드 OpenAI 면접 예상 질문 생성 (`OPENAI_API_KEY` 미설정 시 비활성화) | P4: 구현 완료 |
+| `GET / POST` | `/api/essays/:id/questions/:qid/feedback` | `requireAuth` (+ CSRF) | 자기소개서 문항별 OpenAI 구조화 첨삭 피드백 조회 및 생성 (`essay_feedback` 저장) | P4: 구현 완료 |
+| `POST` | `/materials/:id/star-draft`, `/api/materials/:id/star-draft` | `requireAuth` + CSRF | 경험 자료 기반 OpenAI STAR 초안 생성 (`material_star_drafts` 저장) 및 `/:draftId/apply` 본문 반영 | P4: 구현 완료 |
+| `POST` | `/api/jobs/parse` | `requireAuth` + CSRF | 채용 공고 원문 텍스트에서 기업명·직무·마감일·자소서 문항 구조화 추출 (DB 미저장) | P4: 구현 완료 |
+| `GET` | `/settings/ai` | `requireAuth` | OpenAI 활성화 상태 및 기능별 모델 매핑·환경 변수 설정 안내 화면 | P4: 구현 완료 |

@@ -1,13 +1,37 @@
-<div class="page-header">
-  <div>
-    <p class="text-muted">
-      <a href="/companies/<%= application.company_id %>"><%= application.company_name %></a>
-      ·
-      <a href="/jobs/<%= application.job_post_id %>"><%= application.job_title %></a>
-    </p>
-    <h1 class="page-header__title"><%= application.company_name %> — <%= application.job_title %></h1>
+<% const av = companyAvatar(application.company_name); %>
+<% const ddayTarget = application.next_event_date || application.job_deadline; %>
+<% const dday = calculateDday(ddayTarget); %>
+
+<div class="entity-header">
+  <div class="entity-header__avatar">
+    <span class="avatar avatar--md <%= av.className %>"><%= av.initial %></span>
   </div>
-  <div class="inline-actions">
+  <div class="entity-header__info">
+    <div class="entity-header__meta">
+      <a href="/companies/<%= application.company_id %>"><strong><%= application.company_name %></strong></a>
+      <span aria-hidden="true">·</span>
+      <a href="/jobs/<%= application.job_post_id %>"><%= application.job_title %></a>
+      <% if (application.job_position) { %>
+        <span aria-hidden="true">·</span>
+        <span><%= application.job_position %></span>
+      <% } %>
+    </div>
+    <h1 class="entity-header__title">
+      <span><%= application.company_name %> — <%= application.job_title %></span>
+      <% if (application.is_favorite) { %>
+        <span class="star-icon" title="즐겨찾기">★</span>
+      <% } %>
+    </h1>
+  </div>
+  <div class="entity-header__actions">
+    <form action="/applications/<%= application.id %>/favorite" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="redirect_to" value="/applications/<%= application.id %>">
+      <button type="submit" class="favorite-btn <%= application.is_favorite ? 'favorite-btn--active' : '' %>">
+        <span class="star-icon"><%= application.is_favorite ? '★' : '☆' %></span>
+        <span><%= application.is_favorite ? '즐겨찾기 해제' : '즐겨찾기' %></span>
+      </button>
+    </form>
     <a href="/applications/<%= application.id %>/edit" class="btn btn-primary">지원 내역 수정</a>
     <form
       action="/applications/<%= application.id %>?_method=DELETE"
@@ -18,173 +42,297 @@
       <input type="hidden" name="_method" value="DELETE">
       <button type="submit" class="btn btn-danger">삭제</button>
     </form>
+    <a href="/applications" class="btn">목록으로</a>
   </div>
 </div>
 
-<section class="card">
-  <h2>현재 전형 상태</h2>
-  <p>
-    <strong>전형 단계:</strong>
-    <span class="badge badge--stage-<%= application.stage %>">
-      <%= STAGE_LABELS[application.stage] || application.stage %>
-    </span>
-  </p>
-  <p>
-    <strong>결과:</strong>
-    <span class="badge badge--result-<%= application.result %>">
-      <%= RESULT_LABELS[application.result] || application.result %>
-    </span>
-  </p>
-  <p><strong>직무:</strong> <%= application.job_position || '-' %></p>
-  <p><strong>지원일:</strong> <%= application.applied_at || '-' %></p>
-  <p><strong>공고 마감일:</strong> <%= application.job_deadline || '상시' %></p>
-  <p><strong>메모:</strong> <%= application.memo || '등록된 메모가 없습니다.' %></p>
-</section>
-
-<section class="card">
-  <div class="page-header">
-    <h2>전형 단계 변경 이력 (Timeline)</h2>
-  </div>
-  <% if (!application.stageLogs || application.stageLogs.length === 0) { %>
-    <p class="text-muted">기록된 전형 변경 이력이 없습니다.</p>
-  <% } else { %>
-    <ul class="timeline">
-      <% for (const log of application.stageLogs) { %>
-        <li class="timeline__item">
-          <div>
-            <% if (log.from_stage) { %>
-              <span><%= STAGE_LABELS[log.from_stage] || log.from_stage %> (<%= RESULT_LABELS[log.from_result] || log.from_result %>)</span>
-              →
-            <% } else { %>
-              <span>최초 등록:</span>
-            <% } %>
-            <strong><%= STAGE_LABELS[log.to_stage] || log.to_stage %> (<%= RESULT_LABELS[log.to_result] || log.to_result %>)</strong>
-          </div>
-          <div class="text-muted"><%= log.changed_at %></div>
-        </li>
+<section class="stage-progress-card">
+  <div class="card__header">
+    <h2 class="card__title">전형 진행 현황</h2>
+    <div class="inline-actions">
+      <span class="badge badge--stage-<%= application.stage %>">
+        <%= STAGE_LABELS[application.stage] || application.stage %>
+      </span>
+      <span class="badge badge--result-<%= application.result %>">
+        <%= RESULT_LABELS[application.result] || application.result %>
+      </span>
+      <% if (ddayTarget) { %>
+        <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
       <% } %>
-    </ul>
-  <% } %>
-</section>
-
-<section class="card">
-  <div class="page-header">
-    <h2>연결된 전형 일정 (<%= application.events.length %>건)</h2>
-    <a href="/events?application_id=<%= application.id %>" class="btn btn-sm">일정 추가</a>
-  </div>
-  <% if (application.events.length === 0) { %>
-    <p class="text-muted">등록된 관련 일정이 없습니다.</p>
-  <% } else { %>
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>일정명</th>
-            <th>유형</th>
-            <th>일시</th>
-            <th>메모</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% for (const ev of application.events) { %>
-            <tr>
-              <td><strong><%= ev.title %></strong></td>
-              <td><span class="badge"><%= EVENT_TYPE_LABELS[ev.type] || ev.type %></span></td>
-              <td><%= ev.starts_at %></td>
-              <td><%= ev.memo || '-' %></td>
-            </tr>
-          <% } %>
-        </tbody>
-      </table>
     </div>
-  <% } %>
+  </div>
+
+  <div class="stage-stepper" aria-label="6단계 전형 진행도">
+    <% const currentStageIndex = APPLICATION_STAGES.indexOf(application.stage); %>
+    <% APPLICATION_STAGES.forEach((st, idx) => { %>
+      <% const isCompleted = idx < currentStageIndex || (idx === currentStageIndex && application.result === 'passed' && st === 'final'); %>
+      <% const isCurrent = idx === currentStageIndex; %>
+      <div class="stage-stepper__step <%= isCompleted ? 'stage-stepper__step--completed' : (isCurrent ? 'stage-stepper__step--current' : '') %>">
+        <span class="stage-stepper__circle">
+          <%= isCompleted ? '✓' : (idx + 1) %>
+        </span>
+        <span class="stage-stepper__label"><%= STAGE_LABELS[st] %></span>
+      </div>
+    <% }); %>
+  </div>
 </section>
 
-<section class="card">
-  <div class="page-header">
-    <h2>예상 면접 질문 (<%= (typeof interviewQuestions !== 'undefined' && interviewQuestions ? interviewQuestions.length : (application.interviewQuestions ? application.interviewQuestions.length : 0)) %>건)</h2>
-    <div>
-      <% if (typeof aiEnabled !== 'undefined' && aiEnabled) { %>
-        <form action="/applications/<%= application.id %>/interview-questions/generate" method="POST">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button type="submit" class="btn btn-primary btn-sm">AI 질문 생성</button>
-        </form>
-      <% } else { %>
+<div class="detail-grid">
+  <div class="detail-main">
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">지원 및 공고 정보</h2>
+        <a href="/jobs/<%= application.job_post_id %>" class="btn btn-sm">공고 상세 보기</a>
+      </div>
+
+      <div class="info-list">
+        <div class="info-item">
+          <span class="info-item__label">지원 기업</span>
+          <span class="info-item__value">
+            <a href="/companies/<%= application.company_id %>"><strong><%= application.company_name %></strong></a>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-item__label">채용 공고</span>
+          <span class="info-item__value"><%= application.job_title %></span>
+        </div>
+        <div class="info-item">
+          <span class="info-item__label">모집 직무</span>
+          <span class="info-item__value"><%= application.job_position || '-' %></span>
+        </div>
+        <div class="info-item">
+          <span class="info-item__label">지원일자</span>
+          <span class="info-item__value num"><%= application.applied_at || '-' %></span>
+        </div>
+        <div class="info-item">
+          <span class="info-item__label">공고 마감일</span>
+          <span class="info-item__value num">
+            <%= application.job_deadline || '상시 채용' %>
+            <% if (application.job_deadline) { %>
+              <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
+            <% } %>
+          </span>
+        </div>
+        <% if (application.job_url) { %>
+          <div class="info-item">
+            <span class="info-item__label">공고 링크</span>
+            <span class="info-item__value">
+              <a href="<%= application.job_url %>" target="_blank" rel="noopener noreferrer">채용 페이지 열기 ↗</a>
+            </span>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="form-field mt-4">
+        <label>지원 메모 / 전형 회고</label>
+        <p class="prose-pre text-muted"><%= application.memo || '등록된 메모가 없습니다.' %></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">연결된 자기소개서</h2>
         <div class="inline-actions">
-          <button type="button" class="btn btn-primary btn-sm" disabled aria-disabled="true">AI 질문 생성</button>
-          <span class="text-muted">AI 기능이 비활성화되어 있습니다 (GEMINI_API_KEY 미설정)</span>
+          <a href="/essays/new?application_id=<%= application.id %>" class="btn btn-sm btn-primary">새 자기소개서 작성</a>
+          <a href="/essays?application_id=<%= application.id %>" class="btn btn-sm">자소서 검색</a>
+        </div>
+      </div>
+      <p class="text-muted">
+        이 지원 건과 연결된 자기소개서를 작성하거나 수정하여 서류 전형 및 면접에 대비하세요.
+      </p>
+    </section>
+
+    <% const qList = (typeof interviewQuestions !== 'undefined' && interviewQuestions) ? interviewQuestions : (application.interviewQuestions || []); %>
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">예상 면접 질문 (<%= qList.length %>건)</h2>
+        <div>
+          <% if (typeof aiEnabled !== 'undefined' && aiEnabled) { %>
+            <form action="/applications/<%= application.id %>/interview-questions/generate" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="btn btn-primary btn-sm">AI 질문 생성</button>
+            </form>
+          <% } else { %>
+            <div class="inline-actions">
+              <button type="button" class="btn btn-primary btn-sm" disabled aria-disabled="true">AI 질문 생성</button>
+              <span class="text-muted text-sm">AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)</span>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <% if (typeof questionError !== 'undefined' && questionError) { %>
+        <div class="flash flash--error" role="status">
+          <%= questionError %>
         </div>
       <% } %>
-    </div>
+
+      <form action="/applications/<%= application.id %>/interview-questions" method="POST" class="form-field">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="form-field">
+          <label for="question-input">면접 질문 직접 추가</label>
+          <div class="inline-actions">
+            <input
+              type="text"
+              id="question-input"
+              name="question"
+              class="input"
+              placeholder="예상 면접 질문을 입력하세요 (최대 500자)"
+              value="<%= typeof manualQuestion !== 'undefined' && manualQuestion ? manualQuestion : '' %>"
+              maxlength="500"
+              required
+            >
+            <button type="submit" class="btn btn-sm btn-primary">추가</button>
+          </div>
+        </div>
+      </form>
+
+      <% if (!qList || qList.length === 0) { %>
+        <div class="empty-state empty-state--compact">
+          <p>등록된 예상 면접 질문이 없습니다.</p>
+          <span class="text-muted text-sm">AI 질문 생성을 실행하거나 직접 질문을 추가해 보세요.</span>
+        </div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th class="col-badge">구분</th>
+                <th>면접 질문</th>
+                <th class="col-date">등록일시</th>
+                <th class="col-action">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% for (const q of qList) { %>
+                <tr>
+                  <td>
+                    <% if (q.source === 'ai') { %>
+                      <span class="badge badge--stage-coding_test">AI 생성</span>
+                    <% } else { %>
+                      <span class="badge">직접 작성</span>
+                    <% } %>
+                  </td>
+                  <td><strong><%= q.question %></strong></td>
+                  <td class="text-muted text-sm"><%= q.created_at %></td>
+                  <td>
+                    <form
+                      action="/applications/<%= application.id %>/interview-questions/<%= q.id %>?_method=DELETE"
+                      method="POST"
+                      data-confirm="이 질문을 삭제하시겠습니까?"
+                    >
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="_method" value="DELETE">
+                      <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+                    </form>
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
   </div>
 
-  <% if (typeof questionError !== 'undefined' && questionError) { %>
-    <div class="flash flash--error" role="status">
-      <%= questionError %>
-    </div>
-  <% } %>
-
-  <form action="/applications/<%= application.id %>/interview-questions" method="POST" class="form-field">
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-    <div class="form-field">
-      <label for="question-input">면접 질문 직접 추가</label>
-      <div class="inline-actions">
-        <input
-          type="text"
-          id="question-input"
-          name="question"
-          class="input"
-          placeholder="예상 면접 질문을 입력하세요 (최대 500자)"
-          value="<%= typeof manualQuestion !== 'undefined' && manualQuestion ? manualQuestion : '' %>"
-          maxlength="500"
-          required
-        >
-        <button type="submit" class="btn btn-sm btn-primary">추가</button>
+  <div class="detail-side">
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">전형 단계 변경</h2>
       </div>
-    </div>
-  </form>
+      <form action="/applications/<%= application.id %>?_method=PUT" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="_method" value="PUT">
+        <input type="hidden" name="job_post_id" value="<%= application.job_post_id %>">
+        <input type="hidden" name="applied_at" value="<%= application.applied_at || '' %>">
+        <input type="hidden" name="memo" value="<%= application.memo || '' %>">
 
-  <% const qList = (typeof interviewQuestions !== 'undefined' && interviewQuestions) ? interviewQuestions : (application.interviewQuestions || []); %>
-  <% if (!qList || qList.length === 0) { %>
-    <p class="text-muted">등록된 예상 면접 질문이 없습니다.</p>
-  <% } else { %>
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>구분</th>
-            <th>면접 질문</th>
-            <th>등록일시</th>
-            <th>관리</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% for (const q of qList) { %>
-            <tr>
-              <td>
-                <% if (q.source === 'ai') { %>
-                  <span class="badge badge--stage-coding_test">AI 생성</span>
-                <% } else { %>
-                  <span class="badge">직접 작성</span>
+        <div class="form-field">
+          <label for="side-stage-select">전형 단계</label>
+          <select id="side-stage-select" name="stage" class="input">
+            <% for (const st of APPLICATION_STAGES) { %>
+              <option value="<%= st %>" <%= application.stage === st ? 'selected' : '' %>>
+                <%= STAGE_LABELS[st] %>
+              </option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="side-result-select">전형 결과</label>
+          <select id="side-result-select" name="result" class="input">
+            <% for (const resKey of APPLICATION_RESULTS) { %>
+              <option value="<%= resKey %>" <%= application.result === resKey ? 'selected' : '' %>>
+                <%= RESULT_LABELS[resKey] %>
+              </option>
+            <% } %>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full">단계 변경 적용</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">관련 일정 (<%= application.events.length %>건)</h2>
+        <a href="/events?application_id=<%= application.id %>" class="btn btn-sm">+ 일정 추가</a>
+      </div>
+
+      <% if (application.events.length === 0) { %>
+        <p class="text-muted text-sm">등록된 전형 일정이 없습니다.</p>
+      <% } else { %>
+        <div class="timeline">
+          <% for (const ev of application.events) { %>
+            <div class="timeline__item">
+              <span class="timeline__dot"></span>
+              <div class="timeline__content">
+                <div class="timeline__header">
+                  <span class="timeline__title"><%= ev.title %></span>
+                  <span class="badge"><%= EVENT_TYPE_LABELS[ev.type] || ev.type %></span>
+                </div>
+                <div class="timeline__time num"><%= ev.starts_at %></div>
+                <% if (ev.memo) { %>
+                  <p class="text-muted text-sm"><%= ev.memo %></p>
                 <% } %>
-              </td>
-              <td><%= q.question %></td>
-              <td class="text-muted"><%= q.created_at %></td>
-              <td>
-                <form
-                  action="/applications/<%= application.id %>/interview-questions/<%= q.id %>?_method=DELETE"
-                  method="POST"
-                  data-confirm="이 질문을 삭제하시겠습니까?"
-                >
-                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                  <input type="hidden" name="_method" value="DELETE">
-                  <button type="submit" class="btn btn-sm btn-danger">삭제</button>
-                </form>
-              </td>
-            </tr>
+              </div>
+            </div>
           <% } %>
-        </tbody>
-      </table>
-    </div>
-  <% } %>
-</section>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">전형 변경 이력</h2>
+      </div>
+
+      <% if (!application.stageLogs || application.stageLogs.length === 0) { %>
+        <p class="text-muted text-sm">기록된 전형 변경 이력이 없습니다.</p>
+      <% } else { %>
+        <ul class="timeline">
+          <% for (const log of application.stageLogs) { %>
+            <li class="timeline__item">
+              <span class="timeline__dot"></span>
+              <div class="timeline__content">
+                <div class="timeline__header">
+                  <div class="timeline__title">
+                    <% if (log.from_stage) { %>
+                      <span><%= STAGE_LABELS[log.from_stage] || log.from_stage %></span>
+                      <span aria-hidden="true">→</span>
+                    <% } else { %>
+                      <span class="text-muted">최초 등록:</span>
+                    <% } %>
+                    <strong><%= STAGE_LABELS[log.to_stage] || log.to_stage %></strong>
+                    <span class="badge badge--result-<%= log.to_result %>"><%= RESULT_LABELS[log.to_result] || log.to_result %></span>
+                  </div>
+                </div>
+                <div class="timeline__time num"><%= log.changed_at %></div>
+              </div>
+            </li>
+          <% } %>
+        </ul>
+      <% } %>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,801 @@
+/* ==========================================================================
+   ReadySetJob — Inner Pages Styles (pages.css)
+   Approved Design System (2026-11-11)
+   CSP Compliant: Pure CSS variables, zero inline styles
+   ========================================================================== */
+
+/* 1. Stage Dots */
+.stage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.stage-dot--document { background-color: var(--color-stage-document); }
+.stage-dot--coding_test { background-color: var(--color-stage-coding); }
+.stage-dot--assignment { background-color: var(--color-stage-assignment); }
+.stage-dot--interview1 { background-color: var(--color-stage-interview1); }
+.stage-dot--interview2 { background-color: var(--color-stage-interview2); }
+.stage-dot--final { background-color: var(--color-stage-final); }
+
+/* 2. Detail 2-Column Grid Layout */
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+/* 3. Entity Header Card (Detail views) */
+.entity-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-6);
+}
+
+.entity-header__avatar {
+  flex-shrink: 0;
+}
+
+.entity-header__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.entity-header__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.entity-header__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.entity-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* Favorite star button */
+.favorite-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: all 0.15s ease;
+}
+
+.favorite-btn:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.favorite-btn--active {
+  color: #D97706;
+  border-color: #FBBF24;
+  background-color: #FFFBEB;
+}
+
+[data-theme="dark"] .favorite-btn--active {
+  color: #FBBF24;
+  border-color: #92400E;
+  background-color: #2D2006;
+}
+
+.star-icon {
+  font-size: 14px;
+  color: #D97706;
+}
+
+.star-icon--muted {
+  color: var(--color-text-subtle);
+}
+
+/* 4. Horizontal 6-Step Stage Progress Bar */
+.stage-progress-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5) var(--space-6);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-6);
+}
+
+.stage-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.stage-stepper::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background-color: var(--color-border);
+  z-index: 1;
+}
+
+.stage-stepper__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  gap: 6px;
+  flex: 1;
+  text-align: center;
+}
+
+.stage-stepper__circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+}
+
+.stage-stepper__step--completed .stage-stepper__circle {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.stage-stepper__step--current .stage-stepper__circle {
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  transform: scale(1.1);
+}
+
+.stage-stepper__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.stage-stepper__step--completed .stage-stepper__label {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.stage-stepper__step--current .stage-stepper__label {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .stage-stepper__label {
+    font-size: 10.5px;
+  }
+  .stage-stepper__circle {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .stage-stepper::before {
+    top: 12px;
+  }
+}
+
+/* 5. Info Key-Value List */
+.info-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-2);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-item__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.info-item__value {
+  font-size: 14px;
+  color: var(--color-text);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+/* 6. Timeline Styles */
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 11px;
+  width: 2px;
+  background-color: var(--color-border);
+}
+
+.timeline__item {
+  position: relative;
+  padding-left: 32px;
+  padding-bottom: var(--space-4);
+  background: transparent;
+  border: none;
+}
+
+.timeline__item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline__dot {
+  position: absolute;
+  left: 6px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  z-index: 2;
+}
+
+.timeline__content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-surface-subtle);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.timeline__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.timeline__title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.timeline__time {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* 7. Checklist / Todos Styles */
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--space-3);
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 10px 14px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.todo-item:hover {
+  background-color: var(--color-surface-subtle);
+  border-color: var(--color-border-strong);
+}
+
+.todo-item--done {
+  opacity: 0.7;
+  background-color: var(--color-surface-subtle);
+}
+
+.todo-item--done .todo-item__title {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.todo-item__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 1;
+}
+
+.todo-check-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--color-border-strong);
+  background-color: var(--color-surface);
+  color: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.todo-check-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.todo-check-btn--checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.todo-item__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.todo-item__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.todo-item__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+
+.todo-item__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Category Chips */
+.chip-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 500;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chip:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.chip--active {
+  background-color: var(--color-surface-selected);
+  color: var(--color-primary-text);
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* 8. Interview Prep Cards */
+.prep-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.prep-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition: border-color 0.15s ease;
+}
+
+.prep-card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.prep-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.prep-card__company {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.prep-card__details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.prep-card__title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.prep-card__sub {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.prep-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.prep-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: var(--space-2);
+}
+
+.prep-question-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.prep-question-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: 8px 12px;
+  background-color: var(--color-surface-subtle);
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  color: var(--color-text);
+}
+
+/* 9. Progress Bars & Funnels */
+.progress-bar {
+  height: 8px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width 0.3s ease;
+}
+
+.progress-bar__fill--success {
+  background-color: var(--color-success);
+}
+
+.progress-bar__fill--warning {
+  background-color: var(--color-warning);
+}
+
+.progress-bar__fill--danger {
+  background-color: var(--color-danger);
+}
+
+.funnel-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 90px;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.funnel-row:last-child {
+  border-bottom: none;
+}
+
+.funnel-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.funnel-metric {
+  text-align: right;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* 10. Search Group Cards */
+.search-group-card {
+  margin-bottom: var(--space-5);
+}
+
+.search-results-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background-color 0.12s ease;
+}
+
+.search-result-item:hover {
+  background-color: var(--color-surface-hover);
+  text-decoration: none;
+}
+
+.search-result-item__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.search-result-item__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-result-item__meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* 11. Company Grid Cards */
+.companies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.company-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.company-card:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.company-card__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.company-card__name {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.company-card__industry {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.company-card__stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* 12. Question Paper Card (Essay Editor) */
+.paper-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-5);
+  transition: border-color 0.15s ease;
+}
+
+.paper-card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.paper-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.paper-card__title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.paper-card__progress-wrap {
+  margin-bottom: var(--space-3);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.mt-4 {
+  margin-top: var(--space-4);
+}
+
+.mb-4 {
+  margin-bottom: var(--space-4);
+}
+
+.col-action {
+  width: 80px;
+}
+
+.col-badge {
+  width: 100px;
+}
+
+.col-date {
+  width: 140px;
+}
+

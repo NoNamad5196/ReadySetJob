@@ -1,7 +1,18 @@
 <div class="page-header">
-  <h1 class="page-header__title"><%= isEdit ? '채용 공고 수정' : '채용 공고 등록' %></h1>
-  <a href="<%= isEdit ? `/jobs/${job.id}` : '/jobs' %>" class="btn">목록으로</a>
+  <div class="page-header__meta">
+    <h1 class="page-header__title"><%= isEdit ? '채용 공고 수정' : '채용 공고 등록' %></h1>
+    <div class="page-header__summary">
+      <%= isEdit ? '채용 공고의 직무, 마감일 및 상세 메모를 업데이트합니다.' : '관심 기업의 채용 공고를 등록하고 마감 기한을 추적하세요.' %>
+    </div>
+  </div>
+  <div class="page-header__actions">
+    <a href="<%= isEdit ? `/jobs/${job.id}` : '/jobs' %>" class="btn">목록으로</a>
+  </div>
 </div>
+
+<% if (!isEdit) { %>
+  <%- include('../partials/ai/job-parse', { aiEnabled, csrfToken }) %>
+<% } %>
 
 <section class="card">
   <% if (error) { %>
@@ -31,7 +42,9 @@
 
     <% if (!isEdit) { %>
       <div class="card">
-        <h3>또는 새 기업 바로 등록 (트랜잭션 자동 생성)</h3>
+        <div class="card__header section-header--compact">
+          <h3 class="section-title-sm">또는 새 기업 바로 등록 (트랜잭션 자동 생성)</h3>
+        </div>
         <div class="form-field">
           <label for="new_company_name">새 기업명</label>
           <input

@@ -1,0 +1,79 @@
+<%
+  /*
+    Partial: views/partials/ai/status.ejs
+    Include location: views/settings/index.ejs or views/settings/ai.ejs
+    Example: include('../partials/ai/status', { aiEnabled, aiConfig })
+    Required locals:
+      - aiEnabled: boolean (defaults to res.locals.aiEnabled)
+      - aiConfig: { enabled, models, features } (defaults to res.locals.aiConfig)
+  */
+%>
+<%
+  const cfg = typeof aiConfig !== 'undefined' && aiConfig ? aiConfig : { enabled: false, features: [] };
+  const isEnabled = typeof aiEnabled !== 'undefined' ? Boolean(aiEnabled) : Boolean(cfg.enabled);
+  const disabledMsg = typeof AI_DISABLED_MESSAGE !== 'undefined'
+    ? AI_DISABLED_MESSAGE
+    : 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)';
+  const features = Array.isArray(cfg.features) ? cfg.features : [];
+%>
+<section class="card ai-status-card" id="ai-settings-status">
+  <div class="card__header">
+    <div>
+      <div class="inline-actions">
+        <h2 class="card__title">OpenAI 연동 및 모델 설정 상태</h2>
+        <% if (isEnabled) { %>
+          <span class="badge badge--result-passed">활성화됨 (OPENAI_API_KEY 설정됨)</span>
+        <% } else { %>
+          <span class="badge badge--result-failed">비활성화됨 (OPENAI_API_KEY 미설정)</span>
+        <% } %>
+      </div>
+      <p class="text-muted text-sm">
+        ReadySetJob은 OpenAI Responses API(Structured Outputs)를 서버 사이드에서만 호출하며, API 키를 브라우저나 로그에 절대 노출하지 않습니다.
+      </p>
+    </div>
+    <a href="/settings/ai" class="btn btn-sm">AI 설정 상세</a>
+  </div>
+
+  <% if (!isEnabled) { %>
+    <div class="ai-alert ai-alert--warning" role="status">
+      <strong><%= disabledMsg %></strong>
+      <p class="text-sm">
+        AI 기능을 사용하려면 서버의 <code>/home/box/projects/ReadySetJob/.env 의 OPENAI_API_KEY</code> 항목에 발급받은 키를 설정한 뒤 서버를 재시작해 주세요.
+      </p>
+    </div>
+  <% } %>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>AI 기능</th>
+          <th>환경 변수</th>
+          <th>적용 모델</th>
+          <th> 기본 모델</th>
+          <th>추론 강도 (Effort)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const f of features) { %>
+          <tr>
+            <td><strong><%= f.label %></strong></td>
+            <td><code><%= f.envVar %></code></td>
+            <td><code class="num"><%= f.model %></code></td>
+            <td class="text-muted text-sm"><code><%= f.defaultModel %></code></td>
+            <td><span class="badge"><%= f.effort %></span></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ai-status-guide">
+    <h3 class="section-title-sm">API 키 설정 방법</h3>
+    <ol class="ai-guide-list text-sm text-muted">
+      <li>서버 프로젝트 루트의 <code>/home/box/projects/ReadySetJob/.env 의 OPENAI_API_KEY</code> 변수에 OpenAI API 키를 입력합니다.</li>
+      <li>전체 기능 공통 모델을 지정하려면 <code>OPENAI_MODEL</code>을 설정하고, 기능별 모델을 다르게 지정하려면 표의 개별 환경 변수(<code>OPENAI_MODEL_INTERVIEW</code> 등)를 설정합니다.</li>
+      <li>보안을 위해 API 키 원문은 화면이나 API 응답에 절대 표시되지 않으며, 사용자당 10분 내 최대 20회 호출 제한이 적용됩니다.</li>
+    </ol>
+  </div>
+</section>

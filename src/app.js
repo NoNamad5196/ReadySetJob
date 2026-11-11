@@ -10,9 +10,11 @@ const morgan = require('morgan');
 const { openDatabase } = require('./db/connection');
 const { migrate } = require('./db/migrate');
 const { attachSessionLocals } = require('./middleware/auth');
+const { attachShellData } = require('./middleware/shellData');
 const { csrfProtection } = require('./middleware/csrf');
 const { attachUiHelpers } = require('./middleware/validation');
 const { notFoundHandler, errorHandler } = require('./middleware/error');
+const { companyAvatar } = require('./utils/avatar');
 
 const { createAuthRouter } = require('./routes/auth');
 const { createDashboardRouter } = require('./routes/dashboard');
@@ -22,6 +24,13 @@ const { createApplicationsRouter, createApplicationsApiRouter } = require('./rou
 const { createEventsRouter } = require('./routes/events');
 const { createEssaysRouter, createEssaysApiRouter } = require('./routes/essays');
 const { createMaterialsRouter } = require('./routes/materials');
+const { createTodosRouter, createTodosApiRouter } = require('./routes/todos');
+const { createSettingsRouter } = require('./routes/settings');
+const { createStatsRouter } = require('./routes/stats');
+const { createInterviewPrepRouter } = require('./routes/interviewPrep');
+const { createSearchRouter } = require('./routes/search');
+const { createAiRouter } = require('./routes/ai');
+const { isAiEnabled } = require('./services/aiService');
 
 const BaseSqliteStore = createSqliteStore(session);
 
@@ -43,6 +52,7 @@ function createApp({ dbPath } = {}) {
 
   const app = express();
   app.locals.db = db;
+  app.locals.companyAvatar = companyAvatar;
   app.db = db;
 
   if (process.env.NODE_ENV === 'production') {
@@ -82,6 +92,10 @@ function createApp({ dbPath } = {}) {
   app.use(
     '/vendor/chart.js',
     express.static(path.join(__dirname, '../node_modules/chart.js/dist'))
+  );
+  app.use(
+    '/vendor/pretendard',
+    express.static(path.join(__dirname, '../node_modules/pretendard/dist/web/variable'))
   );
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
@@ -138,10 +152,16 @@ function createApp({ dbPath } = {}) {
 
   app.use(attachSessionLocals);
   app.use(attachUiHelpers);
+  app.use(attachShellData(db));
   app.use(csrfProtection);
+  app.use((req, res, next) => {
+    res.locals.aiEnabled = isAiEnabled();
+    next();
+  });
 
   app.use('/', createAuthRouter(db));
   app.use('/', createDashboardRouter(db));
+  app.use('/', createSearchRouter(db));
   app.use('/companies', createCompaniesRouter(db));
   app.use('/jobs', createJobsRouter(db));
   app.use('/applications', createApplicationsRouter(db));
@@ -150,6 +170,12 @@ function createApp({ dbPath } = {}) {
   app.use('/essays', createEssaysRouter(db));
   app.use('/api/essays', createEssaysApiRouter(db));
   app.use('/materials', createMaterialsRouter(db));
+  app.use('/todos', createTodosRouter(db));
+  app.use('/api/todos', createTodosApiRouter(db));
+  app.use('/settings', createSettingsRouter(db));
+  app.use('/stats', createStatsRouter(db));
+  app.use('/interview-prep', createInterviewPrepRouter(db));
+  app.use('/', createAiRouter(db));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

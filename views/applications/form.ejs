@@ -1,6 +1,13 @@
 <div class="page-header">
-  <h1 class="page-header__title"><%= isEdit ? '지원 내역 수정' : '지원 내역 등록' %></h1>
-  <a href="<%= isEdit ? `/applications/${application.id}` : '/applications' %>" class="btn">목록으로</a>
+  <div class="page-header__meta">
+    <h1 class="page-header__title"><%= isEdit ? '지원 내역 수정' : '지원 내역 등록' %></h1>
+    <div class="page-header__summary">
+      <%= isEdit ? '전형 단계, 결과 및 지원 메모를 업데이트합니다.' : '채용 공고를 선택하고 지원 현황을 등록하세요.' %>
+    </div>
+  </div>
+  <div class="page-header__actions">
+    <a href="<%= isEdit ? `/applications/${application.id}` : '/applications' %>" class="btn">목록으로</a>
+  </div>
 </div>
 
 <section class="card">
@@ -18,9 +25,16 @@
     <% } %>
 
     <% if (isEdit) { %>
+      <% const av = companyAvatar(application.company_name); %>
       <div class="form-field">
         <label>지원 공고</label>
-        <p><strong><%= application.company_name %></strong> — <%= application.job_title %></p>
+        <div class="cell-two-line">
+          <span class="avatar avatar--sm <%= av.className %>"><%= av.initial %></span>
+          <div class="cell-two-line__content">
+            <span class="cell-two-line__title"><%= application.company_name %></span>
+            <span class="cell-two-line__sub"><%= application.job_title %></span>
+          </div>
+        </div>
       </div>
     <% } else { %>
       <div class="form-field">

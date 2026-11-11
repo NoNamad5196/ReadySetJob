@@ -45,10 +45,10 @@
   * D-7 마감 임박 공고 및 다가오는 일정 요약 위젯
 * **경험 자료함**:
   * 프로젝트, 수상, 인턴, 대외활동 등 본인의 스펙을 카테고리 및 태그별로 정리
-* **AI 예상 면접 질문 생성**:
-  * 지원 공고(기업명, 직무, 메모)와 자기소개서 답변을 기반으로 Gemini API 맞춤 질문 도출
-  * API 키 미설정 시 버튼이 비활성화되며 가짜 응답 없이 정직하게 안내
-  * 사용자별 10분당 최대 5회 생성 속도 제한 적용
+* **AI 취업 도우미 (OpenAI Responses API)**:
+  * 지원 공고(기업명, 직무, 메모)와 자기소개서 답변을 기반으로 OpenAI Responses API 맞춤 면접 질문 도출, 자기소개서 문항 피드백, 경험 자료 STAR 초안 생성, 채용 공고 텍스트 자동 추출 지원
+  * API 키(`OPENAI_API_KEY`) 미설정 시 버튼이 비활성화되며 가짜 응답 없이 정직하게 안내
+  * 사용자별 10분당 최대 20회 생성 속도 제한 적용
 
 ---
 
@@ -77,7 +77,7 @@ ReadySetJob은 사용자 경험 설계를 위해 3가지 콘셉트의 정적 HTM
 * **보안**: `bcryptjs` 3.0.2, `helmet` 8.0.0 (CSP 설정 포함)
 * **텍스트 비교**: `diff` (jsdiff 7.0.0)
 * **차트 라이브러리**: Chart.js 4.4.6 (로컬 정적 서빙)
-* **인공지능**: Google Gemini REST API (`gemini-2.5-flash`)
+* **인공지능**: OpenAI Responses API (`gpt-6.1-terra`, `gpt-6-luna`, Structured Outputs)
 * **테스트**: Node.js 내장 테스트 러너 (`node --test`), `supertest` 7.0.0
 
 ---
@@ -118,7 +118,7 @@ ReadySetJob은 사용자 경험 설계를 위해 3가지 콘셉트의 정적 HTM
    ```bash
    npm test
    ```
-   * Node.js 22 내장 테스트 러너를 통해 11개 스위트, 50개 테스트 케이스를 순차 실행합니다.
+    * Node.js 22 내장 테스트 러너를 통해 15개 스위트, 66개 테스트 케이스를 순차 실행합니다.
 
 ---
 
@@ -131,8 +131,12 @@ ReadySetJob은 사용자 경험 설계를 위해 3가지 콘셉트의 정적 HTM
 | `PORT` | 선택 | `3000` | HTTP 웹 서버 수신 포트 번호 |
 | `SESSION_SECRET` | 프로덕션 필수 | 개발용 폴백 문자열 | 세션 쿠키 암호화 서명 키. `NODE_ENV=production` 환경에서는 설정하지 않을 시 서버 시작이 즉시 차단됩니다. |
 | `DB_PATH` | 선택 | `data/readysetjob.db` | SQLite 데이터베이스 파일 저장 경로 |
-| `GEMINI_API_KEY` | 선택 | `(빈 값)` | Google Gemini API 인증 키. 미설정 시 AI 면접 질문 기능이 안전하게 비활성화되며 가짜 응답을 반환하지 않습니다. |
-| `GEMINI_MODEL` | 선택 | `gemini-2.5-flash` | 예상 면접 질문 생성에 사용할 Google Gemini 모델 식별자 |
+| `OPENAI_API_KEY` | 선택 | `(빈 값)` | OpenAI API 인증 키. 미설정 시 모든 AI 기능이 안전하게 비활성화되며 가짜 응답을 반환하지 않습니다. |
+| `OPENAI_MODEL` | 선택 | `(빈 값)` | 설정 시 모든 AI 기능의 모델을 일괄 오버라이드합니다. |
+| `OPENAI_MODEL_INTERVIEW` | 선택 | `gpt-6.1-terra` | 면접 예상 질문 생성에 사용할 OpenAI 모델 식별자 |
+| `OPENAI_MODEL_FEEDBACK` | 선택 | `gpt-6.1-terra` | 자기소개서 문항 피드백에 사용할 OpenAI 모델 식별자 |
+| `OPENAI_MODEL_DRAFT` | 선택 | `gpt-6.1-terra` | 경험 자료 STAR 초안 생성에 사용할 OpenAI 모델 식별자 |
+| `OPENAI_MODEL_EXTRACT` | 선택 | `gpt-6-luna` | 채용 공고 텍스트 추출에 사용할 OpenAI 모델 식별자 |
 
 ---
 
@@ -174,7 +178,7 @@ ReadySetJob/
 │   ├── DESIGN_REFERENCES.md # UI/UX 레퍼런스 분석서
 │   ├── IDEA_LOG.md          # 개발 일지 및 아이디어 로그
 │   └── notion/              # 원격 Notion 동기화 백업 마크다운 문서들
-└── test/                    # 통합 테스트 스위트 (11개 파일, 50개 테스트)
+└── test/                    # 통합 테스트 스위트 (15개 스위트, 66개 테스트)
 ```
 
 ---

@@ -1,6 +1,25 @@
 <div class="page-header">
-  <h1 class="page-header__title">채용 공고</h1>
-  <a href="/jobs/new" class="btn btn-primary">채용 공고 등록</a>
+  <div class="page-header__meta">
+    <h1 class="page-header__title">채용 공고</h1>
+    <div class="page-header__summary">
+      총 <strong class="num"><%= jobs ? jobs.length : 0 %></strong>개 채용 공고 관리 중
+    </div>
+  </div>
+  <div class="page-header__actions">
+    <div class="segmented-tabs" role="group" aria-label="공고 보기 전환">
+      <a
+        href="/jobs"
+        class="segmented-tab <%= filters.bookmarked !== '1' ? 'segmented-tab--active' : '' %>"
+        <%= filters.bookmarked !== '1' ? 'aria-current="page"' : '' %>
+      >전체</a>
+      <a
+        href="/jobs?bookmarked=1"
+        class="segmented-tab <%= filters.bookmarked === '1' ? 'segmented-tab--active' : '' %>"
+        <%= filters.bookmarked === '1' ? 'aria-current="page"' : '' %>
+      >북마크</a>
+    </div>
+    <a href="/jobs/new" class="btn btn-primary">+ 채용 공고 등록</a>
+  </div>
 </div>
 
 <form action="/jobs" method="GET" class="filter-bar">
@@ -11,7 +30,7 @@
     placeholder="기업명, 공고명, 직무 검색..."
     value="<%= filters.q %>"
   >
-  <select name="employment_type" class="input">
+  <select name="employment_type" class="input" aria-label="채용 형태 필터">
     <option value="">전체 채용 형태</option>
     <% for (const type of EMPLOYMENT_TYPES) { %>
       <option value="<%= type %>" <%= filters.employment_type === type ? 'selected' : '' %>>
@@ -19,11 +38,11 @@
       </option>
     <% } %>
   </select>
-  <select name="bookmarked" class="input">
+  <select name="bookmarked" class="input" aria-label="북마크 여부 필터">
     <option value="">전체 공고</option>
     <option value="1" <%= filters.bookmarked === '1' ? 'selected' : '' %>>북마크만 보기</option>
   </select>
-  <select name="sort" class="input">
+  <select name="sort" class="input" aria-label="정렬 기준">
     <option value="deadline" <%= filters.sort === 'deadline' ? 'selected' : '' %>>마감일 빠른순</option>
     <option value="recent" <%= filters.sort === 'recent' ? 'selected' : '' %>>최근 등록순</option>
   </select>
@@ -42,9 +61,8 @@
       <table class="table">
         <thead>
           <tr>
-            <th>북마크</th>
-            <th>기업명</th>
-            <th>공고 제목</th>
+            <th class="col-action">북마크</th>
+            <th>기업 / 공고 제목</th>
             <th>직무 / 형태</th>
             <th>마감일 (D-Day)</th>
             <th>지원 현황</th>
@@ -53,29 +71,45 @@
         </thead>
         <tbody>
           <% for (const job of jobs) { %>
+            <% const av = companyAvatar(job.company_name); %>
             <% const dday = calculateDday(job.deadline); %>
             <tr>
               <td>
                 <form action="/jobs/<%= job.id %>/bookmark" method="POST">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                  <input type="hidden" name="redirect_to" value="/jobs">
-                  <button type="submit" class="btn btn-sm" aria-label="북마크 토글">
-                    <%= job.is_bookmarked ? '★ 관심' : '☆ 해제' %>
+                  <input type="hidden" name="redirect_to" value="/jobs<%= filters.bookmarked === '1' ? '?bookmarked=1' : '' %>">
+                  <button
+                    type="submit"
+                    class="favorite-btn <%= job.is_bookmarked ? 'favorite-btn--active' : '' %>"
+                    aria-label="북마크 토글"
+                    title="<%= job.is_bookmarked ? '북마크 해제' : '북마크 추가' %>"
+                  >
+                    <span class="star-icon <%= job.is_bookmarked ? '' : 'star-icon--muted' %>"><%= job.is_bookmarked ? '★' : '☆' %></span>
+                    <span><%= job.is_bookmarked ? '관심' : '해제' %></span>
                   </button>
                 </form>
               </td>
               <td>
-                <a href="/companies/<%= job.company_id %>"><%= job.company_name %></a>
+                <div class="cell-two-line">
+                  <span class="avatar avatar--sm <%= av.className %>"><%= av.initial %></span>
+                  <div class="cell-two-line__content">
+                    <a href="/jobs/<%= job.id %>" class="cell-two-line__title">
+                      <strong><%= job.title %></strong>
+                    </a>
+                    <span class="cell-two-line__sub">
+                      <a href="/companies/<%= job.company_id %>"><%= job.company_name %></a>
+                    </span>
+                  </div>
+                </div>
               </td>
               <td>
-                <a href="/jobs/<%= job.id %>"><strong><%= job.title %></strong></a>
+                <div class="inline-actions">
+                  <span><%= job.position || '-' %></span>
+                  <span class="badge"><%= EMPLOYMENT_TYPE_LABELS[job.employment_type] || job.employment_type %></span>
+                </div>
               </td>
               <td>
-                <%= job.position || '-' %>
-                <span class="badge"><%= EMPLOYMENT_TYPE_LABELS[job.employment_type] || job.employment_type %></span>
-              </td>
-              <td>
-                <%= job.deadline || '상시' %>
+                <span class="num"><%= job.deadline || '상시' %></span>
                 <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
               </td>
               <td>

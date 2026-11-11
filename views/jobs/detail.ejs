@@ -1,15 +1,32 @@
+<% const av = companyAvatar(job.company_name); %>
 <% const dday = calculateDday(job.deadline); %>
-<div class="page-header">
-  <div>
-    <p class="text-muted"><a href="/companies/<%= job.company_id %>"><%= job.company_name %></a></p>
-    <h1 class="page-header__title"><%= job.title %></h1>
+
+<div class="entity-header">
+  <div class="entity-header__avatar">
+    <span class="avatar avatar--lg <%= av.className %>"><%= av.initial %></span>
   </div>
-  <div class="inline-actions">
+  <div class="entity-header__info">
+    <div class="entity-header__meta">
+      <a href="/companies/<%= job.company_id %>"><strong><%= job.company_name %></strong></a>
+      <% if (job.position) { %>
+        <span aria-hidden="true">·</span>
+        <span><%= job.position %></span>
+      <% } %>
+      <span aria-hidden="true">·</span>
+      <span class="badge"><%= EMPLOYMENT_TYPE_LABELS[job.employment_type] || job.employment_type %></span>
+    </div>
+    <h1 class="entity-header__title">
+      <span><%= job.title %></span>
+      <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
+    </h1>
+  </div>
+  <div class="entity-header__actions">
     <form action="/jobs/<%= job.id %>/bookmark" method="POST">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <input type="hidden" name="redirect_to" value="/jobs/<%= job.id %>">
-      <button type="submit" class="btn">
-        <%= job.is_bookmarked ? '★ 북마크됨' : '☆ 북마크 추가' %>
+      <button type="submit" class="favorite-btn <%= job.is_bookmarked ? 'favorite-btn--active' : '' %>">
+        <span class="star-icon <%= job.is_bookmarked ? '' : 'star-icon--muted' %>"><%= job.is_bookmarked ? '★' : '☆' %></span>
+        <span><%= job.is_bookmarked ? '북마크됨' : '북마크 추가' %></span>
       </button>
     </form>
     <% if (job.application_id) { %>
@@ -27,29 +44,56 @@
       <input type="hidden" name="_method" value="DELETE">
       <button type="submit" class="btn btn-danger">삭제</button>
     </form>
+    <a href="/jobs" class="btn">목록으로</a>
   </div>
 </div>
 
 <section class="card">
-  <h2>공고 상세 정보</h2>
-  <p><strong>기업명:</strong> <a href="/companies/<%= job.company_id %>"><%= job.company_name %></a></p>
-  <p><strong>모집 직무:</strong> <%= job.position || '-' %></p>
-  <p>
-    <strong>채용 형태:</strong>
-    <span class="badge"><%= EMPLOYMENT_TYPE_LABELS[job.employment_type] || job.employment_type %></span>
-  </p>
-  <p>
-    <strong>마감일:</strong>
-    <%= job.deadline || '상시 채용' %>
-    <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
-  </p>
-  <p>
-    <strong>공고 URL:</strong>
+  <div class="card__header">
+    <h2 class="card__title">공고 상세 정보</h2>
     <% if (job.url) { %>
-      <a href="<%= job.url %>" target="_blank" rel="noopener noreferrer"><%= job.url %></a>
-    <% } else { %>
-      -
+      <a href="<%= job.url %>" target="_blank" rel="noopener noreferrer" class="btn btn-sm">채용 공고 원문 열기 ↗</a>
     <% } %>
-  </p>
-  <p><strong>메모:</strong> <%= job.memo || '등록된 메모가 없습니다.' %></p>
+  </div>
+
+  <div class="info-list">
+    <div class="info-item">
+      <span class="info-item__label">기업명</span>
+      <span class="info-item__value">
+        <a href="/companies/<%= job.company_id %>"><strong><%= job.company_name %></strong></a>
+      </span>
+    </div>
+    <div class="info-item">
+      <span class="info-item__label">모집 직무</span>
+      <span class="info-item__value"><%= job.position || '-' %></span>
+    </div>
+    <div class="info-item">
+      <span class="info-item__label">채용 형태</span>
+      <span class="info-item__value">
+        <span class="badge"><%= EMPLOYMENT_TYPE_LABELS[job.employment_type] || job.employment_type %></span>
+      </span>
+    </div>
+    <div class="info-item">
+      <span class="info-item__label">마감일</span>
+      <span class="info-item__value num">
+        <%= job.deadline || '상시 채용' %>
+        <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
+      </span>
+    </div>
+    <div class="info-item">
+      <span class="info-item__label">공고 URL</span>
+      <span class="info-item__value">
+        <% if (job.url) { %>
+          <a href="<%= job.url %>" target="_blank" rel="noopener noreferrer"><%= job.url %></a>
+        <% } else { %>
+          -
+        <% } %>
+      </span>
+    </div>
+  </div>
+
+  <div class="form-field mt-4">
+    <label>자격 요건 / 우대 사항 메모</label>
+    <p class="prose-pre text-muted"><%= job.memo || '등록된 메모가 없습니다.' %></p>
+  </div>
 </section>

@@ -3,24 +3,25 @@ const bcrypt = require('bcryptjs');
 function findByEmail(db, email) {
   const normalized = String(email || '').trim().toLowerCase();
   return db
-    .prepare('SELECT id, email, password_hash, name, created_at FROM users WHERE lower(email) = ?')
+    .prepare('SELECT id, email, password_hash, name, season_label, created_at FROM users WHERE lower(email) = ?')
     .get(normalized);
 }
 
 function findById(db, id) {
   return db
-    .prepare('SELECT id, email, name, created_at FROM users WHERE id = ?')
+    .prepare('SELECT id, email, name, season_label, created_at FROM users WHERE id = ?')
     .get(Number(id));
 }
 
-function createUser(db, { email, password, name }) {
+function createUser(db, { email, password, name, season_label = null }) {
   const normalizedEmail = String(email).trim().toLowerCase();
   const trimmedName = String(name).trim();
+  const trimmedSeason = season_label && String(season_label).trim() ? String(season_label).trim() : null;
   const passwordHash = bcrypt.hashSync(password, 10);
 
   const info = db
-    .prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)')
-    .run(normalizedEmail, passwordHash, trimmedName);
+    .prepare('INSERT INTO users (email, password_hash, name, season_label) VALUES (?, ?, ?, ?)')
+    .run(normalizedEmail, passwordHash, trimmedName, trimmedSeason);
 
   return findById(db, info.lastInsertRowid);
 }
@@ -38,7 +39,103 @@ function verifyUserCredentials(db, { email, password }) {
     id: user.id,
     email: user.email,
     name: user.name,
+    season_label: user.season_label || null,
   };
+}
+
+function getCurrentYearMonth(now = new Date()) {
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+function getMonthlyGoalProgress(db, userId, monthStr = getCurrentYearMonth()) {
+  const uid = Number(userId);
+  const ym = String(monthStr || getCurrentYearMonth()).trim();
+  const goalRow = db
+    .prepare('SELECT month, target FROM monthly_goals WHERE user_id = ? AND month = ?')
+    .get(uid, ym);
+  const currentRow = db
+    .prepare(`
+      SELECT COUNT(*) AS cnt
+      FROM applications
+      WHERE user_id = ?
+        AND strftime('%Y-%m', COALESCE(applied_at, created_at)) = ?
+    `)
+    .get(uid, ym);
+
+  const monthNum = Number(ym.split('-')[1]) || new Date().getMonth() + 1;
+  return {
+    month: ym,
+    label: `${monthNum}월`,
+    target: goalRow ? Number(goalRow.target) : null,
+    current: currentRow ? Number(currentRow.cnt) || 0 : 0,
+  };
+}
+
+function upsertMonthlyGoal(db, userId, { month = getCurrentYearMonth(), target }) {
+  const uid = Number(userId);
+  const ym = String(month || getCurrentYearMonth()).trim();
+  if (target === null || target === undefined || String(target).trim() === '') {
+    db.prepare('DELETE FROM monthly_goals WHERE user_id = ? AND month = ?').run(uid, ym);
+    return getMonthlyGoalProgress(db, uid, ym);
+  }
+
+  const num = Number(target);
+  if (typeof target === 'boolean' || !Number.isInteger(num) || num < 1 || num > 200) {
+    const err = new Error('이번 달 지원 목표는 1 이상 200 이하의 정수로 입력해 주세요.');
+    err.status = 422;
+    err.expose = true;
+    throw err;
+  }
+
+  db.prepare(`
+    INSERT INTO monthly_goals (user_id, month, target)
+    VALUES (?, ?, ?)
+    ON CONFLICT(user_id, month) DO UPDATE SET target = excluded.target
+  `).run(uid, ym, num);
+
+  return getMonthlyGoalProgress(db, uid, ym);
+}
+
+function updateUserSettings(db, userId, { name, season_label, target, month = getCurrentYearMonth() }) {
+  const uid = Number(userId);
+  return db.transaction(() => {
+    const existing = findById(db, uid);
+    if (!existing) return null;
+
+    const trimmedName = name !== undefined ? String(name).trim() : existing.name;
+    if (!trimmedName || trimmedName.length > 60) {
+      const err = new Error('이름을 1자 이상 60자 이하로 입력해 주세요.');
+      err.status = 422;
+      err.expose = true;
+      throw err;
+    }
+
+    const rawSeason = season_label !== undefined ? String(season_label).trim() : (existing.season_label || '');
+    if (rawSeason.length > 80) {
+      const err = new Error('시즌 라벨은 80자 이하로 입력해 주세요.');
+      err.status = 422;
+      err.expose = true;
+      throw err;
+    }
+    const nextSeason = rawSeason ? rawSeason : null;
+
+    db.prepare('UPDATE users SET name = ?, season_label = ? WHERE id = ?').run(
+      trimmedName,
+      nextSeason,
+      uid
+    );
+
+    const goal = target !== undefined
+      ? upsertMonthlyGoal(db, uid, { month, target })
+      : getMonthlyGoalProgress(db, uid, month);
+
+    return {
+      user: findById(db, uid),
+      goal,
+    };
+  })();
 }
 
 function getDashboardCounts(db, userId) {
@@ -81,4 +178,8 @@ module.exports = {
   createUser,
   verifyUserCredentials,
   getDashboardCounts,
+  getCurrentYearMonth,
+  getMonthlyGoalProgress,
+  upsertMonthlyGoal,
+  updateUserSettings,
 };

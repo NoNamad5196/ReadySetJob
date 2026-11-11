@@ -1,3 +1,5 @@
+const { companyAvatar } = require('../utils/avatar');
+
 const EMPLOYMENT_TYPES = ['intern', 'new_grad', 'experienced', 'other'];
 const APPLICATION_STAGES = [
   'document',
@@ -10,6 +12,15 @@ const APPLICATION_STAGES = [
 const APPLICATION_RESULTS = ['in_progress', 'passed', 'failed', 'withdrawn'];
 const EVENT_TYPES = ['deadline', 'test', 'interview', 'announcement', 'other'];
 const MATERIAL_KINDS = ['experience', 'project', 'award', 'activity', 'other'];
+const TODO_CATEGORIES = ['essay', 'interview', 'coding_test', 'assignment', 'other'];
+
+const TODO_CATEGORY_LABELS = {
+  essay: '자기소개서',
+  interview: '면접 준비',
+  coding_test: '코딩 테스트',
+  assignment: '과제',
+  other: '기타',
+};
 
 const MATERIAL_KIND_LABELS = {
   experience: '경험',
@@ -154,9 +165,19 @@ function isValidUrl(urlStr) {
   }
 }
 
+function withDdayString(ddayObj) {
+  Object.defineProperty(ddayObj, 'toString', {
+    value() {
+      return this.label;
+    },
+    enumerable: false,
+  });
+  return ddayObj;
+}
+
 function calculateDday(deadlineStr) {
   if (!deadlineStr || !DATE_REGEX.test(deadlineStr)) {
-    return { label: '상시/미정', state: 'none', days: null };
+    return withDdayString({ label: '상시/미정', state: 'none', days: null });
   }
   const now = new Date();
   const todayUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
@@ -165,16 +186,16 @@ function calculateDday(deadlineStr) {
   const diffDays = Math.round((targetUtc - todayUtc) / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) {
-    return { label: 'D-Day', state: 'urgent', days: 0 };
+    return withDdayString({ label: 'D-Day', state: 'urgent', days: 0 });
   }
   if (diffDays > 0) {
-    return {
+    return withDdayString({
       label: `D-${diffDays}`,
       state: diffDays <= 3 ? 'urgent' : diffDays <= 7 ? 'soon' : 'upcoming',
       days: diffDays,
-    };
+    });
   }
-  return { label: `마감 (D+${Math.abs(diffDays)})`, state: 'expired', days: diffDays };
+  return withDdayString({ label: `마감 (D+${Math.abs(diffDays)})`, state: 'expired', days: diffDays });
 }
 
 function normalizeTags(tagsStr) {
@@ -198,7 +219,20 @@ function attachUiHelpers(req, res, next) {
   res.locals.RESULT_LABELS = RESULT_LABELS;
   res.locals.EVENT_TYPE_LABELS = EVENT_TYPE_LABELS;
   res.locals.MATERIAL_KIND_LABELS = MATERIAL_KIND_LABELS;
+  res.locals.TODO_CATEGORIES = TODO_CATEGORIES;
+  res.locals.TODO_CATEGORY_LABELS = TODO_CATEGORY_LABELS;
   res.locals.calculateDday = calculateDday;
+  res.locals.companyAvatar = companyAvatar;
+  try {
+    const { isAiEnabled, getAiConfig, AI_DISABLED_MESSAGE } = require('../services/aiService');
+    res.locals.aiEnabled = isAiEnabled();
+    res.locals.aiConfig = getAiConfig();
+    res.locals.AI_DISABLED_MESSAGE = AI_DISABLED_MESSAGE;
+  } catch (_err) {
+    res.locals.aiEnabled = false;
+    res.locals.aiConfig = { enabled: false, features: [] };
+    res.locals.AI_DISABLED_MESSAGE = 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)';
+  }
   next();
 }
 
@@ -208,12 +242,14 @@ module.exports = {
   APPLICATION_RESULTS,
   EVENT_TYPES,
   MATERIAL_KINDS,
+  TODO_CATEGORIES,
   EMPLOYMENT_TYPE_LABELS,
   STAGE_LABELS,
   BOARD_STAGE_LABELS,
   RESULT_LABELS,
   EVENT_TYPE_LABELS,
   MATERIAL_KIND_LABELS,
+  TODO_CATEGORY_LABELS,
   isValidEmail,
   isValidDate,
   isValidDateTime,

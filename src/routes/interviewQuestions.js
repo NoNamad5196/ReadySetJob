@@ -10,6 +10,7 @@ const {
   createMany: createManyInterviewQuestions,
 } = require('../services/interviewQuestionsService');
 const {
+  AI_DISABLED_MESSAGE,
   isAiEnabled,
   generateInterviewQuestions,
   checkRateLimit,
@@ -86,7 +87,7 @@ function createInterviewQuestionsRouter(db) {
     if (!application) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
 
     if (!isAiEnabled()) {
-      req.setFlash('error', 'AI 기능이 비활성화되어 있습니다 (GEMINI_API_KEY 미설정)');
+      req.setFlash('error', AI_DISABLED_MESSAGE);
       return res.redirect(`/applications/${id}`);
     }
 

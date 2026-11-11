@@ -1,0 +1,164 @@
+<div class="page-header">
+  <h1 class="page-header__title">할 일 관리</h1>
+</div>
+
+<section class="card">
+  <h2>새 할 일 추가</h2>
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form action="/todos" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="form-field">
+      <label for="todo-title">할 일 제목 *</label>
+      <input
+        type="text"
+        id="todo-title"
+        name="title"
+        class="input"
+        maxlength="120"
+        required
+        placeholder="예: 토스 자기소개서 4번 문항 마무리"
+        value="<%= values.title %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="todo-category">분류</label>
+      <select id="todo-category" name="category" class="input">
+        <% for (const cat of TODO_CATEGORIES) { %>
+          <option value="<%= cat %>" <%= values.category === cat ? 'selected' : '' %>>
+            <%= TODO_CATEGORY_LABELS[cat] %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="todo-due-date">마감일 (선택)</label>
+      <input
+        type="date"
+        id="todo-due-date"
+        name="due_date"
+        class="input"
+        value="<%= values.due_date %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="todo-application-id">연결할 지원 내역 (선택)</label>
+      <select id="todo-application-id" name="application_id" class="input">
+        <option value="">-- 연결 안 함 --</option>
+        <% for (const appItem of applications) { %>
+          <option
+            value="<%= appItem.id %>"
+            <%= Number(values.application_id) === Number(appItem.id) ? 'selected' : '' %>
+          >
+            [<%= appItem.company_name %>] <%= appItem.job_title %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">할 일 추가</button>
+  </form>
+</section>
+
+<section class="card">
+  <div class="page-header">
+    <h2>할 일 목록 (<%= todos.length %>건)</h2>
+    <div class="inline-actions">
+      <a href="/todos?filter=all<%= filters.category ? '&category=' + filters.category : '' %>" class="btn btn-sm <%= filters.filter === 'all' ? 'btn-primary' : '' %>">전체</a>
+      <a href="/todos?filter=today<%= filters.category ? '&category=' + filters.category : '' %>" class="btn btn-sm <%= filters.filter === 'today' ? 'btn-primary' : '' %>">오늘</a>
+      <a href="/todos?filter=upcoming<%= filters.category ? '&category=' + filters.category : '' %>" class="btn btn-sm <%= filters.filter === 'upcoming' ? 'btn-primary' : '' %>">예정</a>
+      <a href="/todos?filter=done<%= filters.category ? '&category=' + filters.category : '' %>" class="btn btn-sm <%= filters.filter === 'done' ? 'btn-primary' : '' %>">완료</a>
+    </div>
+  </div>
+
+  <div class="inline-actions">
+    <a href="/todos?filter=<%= filters.filter %>" class="badge <%= !filters.category ? 'badge--stage-document' : '' %>">전체 분류</a>
+    <% for (const cat of TODO_CATEGORIES) { %>
+      <a
+        href="/todos?filter=<%= filters.filter %>&category=<%= cat %>"
+        class="badge <%= filters.category === cat ? 'badge--stage-document' : '' %>"
+      >
+        <%= TODO_CATEGORY_LABELS[cat] %>
+      </a>
+    <% } %>
+  </div>
+
+  <% if (todos.length === 0) { %>
+    <div class="empty-state">
+      <p>조건에 맞는 할 일이 없습니다.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>상태</th>
+            <th>제목</th>
+            <th>분류</th>
+            <th>관련 지원</th>
+            <th>마감일</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const item of todos) { %>
+            <tr>
+              <td>
+                <form action="/todos/<%= item.id %>/toggle" method="POST">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="redirect_to" value="/todos">
+                  <button type="submit" class="btn btn-sm">
+                    <%= item.is_done ? '완료됨' : '미완료' %>
+                  </button>
+                </form>
+              </td>
+              <td>
+                <strong><%= item.title %></strong>
+              </td>
+              <td>
+                <span class="badge"><%= item.category_label %></span>
+              </td>
+              <td>
+                <% if (item.application_id) { %>
+                  <a href="/applications/<%= item.application_id %>">
+                    <%= item.company_name %> — <%= item.job_title %>
+                  </a>
+                <% } else { %>
+                  -
+                <% } %>
+              </td>
+              <td>
+                <% if (item.due_date) { %>
+                  <%= item.due_date %>
+                  <% if (item.dday) { %>
+                    <span class="badge badge--dday-<%= item.dday.state %>"><%= item.dday.label %></span>
+                  <% } %>
+                <% } else { %>
+                  기한 없음
+                <% } %>
+              </td>
+              <td>
+                <form
+                  action="/todos/<%= item.id %>?_method=DELETE"
+                  method="POST"
+                  data-confirm="이 할 일을 삭제하시겠습니까?"
+                >
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="_method" value="DELETE">
+                  <input type="hidden" name="redirect_to" value="/todos">
+                  <button type="submit" class="btn btn-danger btn-sm">삭제</button>
+                </form>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

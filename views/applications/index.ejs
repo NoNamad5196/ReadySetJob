@@ -1,12 +1,17 @@
 <div class="page-header">
-  <h1 class="page-header__title">지원 현황</h1>
-  <div class="inline-actions">
-    <div class="view-toggle" role="group" aria-label="보기 방식 전환">
-      <a href="/applications/board" class="btn btn-sm">보드</a>
-      <span class="view-toggle__sep" aria-hidden="true">|</span>
-      <a href="/applications" class="btn btn-sm btn-primary" aria-current="page">목록</a>
+  <div class="page-header__meta">
+    <h1 class="page-header__title">지원 현황</h1>
+    <div class="page-header__summary">
+      총 <strong class="num"><%= applications ? applications.length : 0 %></strong>개 지원 관리 중
     </div>
-    <a href="/applications/new" class="btn btn-primary">지원 내역 등록</a>
+  </div>
+  <div class="page-header__actions">
+    <div class="view-toggle" role="group" aria-label="보기 방식 전환">
+      <a href="/applications/board" class="segmented-tab">보드</a>
+      <span class="view-toggle__sep" aria-hidden="true">|</span>
+      <a href="/applications" class="segmented-tab segmented-tab--active" aria-current="page">목록</a>
+    </div>
+    <a href="/applications/new" class="btn btn-primary">+ 지원 추가</a>
   </div>
 </div>
 
@@ -18,7 +23,7 @@
     placeholder="기업명, 공고명, 직무, 메모 검색..."
     value="<%= filters.q %>"
   >
-  <select name="stage" class="input">
+  <select name="stage" class="input" aria-label="전형 단계 필터">
     <option value="">전체 전형 단계</option>
     <% for (const st of APPLICATION_STAGES) { %>
       <option value="<%= st %>" <%= filters.stage === st ? 'selected' : '' %>>
@@ -26,7 +31,7 @@
       </option>
     <% } %>
   </select>
-  <select name="result" class="input">
+  <select name="result" class="input" aria-label="전형 결과 필터">
     <option value="">전체 결과</option>
     <% for (const resKey of APPLICATION_RESULTS) { %>
       <option value="<%= resKey %>" <%= filters.result === resKey ? 'selected' : '' %>>
@@ -49,8 +54,7 @@
       <table class="table">
         <thead>
           <tr>
-            <th>기업명</th>
-            <th>채용 공고 / 직무</th>
+            <th>기업 / 공고</th>
             <th>전형 단계</th>
             <th>결과</th>
             <th>지원일</th>
@@ -60,26 +64,52 @@
         </thead>
         <tbody>
           <% for (const appItem of applications) { %>
+            <% const av = companyAvatar(appItem.company_name); %>
+            <% const ddayTarget = appItem.next_event_date || appItem.job_deadline; %>
+            <% const dday = calculateDday(ddayTarget); %>
             <tr>
               <td>
-                <a href="/companies/<%= appItem.company_id %>"><strong><%= appItem.company_name %></strong></a>
+                <div class="cell-two-line">
+                  <span class="avatar avatar--sm <%= av.className %>"><%= av.initial %></span>
+                  <div class="cell-two-line__content">
+                    <a href="/companies/<%= appItem.company_id %>" class="cell-two-line__title">
+                      <%= appItem.company_name %>
+                      <% if (appItem.is_favorite) { %>
+                        <span class="star-icon" title="즐겨찾기">★</span>
+                      <% } %>
+                    </a>
+                    <span class="cell-two-line__sub">
+                      <a href="/applications/<%= appItem.id %>"><%= appItem.job_title %></a>
+                      <% if (appItem.job_position) { %> · <%= appItem.job_position %><% } %>
+                    </span>
+                  </div>
+                </div>
               </td>
               <td>
-                <a href="/applications/<%= appItem.id %>"><%= appItem.job_title %></a>
-                <div class="text-muted"><%= appItem.job_position || '-' %></div>
-              </td>
-              <td>
-                <span class="badge badge--stage-<%= appItem.stage %>">
-                  <%= STAGE_LABELS[appItem.stage] || appItem.stage %>
-                </span>
+                <div class="inline-actions">
+                  <span class="badge badge--stage-<%= appItem.stage %>">
+                    <%= STAGE_LABELS[appItem.stage] || appItem.stage %>
+                  </span>
+                  <div class="stepper-dots" aria-label="전형 진행 단계">
+                    <% const currIdx = APPLICATION_STAGES.indexOf(appItem.stage); %>
+                    <% for (let i = 0; i < APPLICATION_STAGES.length; i++) { %>
+                      <span class="stepper-dot <%= i < currIdx ? 'stepper-dot--filled' : (i === currIdx ? 'stepper-dot--current' : '') %>"></span>
+                    <% } %>
+                  </div>
+                </div>
               </td>
               <td>
                 <span class="badge badge--result-<%= appItem.result %>">
                   <%= RESULT_LABELS[appItem.result] || appItem.result %>
                 </span>
               </td>
-              <td><%= appItem.applied_at || '-' %></td>
-              <td><%= appItem.job_deadline || '상시' %></td>
+              <td><span class="num"><%= appItem.applied_at || '-' %></span></td>
+              <td>
+                <span class="num"><%= appItem.job_deadline || '상시' %></span>
+                <% if (appItem.job_deadline) { %>
+                  <span class="badge badge--dday-<%= dday.state %>"><%= dday.label %></span>
+                <% } %>
+              </td>
               <td>
                 <div class="inline-actions">
                   <a href="/applications/<%= appItem.id %>" class="btn btn-sm">상세</a>

@@ -1,15 +1,17 @@
 <div class="page-header">
-  <div>
-    <h1 class="page-header__title">지원 현황 칸반 보드</h1>
-    <p class="text-muted">카드를 드래그하거나 선택 후 Alt + 방향키(←/→ 단계 이동, ↑/↓ 순서 변경)로 관리하세요.</p>
-  </div>
-  <div class="inline-actions">
-    <div class="view-toggle" role="group" aria-label="보기 방식 전환">
-      <a href="/applications/board" class="btn btn-sm btn-primary" aria-current="page">보드</a>
-      <span class="view-toggle__sep" aria-hidden="true">|</span>
-      <a href="/applications" class="btn btn-sm">목록</a>
+  <div class="page-header__meta">
+    <h1 class="page-header__title">지원 현황</h1>
+    <div class="page-header__summary">
+      총 <strong class="num"><%= applications ? applications.length : 0 %></strong>개 지원 관리 중
     </div>
-    <a href="/applications/new" class="btn btn-primary">지원 내역 등록</a>
+  </div>
+  <div class="page-header__actions">
+    <div class="view-toggle" role="group" aria-label="보기 방식 전환">
+      <a href="/applications/board" class="segmented-tab segmented-tab--active" aria-current="page">보드</a>
+      <span class="view-toggle__sep" aria-hidden="true">|</span>
+      <a href="/applications" class="segmented-tab">목록</a>
+    </div>
+    <a href="/applications/new" class="btn btn-primary">+ 지원 추가</a>
   </div>
 </div>
 
@@ -45,7 +47,7 @@
     >
       <header class="kanban-column__header">
         <div class="kanban-column__title-wrap">
-          <span class="badge badge--stage-<%= stageKey %>"><%= BOARD_STAGE_LABELS[stageKey] %></span>
+          <span class="stage-dot stage-dot--<%= stageKey %>"></span>
           <h2 class="kanban-column__title"><%= BOARD_STAGE_LABELS[stageKey] %></h2>
         </div>
         <span class="kanban-column__count" data-column-count="<%= stageKey %>"><%= stageCards.length %></span>
@@ -55,6 +57,7 @@
         <% for (const appItem of stageCards) { %>
           <% const ddayTarget = appItem.next_event_date || appItem.job_deadline; %>
           <% const dday = calculateDday(ddayTarget); %>
+          <% const av = companyAvatar(appItem.company_name); %>
           <article
             class="kanban-card"
             draggable="true"
@@ -64,11 +67,17 @@
             data-board-order="<%= appItem.board_order %>"
             aria-label="<%= appItem.company_name %> - <%= appItem.job_title %>"
           >
-            <div class="kanban-card__top">
-              <span class="kanban-card__company"><%= appItem.company_name %></span>
-              <span class="badge badge--result-<%= appItem.result %>">
-                <%= RESULT_LABELS[appItem.result] || appItem.result %>
-              </span>
+            <div class="kanban-card__header">
+              <div class="kanban-card__brand">
+                <span class="avatar avatar--sm <%= av.className %>"><%= av.initial %></span>
+                <div class="kanban-card__brand-text">
+                  <span class="kanban-card__company"><%= appItem.company_name %></span>
+                  <span class="kanban-card__position"><%= appItem.job_position || appItem.job_title %></span>
+                </div>
+              </div>
+              <% if (appItem.is_favorite) { %>
+                <span class="kanban-card__star" title="즐겨찾기">★</span>
+              <% } %>
             </div>
 
             <a href="/applications/<%= appItem.id %>" class="kanban-card__title">
@@ -79,6 +88,21 @@
               <span class="badge">
                 <%= EMPLOYMENT_TYPE_LABELS[appItem.employment_type] || appItem.employment_type %>
               </span>
+              <span class="badge badge--result-<%= appItem.result %>">
+                <%= RESULT_LABELS[appItem.result] || appItem.result %>
+              </span>
+            </div>
+
+            <div class="kanban-card__stepper">
+              <div class="stepper-dots" aria-label="전형 진행 단계">
+                <% const currIdx = APPLICATION_STAGES.indexOf(appItem.stage); %>
+                <% for (let i = 0; i < APPLICATION_STAGES.length; i++) { %>
+                  <span class="stepper-dot <%= i < currIdx ? 'stepper-dot--filled' : (i === currIdx ? 'stepper-dot--current' : '') %>"></span>
+                <% } %>
+              </div>
+            </div>
+
+            <div class="kanban-card__footer">
               <span class="badge badge--dday-<%= dday.state %>">
                 <% if (appItem.next_event_title) { %>
                   <%= appItem.next_event_title %> · <%= dday.label %>
@@ -86,6 +110,9 @@
                   마감 <%= dday.label %>
                 <% } %>
               </span>
+              <% if (appItem.applied_at) { %>
+                <span>지원 <%= appItem.applied_at %></span>
+              <% } %>
             </div>
 
             <form

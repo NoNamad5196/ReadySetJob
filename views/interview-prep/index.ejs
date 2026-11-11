@@ -1,0 +1,144 @@
+<div class="page-header">
+  <h1 class="page-header__title">면접 준비</h1>
+  <div class="inline-actions">
+    <a href="/events" class="btn">일정 관리</a>
+    <a href="/applications/board" class="btn">지원 보드</a>
+  </div>
+</div>
+
+<section class="card">
+  <div class="page-header">
+    <h2>예정된 면접 일정 (30일 이내, <%= upcomingInterviews.length %>건)</h2>
+  </div>
+
+  <% if (upcomingInterviews.length === 0) { %>
+    <div class="empty-state">
+      <p>향후 30일 이내 예정된 면접 일정이 없습니다.</p>
+    </div>
+  <% } else { %>
+    <% for (const item of upcomingInterviews) { %>
+      <div class="card">
+        <div class="page-header">
+          <div>
+            <span class="badge badge--dday-<%= item.dday.state %>"><%= item.dday.label %></span>
+            <% if (item.stage_label) { %>
+              <span class="badge badge--stage-<%= item.application_stage %>"><%= item.stage_label %></span>
+            <% } %>
+            <h3>
+              <%= item.title %>
+              <% if (item.company_name) { %>
+                — <%= item.company_name %> (<%= item.job_position || item.job_title %>)
+              <% } %>
+            </h3>
+            <p class="text-muted">
+              일시: <%= item.starts_at ? item.starts_at.slice(0, 16).replace('T', ' ') : '-' %>
+              <% if (item.memo) { %> · 메모: <%= item.memo %><% } %>
+            </p>
+          </div>
+          <% if (item.application_id) { %>
+            <div class="inline-actions">
+              <a href="/applications/<%= item.application_id %>" class="btn btn-sm btn-primary">지원 상세 / 질문 관리</a>
+            </div>
+          <% } %>
+        </div>
+
+        <% if (item.application_id) { %>
+          <div>
+            <h4>연결된 자기소개서 (<%= item.essays.length %>건)</h4>
+            <% if (item.essays.length === 0) { %>
+              <p class="text-muted">연결된 자기소개서가 없습니다.</p>
+            <% } else { %>
+              <ul>
+                <% for (const es of item.essays) { %>
+                  <li>
+                    <a href="/essays/<%= es.id %>"><%= es.title %></a>
+                    <span class="text-muted">(<%= es.question_count %>개 문항)</span>
+                  </li>
+                <% } %>
+              </ul>
+            <% } %>
+          </div>
+
+          <div>
+            <h4>예상 면접 질문 (<%= item.interviewQuestions.length %>건)</h4>
+            <% if (item.interviewQuestions.length === 0) { %>
+              <p class="text-muted">아직 등록된 예상 질문이 없습니다.</p>
+            <% } else { %>
+              <ul>
+                <% for (const q of item.interviewQuestions) { %>
+                  <li>
+                    <span class="badge"><%= q.source === 'ai' ? 'AI 생성' : '직접 작성' %></span>
+                    <%= q.question %>
+                  </li>
+                <% } %>
+              </ul>
+            <% } %>
+
+            <form action="/applications/<%= item.application_id %>/interview-questions" method="POST" class="form-field">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <div class="inline-actions">
+                <input
+                  type="text"
+                  name="question"
+                  class="input"
+                  maxlength="500"
+                  required
+                  placeholder="새 예상 면접 질문 추가"
+                >
+                <button type="submit" class="btn btn-sm">질문 추가</button>
+              </div>
+            </form>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+  <% } %>
+</section>
+
+<section class="card">
+  <div class="page-header">
+    <h2>면접 전형 진행 중 (일정 미등록, <%= unscheduledApplications.length %>건)</h2>
+  </div>
+
+  <% if (unscheduledApplications.length === 0) { %>
+    <div class="empty-state">
+      <p>일정이 등록되지 않은 면접 단계 지원 내역이 없습니다.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>기업 / 직무</th>
+            <th>현재 단계</th>
+            <th>연결 자소서</th>
+            <th>예상 질문</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const app of unscheduledApplications) { %>
+            <tr>
+              <td>
+                <a href="/applications/<%= app.id %>">
+                  <strong><%= app.company_name %></strong> — <%= app.job_position || app.job_title %>
+                </a>
+              </td>
+              <td>
+                <span class="badge badge--stage-<%= app.stage %>"><%= app.stage_label %></span>
+              </td>
+              <td><%= app.essays.length %>건</td>
+              <td><%= app.interviewQuestions.length %>건</td>
+              <td>
+                <div class="inline-actions">
+                  <a href="/events?application_id=<%= app.id %>" class="btn btn-sm">일정 등록</a>
+                  <a href="/applications/<%= app.id %>" class="btn btn-sm btn-primary">질문 준비</a>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

@@ -9,4 +9,8 @@ require('./materials.test.js');
 require('./review-fixes.test.js');
 require('./review-fixes-2.test.js');
 require('./interview-questions.test.js');
+require('./todos-and-settings.test.js');
+require('./stats-search-shell-home.test.js');
+require('./ai-features.test.js');
+require('./ai-errors-and-limits.test.js');
 
