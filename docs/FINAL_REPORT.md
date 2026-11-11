@@ -17,6 +17,8 @@
 | `3d3c622` | `fix` | replace inline styles blocked by CSP with utility classes | Helmet CSP 차단 인라인 스타일을 CSS 유틸리티 클래스로 전환 |
 | `471bf68` | `docs` | update task status for P2 and review fixes | 작업 진행 현황 및 변경 로그 갱신 |
 | `f644920` | `feat` | interview questions with manual entry and server-side Gemini generation (disabled without API key) | 면접 질문 수동 관리 및 Gemini 연동(키 미설정 시 안전 비활성화) |
+| `8278736` | `docs` | add living final report and full project README | 기말 최종 보고서 초안 및 상세 프로젝트 README 작성 |
+| `22076c2` | `docs` | correct dashboard description in final report | 최종 보고서 대시보드 뷰 설명 정밀 보정 |
 
 ---
 

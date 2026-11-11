@@ -8,12 +8,12 @@
 
 본 문서는 원격 Notion 워크스페이스에 기록되는 프로젝트 허브와 하위 기술 문서들을 Git 저장소 내부에서 영구적으로 보존하기 위한 로컬 백업본이다. 네트워크 장애나 플랫폼 종속성에 구애받지 않고 개발 과정의 모든 의사결정과 문제 해결 기록을 로컬 마크다운 파일로 관리한다.
 
-### 1.1 Notion 문서 링크 (동기화 플레이스홀더)
+### 1.1 Notion 문서 링크 (동기화 완료)
 
-* **ReadySetJob 메인 프로젝트 허브**: `(Notion 동기화 후 기입)`
-* **하위 문서 1 (시스템 아키텍처 및 DB 설계)**: `(Notion 동기화 후 기입)`
-* **하위 문서 2 (UI/UX 디자인 및 레퍼런스)**: `(Notion 동기화 후 기입)`
-* **하위 문서 3 (구현·테스트 및 문제 해결 기록)**: `(Notion 동기화 후 기입)`
+* **ReadySetJob 메인 프로젝트 허브**: https://app.notion.com/p/4157cdef782d810bb5a1fcdde724f0ea
+* **하위 문서 1 (시스템 아키텍처 및 DB 설계)**: https://app.notion.com/p/4157cdef782d818fad33ee862717e360
+* **하위 문서 2 (UI/UX 디자인 및 레퍼런스)**: https://app.notion.com/p/4157cdef782d81d7a5a0ea2fdcc4ef33
+* **하위 문서 3 (구현·테스트 및 문제 해결 기록)**: https://app.notion.com/p/4157cdef782d818ebeb3e0114039f4b9
 
 ---
 
@@ -59,6 +59,7 @@ ReadySetJob의 모든 기술 문서는 실무급 엔지니어링 포트폴리오
   * 대용량 문서 작성 시 AI 응답 중단 현상(Issue-02)을 방지하기 위해 섹션 단위 점진적 분할 작성 전략을 적용했다.
   * `docs/notion/hub.md` (20개 섹션 완성), `docs/notion/architecture.md` (아키텍처 및 DB 설계), `docs/notion/design.md` (디자인 및 레퍼런스), `docs/notion/implementation-log.md` (문제 해결 및 테스트 기록)를 로컬 마크다운 파일로 작성 완료했다.
   * P1 서브에이전트 조기 종료 문제(Issue-03)를 해결하기 위해 칸반 보드 트랙과 자소서 에디터 트랙으로 작업을 분할하고 재위임했다.
+* **2026-11-11 | Notion 동기화**: Notion 허브 및 하위 문서 3종 동기화
 
 ---
 
