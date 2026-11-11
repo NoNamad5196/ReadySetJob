@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadySetJob — 지원 칸반 보드 (Editorial)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="editorial-header">
+    <div class="header-inner">
+      <div class="brand-block">
+        <a href="dashboard.html" class="brand-title">ReadySetJob</a>
+        <span class="brand-subtitle">취업 지원 현황 및 자소서 버전 관리</span>
+      </div>
+      <nav class="nav-links">
+        <a href="dashboard.html" class="nav-item">대시보드</a>
+        <a href="kanban.html" class="nav-item active">지원 현황 보드</a>
+        <a href="editor.html" class="nav-item">자기소개서 집필실</a>
+      </nav>
+      <div class="header-meta">
+        <span class="date-stamp">2026년 11월 11일 수요일</span>
+        <button type="button" class="theme-toggle" onclick="toggleTheme()">다크모드</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="page-container" style="max-width: 1420px; padding: 24px 20px 48px 20px;">
+    <!-- Intro Strip -->
+    <section class="page-intro" style="margin-bottom: 20px;">
+      <div class="intro-title-wrap">
+        <h1 style="word-break: keep-all;">지원 현황 칸반 보드</h1>
+        <p class="intro-description" style="word-break: keep-all;">전체 18건 (진행 11건 · 최종 합격 2건 · 불합격 5건) — 드래그하여 전형 단계를 업데이트합니다.</p>
+      </div>
+      <div class="page-actions">
+        <span class="tnum" style="font-size: 12px; color: var(--text-muted); margin-right: 8px;">필터: 전체 공고 (18)</span>
+        <a href="dashboard.html" class="btn-editorial btn-editorial-outline">대시보드 보기</a>
+        <a href="editor.html" class="btn-editorial btn-editorial-primary">자소서 작성</a>
+      </div>
+    </section>
+
+    <!-- 6-Column Kanban Board Frame (1440px optimized, 6 distinct columns) -->
+    <div class="kanban-board-frame">
+      <!-- 1. 서류전형 (4건) -->
+      <div class="kanban-col">
+        <div class="kanban-col-head">
+          <div class="col-title-group">
+            <span class="col-title">1. 서류전형</span>
+            <span class="col-count tnum">4</span>
+          </div>
+          <span class="status-tag pending" style="font-size: 10.5px;">진행중</span>
+        </div>
+        <div class="kanban-card-stack">
+          <!-- Card 1: 토스 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">토스</span>
+              <span class="card-date-badge urgent">D-2 (11/13)</span>
+            </div>
+            <div class="card-role">Frontend Developer (Core)</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">자소서 v4 퇴고중</span>
+              <span class="status-tag urgent">서류작성</span>
+            </div>
+          </div>
+
+          <!-- Card 2: 당근 알바 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">당근</span>
+              <span class="card-date-badge urgent">D-4 (11/15)</span>
+            </div>
+            <div class="card-role">당근알바 웹 프론트엔드</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">자소서 v2 작성</span>
+              <span class="status-tag pending">초안검토</span>
+            </div>
+          </div>
+
+          <!-- Card 3: 리디 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">리디</span>
+              <span class="card-date-badge tnum">11/20 마감</span>
+            </div>
+            <div class="card-role">뷰어 서비스 프론트엔드</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">자소서 v1 초안</span>
+              <span class="status-tag pending">문항작성</span>
+            </div>
+          </div>
+
+          <!-- Card 4: 오늘의집 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">버킷플레이스</span>
+              <span class="card-date-badge tnum">11/24 마감</span>
+            </div>
+            <div class="card-role">커머스 프론트엔드 개발자</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">자소서 v1 작성중</span>
+              <span class="status-tag pending">접수대기</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 코딩테스트 (3건) -->
+      <div class="kanban-col">
+        <div class="kanban-col-head">
+          <div class="col-title-group">
+            <span class="col-title">2. 코딩테스트</span>
+            <span class="col-count tnum">3</span>
+          </div>
+          <span class="status-tag pending" style="font-size: 10.5px;">진행중</span>
+        </div>
+        <div class="kanban-card-stack">
+          <!-- Card 1: 카카오 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">카카오</span>
+              <span class="card-date-badge urgent">D-3 (11/14)</span>
+            </div>
+            <div class="card-role">웹 플랫폼 프론트엔드 크루</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">서류통과 (v2)</span>
+              <span class="status-tag urgent">14:00 응시</span>
+            </div>
+          </div>
+
+          <!-- Card 2: 야놀자 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">야놀자</span>
+              <span class="card-date-badge tnum">11/15(일)</span>
+            </div>
+            <div class="card-role">인벤토리 플랫폼 개발</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">서류통과 (v1)</span>
+              <span class="status-tag pending">테스트준비</span>
+            </div>
+          </div>
+
+          <!-- Card 3 (Dragged Source): 네이버 (코테 통과 후 과제로 드래그 중인 카드) -->
+          <div class="kanban-card is-dragging">
+            <div class="card-top-row">
+              <span class="card-company">네이버</span>
+              <span class="card-date-badge" style="color: var(--status-pass-text); font-weight: 600;">코테 통과</span>
+            </div>
+            <div class="card-role">Frontend Platform 대외 채용</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">과제 전형 이동 중</span>
+              <span class="status-tag pass">합격 갱신</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 과제전형 (1건 + 드롭 대상) -->
+      <div class="kanban-col" style="background-color: var(--bg-canvas); border-color: var(--border-strong);">
+        <div class="kanban-col-head" style="background-color: var(--bg-highlight);">
+          <div class="col-title-group">
+            <span class="col-title">3. 과제전형</span>
+            <span class="col-count tnum">1</span>
+          </div>
+          <span class="status-tag pending" style="font-size: 10.5px;">진행중</span>
+        </div>
+        <div class="kanban-card-stack">
+          <!-- Drop Placeholder (Target of Dragging Card) -->
+          <div class="kanban-drop-placeholder">
+            네이버 카드를 과제전형으로 이동합니다
+          </div>
+
+          <!-- Card: 무신사 과제 기제출 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">하이퍼커넥트</span>
+              <span class="card-date-badge tnum">11/19 제출</span>
+            </div>
+            <div class="card-role">WebRTC 클라이언트 엔지니어</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">과제 가이드 수신</span>
+              <span class="status-tag pending">구현중</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. 1차 면접 (2건) -->
+      <div class="kanban-col">
+        <div class="kanban-col-head">
+          <div class="col-title-group">
+            <span class="col-title">4. 1차 면접</span>
+            <span class="col-count tnum">2</span>
+          </div>
+          <span class="status-tag pending" style="font-size: 10.5px;">직무인터뷰</span>
+        </div>
+        <div class="kanban-card-stack">
+          <!-- Card 1: 라인플러스 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">라인플러스</span>
+              <span class="card-date-badge urgent">D-5 (11/16)</span>
+            </div>
+            <div class="card-role">Client Platform Engineer</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">포트폴리오 검토</span>
+              <span class="status-tag urgent">10:00 화상</span>
+            </div>
+          </div>
+
+          <!-- Card 2: 뱅크샐러드 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">뱅크샐러드</span>
+              <span class="card-date-badge tnum">11/17(화)</span>
+            </div>
+            <div class="card-role">Frontend Web Engineer</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">사전과제 합격</span>
+              <span class="status-tag pending">14:00 화상</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. 2차 면접 (1건) -->
+      <div class="kanban-col">
+        <div class="kanban-col-head">
+          <div class="col-title-group">
+            <span class="col-title">5. 2차 면접</span>
+            <span class="col-count tnum">1</span>
+          </div>
+          <span class="status-tag pending" style="font-size: 10.5px;">컬처핏/임원</span>
+        </div>
+        <div class="kanban-card-stack">
+          <!-- Card 1: 무신사 -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <span class="card-company">무신사</span>
+              <span class="card-date-badge tnum">11/20(금)</span>
+            </div>
+            <div class="card-role">Store Frontend Engineer</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag">1차 직무합격</span>
+              <span class="status-tag pending">대면 임원면접</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. 최종발표 (합격 2건 + 불합격 5건 분리 표기) -->
+      <div class="kanban-col">
+        <div class="kanban-col-head">
+          <div class="col-title-group">
+            <span class="col-title">6. 최종결과</span>
+            <span class="col-count tnum">7</span>
+          </div>
+          <span class="status-tag pass" style="font-size: 10.5px;">최종확정</span>
+        </div>
+        <div class="kanban-card-stack">
+          <!-- 최종 합격 1: 당근 -->
+          <div class="kanban-card" style="border-left: 3px solid var(--status-pass-text); background-color: var(--status-pass-bg);">
+            <div class="card-top-row">
+              <span class="card-company">당근</span>
+              <span class="status-tag pass">최종합격</span>
+            </div>
+            <div class="card-role">당근페이 프론트엔드 개발자</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag" style="color: var(--status-pass-text); font-weight: 600;">입사 처우 협의중</span>
+              <span class="tnum" style="font-size: 11px; color: var(--status-pass-text);">11.06 확정</span>
+            </div>
+          </div>
+
+          <!-- 최종 합격 2: 우아한형제들 -->
+          <div class="kanban-card" style="border-left: 3px solid var(--status-pass-text); background-color: var(--status-pass-bg);">
+            <div class="card-top-row">
+              <span class="card-company">우아한형제들</span>
+              <span class="status-tag pass">최종합격</span>
+            </div>
+            <div class="card-role">배민상회 웹 풀스택 엔지니어</div>
+            <div class="card-bottom-row">
+              <span class="card-essay-tag" style="color: var(--status-pass-text); font-weight: 600;">합격 오퍼 수신</span>
+              <span class="tnum" style="font-size: 11px; color: var(--status-pass-text);">11.08 확정</span>
+            </div>
+          </div>
+
+          <!-- 불합격 기록 아코디언 / 보관 영역 (결과와 단계 구분) -->
+          <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-hairline);">
+            <div style="font-size: 11.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px;">
+              종료된 전형 (불합격 5건)
+            </div>
+
+            <!-- 불합격 1: 쿠팡 -->
+            <div class="kanban-card" style="opacity: 0.65; background-color: var(--bg-subtle); padding: 8px 10px; margin-bottom: 6px;">
+              <div class="card-top-row">
+                <span class="card-company" style="font-size: 12.5px;">쿠팡</span>
+                <span class="status-tag fail">서류탈락</span>
+              </div>
+              <div class="card-role" style="font-size: 11px;">Search Frontend (11.04)</div>
+            </div>
+
+            <!-- 불합격 2: 리디 -->
+            <div class="kanban-card" style="opacity: 0.65; background-color: var(--bg-subtle); padding: 8px 10px; margin-bottom: 6px;">
+              <div class="card-top-row">
+                <span class="card-company" style="font-size: 12.5px;">리디</span>
+                <span class="status-tag fail">서류탈락</span>
+              </div>
+              <div class="card-role" style="font-size: 11px;">Web Platform (10.28)</div>
+            </div>
+
+            <div class="kanban-card" style="opacity: 0.65; background-color: var(--bg-subtle); padding: 8px 10px; margin-bottom: 6px;">
+              <div class="card-top-row">
+                <span class="card-company" style="font-size: 12.5px;">카카오뱅크</span>
+                <span class="status-tag fail">코테탈락</span>
+              </div>
+              <div class="card-role" style="font-size: 11px;">금융플랫폼 코테 (10.19)</div>
+            </div>
+
+            <div class="kanban-card" style="opacity: 0.65; background-color: var(--bg-subtle); padding: 8px 10px; margin-bottom: 6px;">
+              <div class="card-top-row">
+                <span class="card-company" style="font-size: 12.5px;">하이퍼커넥트</span>
+                <span class="status-tag fail">1차탈락</span>
+              </div>
+              <div class="card-role" style="font-size: 11px;">Media Engine (10.15)</div>
+            </div>
+
+            <div class="kanban-card" style="opacity: 0.65; background-color: var(--bg-subtle); padding: 8px 10px;">
+              <div class="card-top-row">
+                <span class="card-company" style="font-size: 12.5px;">몰로코</span>
+                <span class="status-tag fail">1차탈락</span>
+              </div>
+              <div class="card-role" style="font-size: 11px;">Ad Platform (10.08)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+    }
+  </script>
+</body>
+</html>

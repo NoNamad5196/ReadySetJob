@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadySetJob — 자기소개서 집필실 (Editorial)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="editorial-header">
+    <div class="header-inner">
+      <div class="brand-block">
+        <a href="dashboard.html" class="brand-title">ReadySetJob</a>
+        <span class="brand-subtitle">취업 지원 현황 및 자소서 버전 관리</span>
+      </div>
+      <nav class="nav-links">
+        <a href="dashboard.html" class="nav-item">대시보드</a>
+        <a href="kanban.html" class="nav-item">지원 현황 보드</a>
+        <a href="editor.html" class="nav-item active">자기소개서 집필실</a>
+      </nav>
+      <div class="header-meta">
+        <span class="date-stamp">자동 저장됨 17:30</span>
+        <button type="button" class="theme-toggle" onclick="toggleTheme()">다크모드</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="page-container" style="max-width: 1420px; padding: 24px 20px 64px 20px;">
+    <!-- Intro Strip -->
+    <section class="page-intro" style="margin-bottom: 24px;">
+      <div class="intro-title-wrap">
+        <div style="font-size: 12px; color: var(--accent-terracotta); font-weight: 600; margin-bottom: 4px;">토스 (비바리퍼블리카) · Core Frontend</div>
+        <h1>2026 하반기 신입 공채 자기소개서</h1>
+        <p class="intro-description">불변 버전 v4 편집 중 · 마감일: 2026년 11월 13일(금) 23:59 (D-2)</p>
+      </div>
+      <div class="page-actions">
+        <button type="button" class="btn-editorial btn-editorial-outline">PDF 내보내기</button>
+        <button type="button" class="btn-editorial btn-editorial-primary">새 불변 버전(v5) 저장</button>
+      </div>
+    </section>
+
+    <!-- 3-Column Editor Workspace: Left Rail (TOC/Versions) | Center Canvas | Right Rail (STAR References) -->
+    <div class="editor-workspace">
+      <!-- Left Rail: Question TOC & Immutable Version History -->
+      <aside class="editor-rail">
+        <!-- Question Navigation -->
+        <div class="rail-section">
+          <div class="rail-heading">문항 목차 (3개)</div>
+          <div class="question-nav-list">
+            <a href="#q1" class="q-nav-item active">
+              <span class="q-nav-num">문항 1 · 직무 동기</span>
+              <span class="q-nav-preview">토스 프론트엔드 엔지니어 지원 동기</span>
+              <span class="q-nav-meter">512 / 700자 (73.1%)</span>
+            </a>
+            <a href="#q2" class="q-nav-item">
+              <span class="q-nav-num">문항 2 · 문제 해결</span>
+              <span class="q-nav-preview">가장 몰입했던 기술적 난제와 해결 과정</span>
+              <span class="q-nav-meter">640 / 700자 (91.4%)</span>
+            </a>
+            <a href="#q3" class="q-nav-item">
+              <span class="q-nav-num">문항 3 · 협업 경험</span>
+              <span class="q-nav-preview">팀 프로젝트 갈등 해결 및 코드 리뷰 문화</span>
+              <span class="q-nav-meter">480 / 600자 (80.0%)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Immutable Version History -->
+        <div class="rail-section">
+          <div class="rail-heading">불변 버전 이력 (v1 ~ v5)</div>
+          <div class="version-history-list">
+            <div class="v-item active">
+              <div>
+                <strong>v4 (현재 편집본)</strong>
+                <div class="v-meta">11.10 17:30 · 1,632자</div>
+              </div>
+              <span class="status-tag pending" style="font-size: 10px;">작성중</span>
+            </div>
+            <div class="v-item">
+              <div>
+                <span>v3 (피드백 반영본)</span>
+                <div class="v-meta">11.08 14:15 · 1,580자</div>
+              </div>
+              <button type="button" class="theme-toggle" style="padding: 2px 6px; font-size: 10px;">비교</button>
+            </div>
+            <div class="v-item">
+              <div>
+                <span>v2 (STAR 구조화)</span>
+                <div class="v-meta">11.05 21:00 · 1,420자</div>
+              </div>
+              <button type="button" class="theme-toggle" style="padding: 2px 6px; font-size: 10px;">비교</button>
+            </div>
+            <div class="v-item">
+              <div>
+                <span>v1 (초안 작성)</span>
+                <div class="v-meta">11.02 11:30 · 1,200자</div>
+              </div>
+              <button type="button" class="theme-toggle" style="padding: 2px 6px; font-size: 10px;">비교</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Document Writing Canvas -->
+      <section class="document-canvas">
+        <!-- Question 1 Block -->
+        <div class="question-block" id="q1">
+          <div class="question-title">
+            1. 토스에 지원하게 된 계기와 프론트엔드 엔지니어로서 달성하고 싶은 목표를 서술해 주세요. (최대 700자)
+          </div>
+          
+          <textarea class="essay-editor-box" rows="7">사용자의 일상 금융 문제를 기술적 완성도로 해결하는 토스의 제품 철학에 깊이 공감하여 지원했습니다. 대학 동아리 커머스 프로젝트를 진행하며 복잡한 결제 플로우에서 이탈률이 23%에 달하는 문제를 마주했습니다.
+
+이를 해결하기 위해 웹뷰 환경에서 불필요한 네트워크 왕복을 줄이고 핵심 번들 크기를 최적화하는 데 집중했습니다. 토스 디자인 시스템(TDS)처럼 엄격한 시맨틱 토큰과 웹 접근성을 보장하는 재사용 컴포넌트 생태계를 구축하여, 금융 소외 계층까지 단 1초의 지연 없이 이용할 수 있는 유연한 웹 플랫폼을 만드는 것이 제 궁극적인 목표입니다.</textarea>
+
+          <!-- Character Counter Strip (Separated from text box, no overlap) -->
+          <div class="char-counter-strip">
+            <span class="char-count-text">
+              <strong>512</strong> / 700자 (공백 포함) · 388자 (공백 제외)
+            </span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="char-progress-track">
+                <div class="char-progress-fill" style="width: 73.1%;"></div>
+              </div>
+              <span class="tnum" style="font-size: 11px; color: var(--text-muted);">73%</span>
+            </div>
+          </div>
+
+          <!-- Version Diff Comparison Snippet (v3 -> v4) -->
+          <div class="diff-container">
+            <div class="diff-header">
+              <span>버전 변경 사항 대조 (v3 이전본 → v4 현재본)</span>
+              <span class="tnum">11.10 17:30 갱신</span>
+            </div>
+            <div class="diff-content">
+              이를 해결하기 위해 <del>웹사이트 성능을 전반적으로 개선하고 로딩 속도를 향상시켰습니다.</del> <ins>웹뷰 환경에서 불필요한 네트워크 왕복을 줄이고 핵심 번들 크기를 최적화하는 데 집중했습니다.</ins> 토스 디자인 시스템처럼 엄격한 시맨틱 토큰을...
+            </div>
+          </div>
+        </div>
+
+        <!-- Question 2 Block -->
+        <div class="question-block" id="q2" style="border-top: 1px solid var(--border-hairline); padding-top: 24px;">
+          <div class="question-title">
+            2. 지금까지 진행한 프로젝트 중 기술적으로 가장 도전적이었던 경험과 이를 극복한 과정을 구체적으로 작성해 주세요. (최대 700자)
+          </div>
+          
+          <textarea class="essay-editor-box" rows="7">교내 대규모 축제 티켓 예매 시스템 구축 당시, 3,000명의 동시 접속자가 몰리며 웹소켓 연결이 끊기고 브라우저 렌더링 병목이 발생하는 문제를 겪었습니다.
+
+React의 가상 돔 렌더링 비용을 줄이기 위해 상태 트리를 도메인별로 분리하고, 60fps 이상의 부드러운 인터랙션을 유지하도록 좌석 선택 그리드에 가상화(Virtualization) 기법을 적용했습니다. 또한 저사양 모바일 기기에서도 메모리 누수가 발생하지 않도록 불필요한 클로저 참조를 제거했습니다. 그 결과 피크 타임 기준 프레임 드랍을 80% 줄이고 무중단 예매를 완수할 수 있었습니다.</textarea>
+
+          <div class="char-counter-strip">
+            <span class="char-count-text">
+              <strong>640</strong> / 700자 (공백 포함) · 492자 (공백 제외)
+            </span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="char-progress-track">
+                <div class="char-progress-fill" style="width: 91.4%;"></div>
+              </div>
+              <span class="tnum" style="font-size: 11px; color: var(--text-muted);">91%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Rail: STAR Experience Material Reference Dossier -->
+      <aside class="editor-rail reference-dock">
+        <div class="rail-section">
+          <div class="rail-heading">참조 경험 자료 (STAR)</div>
+          
+          <!-- Experience Card 1 -->
+          <div class="material-card">
+            <div class="material-tag">소재 1 · 웹 성능 최적화</div>
+            <div class="material-title">축제 티켓 예매 대용량 트래픽 대응</div>
+            <div class="material-star-row">
+              <span class="star-badge">S</span>
+              <span>동시 접속 3,000명 급증 시 좌석 선택 렉 발생</span>
+            </div>
+            <div class="material-star-row">
+              <span class="star-badge">T</span>
+              <span>모바일 웹뷰 환경 60fps 유지 및 무중단 예매 보장</span>
+            </div>
+            <div class="material-star-row">
+              <span class="star-badge">A</span>
+              <span>좌석 맵 캔버스 가상화 렌더링 및 웹워커 상태 계산 분리</span>
+            </div>
+            <div class="material-star-row">
+              <span class="star-badge">R</span>
+              <span>프레임 드랍 제거, 12,000건 예매 무장애 완수</span>
+            </div>
+          </div>
+
+          <!-- Experience Card 2 -->
+          <div class="material-card">
+            <div class="material-tag">소재 2 · 디자인 시스템 & 접근성</div>
+            <div class="material-title">동아리 UI 공통 컴포넌트 라이브러리 제작</div>
+            <div class="material-star-row">
+              <span class="star-badge">S</span>
+              <span>5개 프로젝트 간 UI 파편화 및 웹 접근성 결여</span>
+            </div>
+            <div class="material-star-row">
+              <span class="star-badge">T</span>
+              <span>WAI-ARIA 기준 준수 모달, 드롭다운 공통 컴포넌트화</span>
+            </div>
+            <div class="material-star-row">
+              <span class="star-badge">A</span>
+              <span>키보드 포커스 트랩 구현 및 스크린리더 음성 테스트 수행</span>
+            </div>
+            <div class="material-star-row">
+              <span class="star-badge">R</span>
+              <span>신규 페이지 개발 기간 40% 단축 및 접근성 감사 통과</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rail-section">
+          <div class="rail-heading">합격자 자소서 참조</div>
+          <div class="material-card" style="border-left: 3px solid var(--accent-terracotta);">
+            <div class="material-title">2026 상반기 우아한형제들 합격본</div>
+            <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">
+              "기술 선택의 이유를 비즈니스 지표와 사용자 경험 개선 수치로 설득하는 구조를 벤치마킹할 것."
+            </p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+    }
+  </script>
+</body>
+</html>

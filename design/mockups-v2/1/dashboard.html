@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadySetJob — 지원 일지 (Editorial)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="editorial-header">
+    <div class="header-inner">
+      <div class="brand-block">
+        <a href="dashboard.html" class="brand-title">ReadySetJob</a>
+        <span class="brand-subtitle">취업 지원 현황 및 자소서 버전 관리</span>
+      </div>
+      <nav class="nav-links">
+        <a href="dashboard.html" class="nav-item active">대시보드</a>
+        <a href="kanban.html" class="nav-item">지원 현황 보드</a>
+        <a href="editor.html" class="nav-item">자기소개서 집필실</a>
+      </nav>
+      <div class="header-meta">
+        <span class="date-stamp">2026년 11월 11일 수요일</span>
+        <button type="button" class="theme-toggle" onclick="toggleTheme()">다크모드</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="page-container">
+    <!-- Intro Strip -->
+    <section class="page-intro">
+      <div class="intro-title-wrap">
+        <h1>2026 하반기 지원 일지</h1>
+        <p class="intro-description">현재 진행 중인 11개 공고와 이번 주 예정된 전형 일정을 점검합니다.</p>
+      </div>
+      <div class="page-actions">
+        <a href="editor.html" class="btn-editorial btn-editorial-outline">자소서 작성</a>
+        <a href="kanban.html" class="btn-editorial btn-editorial-primary">칸반 보드 이동</a>
+      </div>
+    </section>
+
+    <!-- Top Real Summary Metrics (No vanity metrics, strictly computed) -->
+    <section class="overview-lead-strip">
+      <div class="metric-leaf">
+        <span class="metric-leaf-label">총 지원 건수</span>
+        <span class="metric-leaf-value tnum">18</span>
+        <span class="metric-leaf-sub">2026년 하반기 누적 공고</span>
+      </div>
+      <div class="metric-leaf">
+        <span class="metric-leaf-label">현재 진행 중</span>
+        <span class="metric-leaf-value tnum" style="color: var(--accent-olive);">11</span>
+        <span class="metric-leaf-sub">서류 4 · 코테 3 · 과제 1 · 면접 3</span>
+      </div>
+      <div class="metric-leaf">
+        <span class="metric-leaf-label">최종 합격</span>
+        <span class="metric-leaf-value tnum" style="color: var(--status-pass-text);">2</span>
+        <span class="metric-leaf-sub">당근 · 우아한형제들</span>
+      </div>
+      <div class="metric-leaf">
+        <span class="metric-leaf-label">전형 불합격</span>
+        <span class="metric-leaf-value tnum" style="color: var(--text-muted);">5</span>
+        <span class="metric-leaf-sub">서류 2 · 코테 1 · 1차 면접 2</span>
+      </div>
+    </section>
+
+    <!-- Two-column Layout -->
+    <div class="dashboard-layout-grid">
+      <!-- Left Column: Primary Data Tables & Distributions -->
+      <div class="main-content-flow">
+        <!-- Stage Distribution -->
+        <section class="editorial-section">
+          <div class="section-head">
+            <h2 class="section-title">전형 단계별 지원 분포 (진행 11건)</h2>
+            <span class="tnum" style="font-size: 12px; color: var(--text-muted);">기준일: 2026.11.11</span>
+          </div>
+          <div class="stage-distribution-chart">
+            <div class="distribution-bar">
+              <div class="dist-segment seg-1" style="width: 36.4%;" title="서류전형: 4건"></div>
+              <div class="dist-segment seg-2" style="width: 27.3%;" title="코딩테스트: 3건"></div>
+              <div class="dist-segment seg-3" style="width: 9.1%;" title="과제전형: 1건"></div>
+              <div class="dist-segment seg-4" style="width: 18.2%;" title="1차 면접: 2건"></div>
+              <div class="dist-segment seg-5" style="width: 9.0%;" title="2차 면접: 1건"></div>
+            </div>
+            <div class="distribution-legend">
+              <div class="legend-item"><span class="legend-dot seg-1"></span> 서류전형 <strong class="tnum">4건</strong></div>
+              <div class="legend-item"><span class="legend-dot seg-2"></span> 코딩테스트 <strong class="tnum">3건</strong></div>
+              <div class="legend-item"><span class="legend-dot seg-3"></span> 과제전형 <strong class="tnum">1건</strong></div>
+              <div class="legend-item"><span class="legend-dot seg-4"></span> 1차 면접 <strong class="tnum">2건</strong></div>
+              <div class="legend-item"><span class="legend-dot seg-5"></span> 2차 면접 <strong class="tnum">1건</strong></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="editorial-section">
+          <div class="section-head">
+            <h2 class="section-title">진행 중인 지원 공고 (11건)</h2>
+            <a href="kanban.html" class="section-link">칸반 보드로 이동 →</a>
+          </div>
+          <div class="data-table-wrap">
+            <table class="editorial-table">
+              <thead>
+                <tr>
+                  <th>기업 / 직무</th>
+                  <th>현재 단계</th>
+                  <th>다음 일정 / 마감</th>
+                  <th>연결 자소서</th>
+                  <th>상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="company-title-cell">
+                      <span>토스 (비바리퍼블리카)</span>
+                    </div>
+                    <div class="role-subtext">Frontend Developer (Core)</div>
+                  </td>
+                  <td>서류전형</td>
+                  <td>
+                    <span class="status-tag urgent">D-2</span>
+                    <span class="tnum" style="margin-left: 4px;">11/13(금) 23:59 마감</span>
+                  </td>
+                  <td><span class="card-essay-tag">v4 (작성중)</span></td>
+                  <td><span class="status-tag pending">서류 준비</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="company-title-cell">
+                      <span>카카오</span>
+                    </div>
+                    <div class="role-subtext">웹 플랫폼 프론트엔드 크루</div>
+                  </td>
+                  <td>코딩테스트</td>
+                  <td>
+                    <span class="status-tag urgent">D-3</span>
+                    <span class="tnum" style="margin-left: 4px;">11/14(토) 14:00 코테</span>
+                  </td>
+                  <td><span class="card-essay-tag">v2 제출본</span></td>
+                  <td><span class="status-tag pending">시험 대기</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="company-title-cell">
+                      <span>라인플러스</span>
+                    </div>
+                    <div class="role-subtext">Client Platform Engineer</div>
+                  </td>
+                  <td>1차 면접</td>
+                  <td>
+                    <span class="status-tag urgent">D-5</span>
+                    <span class="tnum" style="margin-left: 4px;">11/16(월) 10:00 화상</span>
+                  </td>
+                  <td><span class="card-essay-tag">v3 제출본</span></td>
+                  <td><span class="status-tag pending">직무 면접</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="company-title-cell">
+                      <span>네이버</span>
+                    </div>
+                    <div class="role-subtext">Frontend Platform 대외 채용</div>
+                  </td>
+                  <td>과제전형</td>
+                  <td>
+                    <span class="status-tag pending">D-7</span>
+                    <span class="tnum" style="margin-left: 4px;">11/18(수) 18:00 제출</span>
+                  </td>
+                  <td><span class="card-essay-tag">v1 과제계획</span></td>
+                  <td><span class="status-tag pending">과제 구현중</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="company-title-cell">
+                      <span>무신사</span>
+                    </div>
+                    <div class="role-subtext">Store Frontend Engineer</div>
+                  </td>
+                  <td>2차 면접</td>
+                  <td>
+                    <span class="status-tag pending">D-9</span>
+                    <span class="tnum" style="margin-left: 4px;">11/20(금) 15:00 대면</span>
+                  </td>
+                  <td><span class="card-essay-tag">v2 제출본</span></td>
+                  <td><span class="status-tag pending">임원 면접</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Monthly Applications Computed Log -->
+        <section class="editorial-section">
+          <div class="section-head">
+            <h2 class="section-title">월별 지원 현황</h2>
+          </div>
+          <div class="data-table-wrap">
+            <table class="editorial-table">
+              <thead>
+                <tr>
+                  <th>지원 월</th>
+                  <th>접수 건수</th>
+                  <th>통과 건수</th>
+                  <th>합격률</th>
+                  <th>주요 지원 기업</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="tnum">2026년 9월</td>
+                  <td class="tnum">6건</td>
+                  <td class="tnum">2건</td>
+                  <td class="tnum">33.3%</td>
+                  <td>우아한형제들(최종합격), 쿠팡, 리디 등</td>
+                </tr>
+                <tr>
+                  <td class="tnum">2026년 10월</td>
+                  <td class="tnum">8건</td>
+                  <td class="tnum">4건</td>
+                  <td class="tnum">50.0%</td>
+                  <td>당근(최종합격), 무신사, 라인플러스 등</td>
+                </tr>
+                <tr>
+                  <td class="tnum">2026년 11월</td>
+                  <td class="tnum">4건</td>
+                  <td class="tnum">3건</td>
+                  <td class="tnum">진행중</td>
+                  <td>토스, 카카오, 네이버 등</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Column: Agendas, Deadlines & History -->
+      <aside class="sidebar-stream">
+        <!-- Upcoming Deadlines & Interviews -->
+        <section class="editorial-section">
+          <div class="section-head">
+            <h2 class="section-title">주요 전형 일정 브리핑</h2>
+            <span class="tnum" style="font-size: 11.5px; color: var(--accent-terracotta);">임박 3건</span>
+          </div>
+          <div class="agenda-list">
+            <div class="agenda-item urgent">
+              <div class="agenda-item-header">
+                <span class="agenda-company">토스 코어 프론트엔드</span>
+                <span class="status-tag urgent">D-2</span>
+              </div>
+              <div class="agenda-detail">서류 마감 · 3문항 중 2문항 작성 완료</div>
+              <div class="agenda-time tnum">11월 13일(금) 23:59 접수 마감</div>
+            </div>
+
+            <div class="agenda-item urgent">
+              <div class="agenda-item-header">
+                <span class="agenda-company">카카오 웹 플랫폼</span>
+                <span class="status-tag urgent">D-3</span>
+              </div>
+              <div class="agenda-detail">온라인 프로그래머스 코딩테스트</div>
+              <div class="agenda-time tnum">11월 14일(토) 14:00 ~ 16:30 (150분)</div>
+            </div>
+
+            <div class="agenda-item urgent">
+              <div class="agenda-item-header">
+                <span class="agenda-company">라인플러스 클라이언트</span>
+                <span class="status-tag urgent">D-5</span>
+              </div>
+              <div class="agenda-detail">1차 직무 인터뷰 (화상 Google Meet)</div>
+              <div class="agenda-time tnum">11월 16일(월) 10:00 ~ 11:00</div>
+            </div>
+
+            <div class="agenda-item">
+              <div class="agenda-item-header">
+                <span class="agenda-company">네이버 개발 과제</span>
+                <span class="status-tag pending">D-7</span>
+              </div>
+              <div class="agenda-detail">컴포넌트 라이브러리 접근성 구현 과제</div>
+              <div class="agenda-time tnum">11월 18일(수) 18:00 깃허브 제출</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent Stage Changes Log -->
+        <section class="editorial-section">
+          <div class="section-head">
+            <h2 class="section-title">최근 전형 결과 기록</h2>
+          </div>
+          <div class="data-table-wrap" style="padding: 12px 14px;">
+            <div class="activity-stream">
+              <div class="activity-node">
+                <span class="activity-date tnum">11.10</span>
+                <div class="activity-desc">
+                  <strong>네이버</strong> 코딩테스트 합격 통보 (과제전형 배정)
+                </div>
+              </div>
+              <div class="activity-node">
+                <span class="activity-date tnum">11.09</span>
+                <div class="activity-desc">
+                  <strong>카카오</strong> 서류전형 합격 통보 (코딩테스트 일정 수신)
+                </div>
+              </div>
+              <div class="activity-node">
+                <span class="activity-date tnum">11.08</span>
+                <div class="activity-desc">
+                  <strong>우아한형제들</strong> 웹 풀스택 <span style="color: var(--status-pass-text); font-weight: 600;">최종 합격</span> 통보
+                </div>
+              </div>
+              <div class="activity-node">
+                <span class="activity-date tnum">11.06</span>
+                <div class="activity-desc">
+                  <strong>당근</strong> 프론트엔드 <span style="color: var(--status-pass-text); font-weight: 600;">최종 합격</span> 및 처우 협의 진행
+                </div>
+              </div>
+              <div class="activity-node">
+                <span class="activity-date tnum">11.04</span>
+                <div class="activity-desc">
+                  <strong>쿠팡</strong> 프론트엔드 서류전형 불합격 처리
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+    }
+  </script>
+</body>
+</html>

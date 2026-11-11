@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadySetJob — 자소서 작성 (Soft Consumer)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="consumer-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <a href="dashboard.html" class="brand-logo">ReadySetJob</a>
+        <span class="brand-desc">합격까지 함께하는 지원 파트너</span>
+      </div>
+      <nav class="nav-group">
+        <a href="dashboard.html" class="nav-link">홈</a>
+        <a href="kanban.html" class="nav-link">지원 현황</a>
+        <a href="editor.html" class="nav-link active">자소서 작성</a>
+      </nav>
+      <div class="header-actions">
+        <span class="tnum" style="font-size: 12px; color: var(--text-muted);">자동 저장됨 17:30</span>
+        <button type="button" class="btn-pill btn-pill-secondary" onclick="toggleTheme()" style="font-size: 12.5px; padding: 6px 12px;">다크 모드</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="consumer-container" style="max-width: 1420px; padding: 20px 20px 64px 20px;">
+    <!-- Sub-header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle);">
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <span style="font-size: 13px; font-weight: 700; color: var(--brand-primary);">토스 (비바리퍼블리카)</span>
+          <span style="color: var(--text-muted); font-size: 12px;">·</span>
+          <span style="font-size: 13px; color: var(--text-secondary);">Core Frontend Developer</span>
+          <span class="tag-soft urgent">D-2 (11/13 금 23:59 마감)</span>
+        </div>
+        <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">
+          2026 하반기 신입 자기소개서
+        </h1>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="btn-pill btn-pill-secondary">PDF 내보내기</button>
+        <button type="button" class="btn-pill btn-pill-primary">새 불변 버전(v5) 저장</button>
+      </div>
+    </div>
+
+    <!-- 3-Column Layout: Left Rail | Center Sheet | Right Reference Rail -->
+    <div class="editor-consumer-grid">
+      <!-- Left Rail: Question Navigation & Immutable Versions -->
+      <aside class="consumer-rail">
+        <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">
+          문항 바로가기 (3개)
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px;">
+          <a href="#q1" style="display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; background: var(--brand-light); border-radius: var(--radius-sm); text-decoration: none; border-left: 3px solid var(--brand-primary);">
+            <div style="font-size: 11.5px; font-weight: 700; color: var(--brand-primary);">문항 1 · 지원 동기</div>
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">토스 프론트엔드 지원 동기</div>
+            <div class="tnum" style="font-size: 12px; color: var(--brand-primary); font-weight: 600;">512 / 700자 (73%)</div>
+          </a>
+
+          <a href="#q2" style="display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; background: var(--bg-subtle); border-radius: var(--radius-sm); text-decoration: none;">
+            <div style="font-size: 11.5px; font-weight: 600; color: var(--text-muted);">문항 2 · 문제 해결</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">기술적 난제 및 성능 최적화</div>
+            <div class="tnum" style="font-size: 12px; color: var(--text-muted);">640 / 700자 (91%)</div>
+          </a>
+
+          <a href="#q3" style="display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; background: var(--bg-subtle); border-radius: var(--radius-sm); text-decoration: none;">
+            <div style="font-size: 11.5px; font-weight: 600; color: var(--text-muted);">문항 3 · 협업 경험</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">팀 갈등 조율 및 코드 리뷰</div>
+            <div class="tnum" style="font-size: 12px; color: var(--text-muted);">480 / 600자 (80%)</div>
+          </a>
+        </div>
+
+        <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">
+          저장된 버전 이력 (v1 ~ v5)
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="padding: 10px 12px; background: var(--bg-subtle); border-radius: var(--radius-sm); border: 1.5px solid var(--brand-primary); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; font-size: 13px; color: var(--brand-primary);">v4 (현재 작성중)</div>
+              <div class="tnum" style="font-size: 11.5px; color: var(--text-muted);">11.10 17:30 · 1,632자</div>
+            </div>
+            <span class="tag-soft pass" style="font-size: 10.5px;">편집중</span>
+          </div>
+
+          <div style="padding: 10px 12px; background: var(--bg-subtle); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; font-size: 13px;">v3 (멘토 피드백 반영)</div>
+              <div class="tnum" style="font-size: 11.5px; color: var(--text-muted);">11.08 14:15 · 1,580자</div>
+            </div>
+            <span style="font-size: 11.5px; color: var(--brand-primary); font-weight: 600; cursor: pointer;">비교</span>
+          </div>
+
+          <div style="padding: 10px 12px; background: var(--bg-subtle); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; font-size: 13px;">v2 (STAR 구조화)</div>
+              <div class="tnum" style="font-size: 11.5px; color: var(--text-muted);">11.05 21:00 · 1,420자</div>
+            </div>
+            <span style="font-size: 11.5px; color: var(--brand-primary); font-weight: 600; cursor: pointer;">비교</span>
+          </div>
+
+          <div style="padding: 10px 12px; background: var(--bg-subtle); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; font-size: 13px;">v1 (초안 작성)</div>
+              <div class="tnum" style="font-size: 11.5px; color: var(--text-muted);">11.02 11:30 · 1,200자</div>
+            </div>
+            <span style="font-size: 11.5px; color: var(--brand-primary); font-weight: 600; cursor: pointer;">비교</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Writing Canvas -->
+      <section class="consumer-writing-sheet">
+        <!-- Question 1 Block -->
+        <div id="q1" style="margin-bottom: 32px;">
+          <div style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin-bottom: 10px; line-height: 1.4;">
+            1. 토스에 지원하게 된 계기와 프론트엔드 엔지니어로서 달성하고 싶은 목표를 서술해 주세요. (최대 700자)
+          </div>
+
+          <textarea class="consumer-textarea" rows="7">사용자의 일상 금융 문제를 기술적 완성도로 해결하는 토스의 제품 철학에 깊이 공감하여 지원했습니다. 대학 동아리 커머스 프로젝트를 진행하며 복잡한 결제 플로우에서 이탈률이 23%에 달하는 문제를 마주했습니다.
+
+이를 해결하기 위해 웹뷰 환경에서 불필요한 네트워크 왕복을 줄이고 핵심 번들 크기를 최적화하는 데 집중했습니다. 토스 디자인 시스템(TDS)처럼 엄격한 시맨틱 토큰과 웹 접근성을 보장하는 재사용 컴포넌트 생태계를 구축하여, 금융 소외 계층까지 단 1초의 지연 없이 이용할 수 있는 유연한 웹 플랫폼을 만드는 것이 제 궁극적인 목표입니다.</textarea>
+
+          <!-- Character Counter & Progress Bar (No overlap, generous spacing) -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 6px 4px; font-size: 13px; color: var(--text-secondary);">
+            <div class="tnum">
+              글자수: <strong style="color: var(--brand-primary); font-size: 14px;">512</strong> / 700자 (공백 포함) · 388자 (공백 제외)
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 140px; height: 6px; background: var(--bg-hover); border-radius: var(--radius-full); overflow: hidden;">
+                <div style="width: 73.1%; height: 100%; background: var(--brand-primary);"></div>
+              </div>
+              <span class="tnum" style="font-size: 12px; font-weight: 700; color: var(--brand-primary);">73%</span>
+            </div>
+          </div>
+
+          <!-- Version Diff Box -->
+          <div class="consumer-diff-container">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">
+              <span>이전 버전(v3)과 달라진 부분</span>
+              <span class="tnum" style="color: var(--text-muted); font-weight: normal;">11.10 17:30 수정</span>
+            </div>
+            <div>
+              이를 해결하기 위해 <del>웹사이트 성능을 전반적으로 개선하고 로딩 속도를 향상시켰습니다.</del> <ins>웹뷰 환경에서 불필요한 네트워크 왕복을 줄이고 핵심 번들 크기를 최적화하는 데 집중했습니다.</ins> 토스 디자인 시스템처럼 엄격한 시맨틱 토큰과 웹 접근성을 보장하는...
+            </div>
+          </div>
+        </div>
+
+        <!-- Question 2 Block -->
+        <div id="q2" style="padding-top: 28px; border-top: 1px solid var(--border-subtle);">
+          <div style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin-bottom: 10px; line-height: 1.4;">
+            2. 지금까지 진행한 프로젝트 중 기술적으로 가장 도전적이었던 경험과 이를 극복한 과정을 구체적으로 작성해 주세요. (최대 700자)
+          </div>
+
+          <textarea class="consumer-textarea" rows="7">교내 대규모 축제 티켓 예매 시스템 구축 당시, 3,000명의 동시 접속자가 몰리며 웹소켓 연결이 끊기고 브라우저 렌더링 병목이 발생하는 문제를 겪었습니다.
+
+React의 가상 돔 렌더링 비용을 줄이기 위해 상태 트리를 도메인별로 분리하고, 60fps 이상의 부드러운 인터랙션을 유지하도록 좌석 선택 그리드에 가상화(Virtualization) 기법을 적용했습니다. 또한 저사양 모바일 기기에서도 메모리 누수가 발생하지 않도록 불필요한 클로저 참조를 제거했습니다. 그 결과 피크 타임 기준 프레임 드랍을 80% 줄이고 무중단 예매를 완수할 수 있었습니다.</textarea>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 6px 4px; font-size: 13px; color: var(--text-secondary);">
+            <div class="tnum">
+              글자수: <strong style="color: var(--brand-primary); font-size: 14px;">640</strong> / 700자 (공백 포함) · 492자 (공백 제외)
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 140px; height: 6px; background: var(--bg-hover); border-radius: var(--radius-full); overflow: hidden;">
+                <div style="width: 91.4%; height: 100%; background: var(--brand-primary);"></div>
+              </div>
+              <span class="tnum" style="font-size: 12px; font-weight: 700; color: var(--brand-primary);">91%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Rail: STAR Experience Material Reference Dossier -->
+      <aside class="consumer-rail reference-rail">
+        <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">
+          내 경험 저장소 (STAR)
+        </div>
+
+        <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; border: 1px solid var(--border-subtle);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-weight: 700; font-size: 13px;">축제 티켓 대용량 트래픽 대응</span>
+            <span class="tag-soft normal" style="color: var(--brand-primary);">성능개선</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+            <div><strong style="color: var(--text-primary);">S</strong> 동시접속 3,000명 시 렌더링 지연 발생</div>
+            <div><strong style="color: var(--text-primary);">T</strong> 60fps 부드러운 스크롤 및 무중단 예매</div>
+            <div><strong style="color: var(--text-primary);">A</strong> 캔버스 가상화 적용 및 계산 웹워커 분리</div>
+            <div><strong style="color: var(--text-primary);">R</strong> 프레임 드랍 80% 감축, 1.2만건 성공</div>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; border: 1px solid var(--border-subtle);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-weight: 700; font-size: 13px;">공통 컴포넌트 라이브러리</span>
+            <span class="tag-soft normal" style="color: var(--brand-primary);">디자인시스템</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+            <div><strong style="color: var(--text-primary);">S</strong> 프로젝트별 제각각인 버튼과 모달 UI</div>
+            <div><strong style="color: var(--text-primary);">T</strong> WAI-ARIA 접근성 지침 준수 컴포넌트화</div>
+            <div><strong style="color: var(--text-primary);">A</strong> 키보드 탭 이동 및 스크린리더 완벽 대응</div>
+            <div><strong style="color: var(--text-primary);">R</strong> 협업 개발 속도 40% 향상 및 접근성 인증</div>
+          </div>
+        </div>
+
+        <div style="background: var(--brand-light); border-radius: var(--radius-sm); padding: 14px;">
+          <div style="font-size: 13px; font-weight: 700; color: var(--brand-primary); margin-bottom: 4px;">
+            우아한형제들 합격 자소서 조언
+          </div>
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+            "문제를 단순히 어떻게 해결했는지만 쓰지 말고, 왜 그 해결책을 선택했는지 논리적 근거를 꼭 적어주세요."
+          </p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+    }
+  </script>
+</body>
+</html>

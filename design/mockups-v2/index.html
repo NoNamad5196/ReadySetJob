@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadySetJob v2 디자인 시안 갤러리 (1안 / 2안 / 3안)</title>
+  <style>
+    :root {
+      --bg: #F9FAFB;
+      --card-bg: #FFFFFF;
+      --border: #E5E7EB;
+      --text-main: #111827;
+      --text-sub: #4B5563;
+      --accent: #2563EB;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard Variable", "Pretendard", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      padding: 40px 24px;
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 36px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    p {
+      color: var(--text-sub);
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card-badge {
+      display: inline-block;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    .badge-1 { background: #FEF3C7; color: #92400E; }
+    .badge-2 { background: #F3F4F6; color: #1F2937; }
+    .badge-3 { background: #DBEAFE; color: #1E40AF; }
+    .card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      min-height: 48px;
+    }
+    .links-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+    .link-btn {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--bg);
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.15s ease;
+    }
+    .link-btn:hover {
+      background: #E5E7EB;
+    }
+    .meta-tag {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: normal;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>ReadySetJob v2 디자인 시안 갤러리</h1>
+      <p>기존 v1의 AI 템플릿 느낌을 걷어내고 2025–2026 프로덕트 트렌드를 반영한 3가지 독립적인 디자인 시안</p>
+    </header>
+
+    <div class="grid">
+      <!-- Direction 1 -->
+      <div class="card">
+        <div>
+          <span class="card-badge badge-1">방향 1 · Editorial / 종이</span>
+          <h2>에디토리얼 크래프트</h2>
+          <p class="card-desc">따뜻한 웜 오프화이트 캔버스, 헤어라인 구분선, 마루 부리 세리프 타이포그래피로 써 내려가는 정갈한 취업 저널.</p>
+        </div>
+        <div class="links-group">
+          <a href="1/dashboard.html" class="link-btn">
+            <span>대시보드</span>
+            <span class="meta-tag">dashboard.html →</span>
+          </a>
+          <a href="1/kanban.html" class="link-btn">
+            <span>지원 현황 칸반 (6열)</span>
+            <span class="meta-tag">kanban.html →</span>
+          </a>
+          <a href="1/editor.html" class="link-btn">
+            <span>자기소개서 집필실</span>
+            <span class="meta-tag">editor.html →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Direction 2 -->
+      <div class="card">
+        <div>
+          <span class="card-badge badge-2">방향 2 · Monochrome Tool</span>
+          <h2>개발자 생산성 툴</h2>
+          <p class="card-desc">Vercel Geist & Raycast 스타일의 절제된 무채색, 고밀도 데이터 그리드, ⌘K 커맨드 바와 kbd 단축키 중심 전문가 툴.</p>
+        </div>
+        <div class="links-group">
+          <a href="2/dashboard.html" class="link-btn">
+            <span>대시보드</span>
+            <span class="meta-tag">dashboard.html →</span>
+          </a>
+          <a href="2/kanban.html" class="link-btn">
+            <span>지원 보드 (6열)</span>
+            <span class="meta-tag">kanban.html →</span>
+          </a>
+          <a href="2/editor.html" class="link-btn">
+            <span>자소서 에디터</span>
+            <span class="meta-tag">editor.html →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Direction 3 -->
+      <div class="card">
+        <div>
+          <span class="card-badge badge-3">방향 3 · Soft Consumer</span>
+          <h2>친근한 코리안 프로덕트</h2>
+          <p class="card-desc">토스 TDS & 당근 SEED V3 영감의 시원하고 큼직한 숫자, 불필요한 박스를 걷어낸 컨테이너 절제, 친근하고 편안한 사용자 경험.</p>
+        </div>
+        <div class="links-group">
+          <a href="3/dashboard.html" class="link-btn">
+            <span>홈 대시보드</span>
+            <span class="meta-tag">dashboard.html →</span>
+          </a>
+          <a href="3/kanban.html" class="link-btn">
+            <span>지원 현황 보드 (6열)</span>
+            <span class="meta-tag">kanban.html →</span>
+          </a>
+          <a href="3/editor.html" class="link-btn">
+            <span>자소서 작성 스튜디오</span>
+            <span class="meta-tag">editor.html →</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,573 @@
+/* ==========================================================================
+   ReadySetJob v2 - Direction 3: Soft Korean Consumer (친근한 코리안 프로덕트)
+   Design System & Styling
+   - Reference: Toss TDS (토스), Daangn SEED (당근), KakaoPay
+   - Large bold numerals, container-light / selective cards, generous spacing
+   - Friendly and natural Korean UX, no visual noise, no fake metrics
+   ========================================================================== */
+
+:root {
+  --bg-canvas: #F2F4F6;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F9FAFB;
+  --bg-hover: #ECEFF2;
+
+  --border-subtle: #E5E8EB;
+  --border-medium: #D1D6DB;
+  --border-focused: #3182F6;
+
+  --text-primary: #191F28;
+  --text-secondary: #4E5968;
+  --text-muted: #8B95A1;
+  --text-faint: #B0B8C1;
+
+  --brand-primary: #3182F6;
+  --brand-hover: #1B64DA;
+  --brand-light: #E8F3FF;
+
+  --status-pass-text: #059669;
+  --status-pass-bg: #ECFDF5;
+  --status-fail-text: #DC2626;
+  --status-fail-bg: #FEF2F2;
+  --status-urgent-text: #EA580C;
+  --status-urgent-bg: #FFF7ED;
+
+  --diff-add-bg: #DCFCE7;
+  --diff-add-text: #166534;
+  --diff-del-bg: #FEE2E2;
+  --diff-del-text: #991B1B;
+
+  --font-ui: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  --font-mono: "SF Mono", Consolas, monospace;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-full: 9999px;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] {
+  --bg-canvas: #101012;
+  --bg-surface: #17171C;
+  --bg-subtle: #202027;
+  --bg-hover: #2C2C35;
+
+  --border-subtle: #2C2C34;
+  --border-medium: #3A3A46;
+  --border-focused: #3182F6;
+
+  --text-primary: #F9FAFB;
+  --text-secondary: #B0B8C1;
+  --text-muted: #6B7684;
+  --text-faint: #4E5968;
+
+  --brand-primary: #3182F6;
+  --brand-hover: #4592FE;
+  --brand-light: #16243E;
+
+  --status-pass-text: #34D399;
+  --status-pass-bg: #064E3B;
+  --status-fail-text: #F87171;
+  --status-fail-bg: #450A0A;
+  --status-urgent-text: #FB923C;
+  --status-urgent-bg: #431407;
+
+  --diff-add-bg: #064E3B;
+  --diff-add-text: #A7F3D0;
+  --diff-del-bg: #450A0A;
+  --diff-del-text: #FECACA;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* Base Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tnum {
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Header */
+.consumer-header {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.header-container {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--brand-primary);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.brand-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-subtle);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.nav-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+}
+
+.nav-link.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.btn-pill-primary {
+  background: var(--brand-primary);
+  color: #FFFFFF;
+}
+
+.btn-pill-primary:hover {
+  background: var(--brand-hover);
+}
+
+.btn-pill-secondary {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.btn-pill-secondary:hover {
+  background: var(--bg-subtle);
+}
+
+/* Page Container */
+.consumer-container {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 28px 24px 64px 24px;
+}
+
+/* Clean Consumer Cards (Soft squircle, natural shadow) */
+.content-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.card-header {
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.card-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Big Number Hero Banner (Toss style) */
+.hero-metric-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.metric-number {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.metric-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Chips */
+.tag-soft {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: var(--radius-xs);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.tag-soft.pass {
+  background: var(--status-pass-bg);
+  color: var(--status-pass-text);
+}
+
+.tag-soft.fail {
+  background: var(--status-fail-bg);
+  color: var(--status-fail-text);
+}
+
+.tag-soft.urgent {
+  background: var(--status-urgent-bg);
+  color: var(--status-urgent-text);
+}
+
+.tag-soft.normal {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+/* Soft Data Table */
+.soft-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.soft-table th {
+  padding: 12px 20px;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.soft-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.soft-table tr:last-child td {
+  border-bottom: none;
+}
+
+.soft-table tr:hover td {
+  background: var(--bg-subtle);
+}
+
+/* ==========================================================================
+   Kanban Components (Direction 3)
+   ========================================================================== */
+.kanban-consumer-board {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.consumer-col {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  min-height: 660px;
+}
+
+.consumer-col-head {
+  padding: 14px 14px 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.col-headline {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.col-badge-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  background: var(--brand-light);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+
+.consumer-card-stack {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.consumer-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: grab;
+  transition: all 0.15s ease;
+}
+
+.consumer-card:hover {
+  background: var(--bg-surface);
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-hover);
+}
+
+.consumer-card.is-dragging {
+  background: var(--bg-surface);
+  border-color: var(--brand-primary);
+  box-shadow: 0 8px 24px rgba(49, 130, 246, 0.2);
+  transform: rotate(1.2deg) scale(1.02);
+  z-index: 50;
+  cursor: grabbing;
+}
+
+.consumer-drop-zone {
+  border: 2px dashed var(--brand-primary);
+  background: var(--brand-light);
+  border-radius: var(--radius-sm);
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-primary);
+  text-align: center;
+  padding: 0 10px;
+}
+
+/* ==========================================================================
+   Editor Components (Direction 3)
+   ========================================================================== */
+.editor-consumer-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+.consumer-rail {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  padding: 18px;
+  position: sticky;
+  top: 76px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.consumer-writing-sheet {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  padding: 32px 36px;
+  min-height: 800px;
+}
+
+.consumer-textarea {
+  width: 100%;
+  min-height: 180px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 16px 16px 24px 16px;
+  font-family: var(--font-ui);
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--text-primary);
+  resize: vertical;
+}
+
+.consumer-textarea:focus {
+  outline: none;
+  background: var(--bg-surface);
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.12);
+}
+
+.consumer-diff-container {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.consumer-diff-container del {
+  background: var(--diff-del-bg);
+  color: var(--diff-del-text);
+  padding: 1px 4px;
+  border-radius: var(--radius-xs);
+}
+
+.consumer-diff-container ins {
+  background: var(--diff-add-bg);
+  color: var(--diff-add-text);
+  padding: 1px 4px;
+  border-radius: var(--radius-xs);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 1100px) {
+  .editor-consumer-grid {
+    grid-template-columns: 220px 1fr;
+  }
+  .reference-rail {
+    display: none;
+  }
+  .dashboard-duo-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .consumer-container {
+    padding: 16px 14px 48px 14px;
+  }
+  .hero-metric-bar {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .kanban-consumer-board {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding-bottom: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .consumer-col {
+    min-width: 320px;
+    width: 85vw;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  .editor-consumer-grid {
+    grid-template-columns: 1fr;
+  }
+  .consumer-rail {
+    position: static;
+    max-height: none;
+  }
+}
