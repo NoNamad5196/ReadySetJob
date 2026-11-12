@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: readysetjob
+    runtime: node
+    plan: starter
+    region: singapore
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DB_PATH
+        value: /var/data/readysetjob.db
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+    disk:
+      name: readysetjob-data
+      mountPath: /var/data
+      sizeGB: 1

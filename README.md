@@ -120,6 +120,16 @@ ReadySetJob은 사용자 경험 설계를 위해 3가지 콘셉트의 정적 HTM
    ```
     * Node.js 22 내장 테스트 러너를 통해 15개 스위트, 66개 테스트 케이스를 순차 실행합니다.
 
+### 5.3 Render 배포 (영구 디스크 + SQLite)
+
+Vercel 같은 서버리스 환경은 파일시스템이 휘발성이라 SQLite 데이터와 세션이 유지되지 않습니다. 상시 실행 서버와 영구 디스크를 제공하는 Render를 사용합니다.
+
+1. Render 대시보드 → **New → Blueprint** → 이 GitHub 저장소 선택 (루트의 `render.yaml` 자동 인식)
+2. `OPENAI_API_KEY` 값을 입력 (`SESSION_SECRET`은 자동 생성, `DB_PATH=/var/data/readysetjob.db`는 1GB 영구 디스크에 저장)
+3. 배포 완료 후 데모 데이터가 필요하면 Render Shell에서 `npm run seed` 실행
+
+> 영구 디스크는 유료 플랜(Starter)에서만 지원됩니다.
+
 ---
 
 ## 6. 환경 변수 설정
