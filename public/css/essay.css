@@ -6,7 +6,7 @@
 
 .essay-topbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
   flex-wrap: wrap;
@@ -61,7 +61,8 @@
 
 .essay-version-create-form .input {
   width: 190px;
-  padding: 5px 10px;
+  height: var(--control-height);
+  padding: 0 10px;
   font-size: 13px;
 }
 
@@ -123,8 +124,14 @@
 
 .essay-ref-search {
   display: flex;
+  align-items: center;
   gap: var(--space-2);
   margin-bottom: var(--space-3);
+}
+
+.essay-ref-search .btn {
+  height: var(--control-height);
+  min-height: var(--control-height);
 }
 
 .essay-ref-list {

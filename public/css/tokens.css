@@ -1,4 +1,9 @@
 :root {
+  /* Control heights */
+  --control-height: 38px;
+  --control-height-sm: 30px;
+  --control-height-lg: 44px;
+
   /* Typography */
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;

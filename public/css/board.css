@@ -264,13 +264,26 @@
 /* Card Footer (D-day & Next Event) */
 .kanban-card__footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
+  min-width: 0;
   font-size: 11px;
   color: var(--color-text-muted);
   padding-top: 6px;
   border-top: 1px solid var(--color-border-subtle);
+}
+
+.kanban-card__footer > .badge {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-card__footer > span:not(.badge) {
+  white-space: nowrap;
 }
 
 .kanban-card__fallback-form {
@@ -282,8 +295,9 @@
   border-top: 1px solid var(--color-border);
 }
 
-.kanban-card__stage-select {
-  padding: 3px 6px;
+select.input.kanban-card__stage-select {
+  height: var(--control-height-sm);
+  padding: 0 6px;
   font-size: 11.5px;
   flex: 1;
 }
