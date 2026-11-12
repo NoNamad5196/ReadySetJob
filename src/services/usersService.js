@@ -122,7 +122,7 @@ function updateUserSettings(db, userId, { name, season_label, target, month = ge
     const nextSeason = rawSeason ? rawSeason : null;
 
     const nextAutoFeedback = auto_feedback !== undefined
-      ? (auto_feedback ? 1 : 0)
+      ? (auto_feedback === 1 || auto_feedback === true || ['1', 'on', 'true'].includes(String(auto_feedback).toLowerCase()) ? 1 : 0)
       : Number(existing.auto_feedback) === 1 ? 1 : 0;
 
     db.prepare('UPDATE users SET name = ?, season_label = ?, auto_feedback = ? WHERE id = ?').run(

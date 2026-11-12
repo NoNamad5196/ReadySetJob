@@ -1,6 +1,12 @@
 const { STAGE_LABELS, TODO_CATEGORY_LABELS } = require('../middleware/validation');
 const { getDashboardHome } = require('./dashboardHomeService');
 const { getMonthlyGoalProgress, getCurrentYearMonth } = require('./usersService');
+const { validateBriefingOutput } = require('./aiSchemas');
+
+// Bound fields before serialization so the monthly goal and JSON structure survive.
+function contextText(value, maxLength = 200) {
+  return String(value ?? '').trim().slice(0, maxLength);
+}
 
 function toIsoDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -27,11 +33,11 @@ function buildBriefingContext(db, userId, now = new Date()) {
   `).all(uid, today, weekEnd).map((r) => {
     const href = r.application_id ? `/applications/${r.application_id}` : `/jobs/${r.id}`;
     hrefs.add(href);
-    return { type: '서류 마감', date: r.deadline, company: r.company, title: r.title, applied: Boolean(r.application_id), href };
+    return { type: '서류 마감', date: r.deadline, company: contextText(r.company, 120), title: contextText(r.title), applied: Boolean(r.application_id), href };
   });
 
   const events = db.prepare(`
-    SELECT e.title, e.type, e.starts_at, e.application_id, c.name AS company
+    SELECT e.title, e.type, e.starts_at, a.id AS application_id, c.name AS company
     FROM events e
     LEFT JOIN applications a ON a.id = e.application_id AND a.user_id = e.user_id
     LEFT JOIN job_posts jp ON jp.id = a.job_post_id AND jp.user_id = e.user_id
@@ -41,14 +47,14 @@ function buildBriefingContext(db, userId, now = new Date()) {
   `).all(uid, today, weekEnd).map((r) => {
     const href = r.application_id ? `/applications/${r.application_id}` : '/events';
     hrefs.add(href);
-    return { type: r.type, date: String(r.starts_at).slice(0, 10), time: String(r.starts_at).slice(11, 16), company: r.company || '', title: r.title, href };
+    return { type: r.type, date: String(r.starts_at).slice(0, 10), time: String(r.starts_at).slice(11, 16), company: contextText(r.company, 120), title: contextText(r.title), href };
   });
 
   const openTodos = db.prepare(`
     SELECT title, category, due_date FROM todos
     WHERE user_id = ? AND is_done = 0
     ORDER BY CASE WHEN due_date IS NULL THEN 1 ELSE 0 END ASC, due_date ASC, id ASC LIMIT 10
-  `).all(uid).map((t) => ({ title: t.title, category: TODO_CATEGORY_LABELS[t.category] || '기타', due_date: t.due_date || null }));
+  `).all(uid).map((t) => ({ title: contextText(t.title, 120), category: TODO_CATEGORY_LABELS[t.category] || '기타', due_date: t.due_date || null, href: '/todos' }));
 
   const home = getDashboardHome(db, uid, now);
   const stageCounts = {};
@@ -59,7 +65,7 @@ function buildBriefingContext(db, userId, now = new Date()) {
   const inProgress = home.inProgress.slice(0, 10).map((a) => {
     const label = STAGE_LABELS[a.stage] || a.stage;
     hrefs.add(a.href);
-    return { company: a.company, position: a.position, stage: label, next: a.nextLabel, href: a.href };
+    return { company: contextText(a.company, 120), position: contextText(a.position), stage: label, next: contextText(a.nextLabel), href: a.href };
   });
 
   const goal = getMonthlyGoalProgress(db, uid, getCurrentYearMonth(now));
@@ -82,7 +88,7 @@ function parseRow(row) {
   if (!row) return null;
   let result = null;
   try {
-    result = JSON.parse(row.result_json);
+    result = validateBriefingOutput(JSON.parse(row.result_json), (message) => new Error(message));
   } catch {
     return null;
   }

@@ -5,6 +5,13 @@
     as the <template> markup that public/js/ai.js clones and fills via textContent.
   */
   const it = typeof item !== 'undefined' && item ? item : null;
+  const isGrad = Boolean(it && it.purpose === 'grad_school');
+  const orgLabel = it
+    ? (it.org_label || (isGrad ? '학교/프로그램' : '기업/직무'))
+    : '';
+  const deadlineText = it
+    ? (it.deadline_text || (it.deadline ? it.deadline + (isGrad ? ' 원서 마감' : ' 마감') : (isGrad ? '원서 마감 미확인' : '마감일 미확인')))
+    : '';
 %>
 <li class="ai-discover-card" data-ai-discover-item>
   <div class="ai-discover-card__head">
@@ -17,9 +24,10 @@
   </div>
   <div class="ai-discover-card__meta">
     <span class="badge" data-field="employment"><%= it ? it.employment_label : '' %></span>
+    <span class="ai-discover-card__org-label" data-field="org-label"><%= orgLabel %></span>
     <span data-field="position"><%= it ? it.position : '' %></span>
     <span data-field="location"><%= it ? it.location : '' %></span>
-    <span class="num" data-field="deadline"><%= it ? (it.deadline ? it.deadline + ' 마감' : '마감일 미확인') : '' %></span>
+    <span class="num" data-field="deadline"><%= deadlineText %></span>
   </div>
   <p class="ai-discover-card__summary" data-field="summary"><%= it ? it.summary : '' %></p>
   <div class="ai-discover-card__actions">

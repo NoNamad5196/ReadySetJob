@@ -34,6 +34,18 @@ const {
   applyMaterialStarDraft,
 } = require('../services/aiFeaturesService');
 const { getMaterialWithEssays } = require('../services/materialsService');
+const {
+  PURPOSES,
+  PURPOSE_MAP,
+  FIELD_GROUPS,
+  DEGREES,
+  REGIONS,
+  SCHEDULES,
+  MAX_FIELDS_COUNT,
+  MAX_KEYWORD_LENGTH,
+  defaultDiscoverForm,
+  validateDiscoverInput,
+} = require('../services/discoverOptions');
 
 function wantsJson(req) {
   return (
@@ -42,44 +54,78 @@ function wantsJson(req) {
   );
 }
 
-const SEARCH_CAREERS = ['new_grad', 'intern', 'experienced', 'any'];
+const DISCOVER_VIEW_OPTIONS = {
+  PURPOSES,
+  FIELD_GROUPS,
+  DEGREES,
+  REGIONS,
+  SCHEDULES,
+  MAX_FIELDS_COUNT,
+  MAX_KEYWORD_LENGTH,
+};
 
-function readSearchForm(body = {}) {
-  const pick = (key, max) => (typeof body[key] === 'string' ? body[key].trim().slice(0, max) : '');
-  const career = pick('career', 20);
-  return {
-    keyword: pick('keyword', 100),
-    location: pick('location', 60),
-    career: SEARCH_CAREERS.includes(career) ? career : 'any',
-    extra: pick('extra', 300),
-  };
-}
-
-function decorateSearchResult(item) {
+function decorateSearchResult(item, purpose = 'new_grad') {
+  const spec = PURPOSE_MAP[purpose] || PURPOSE_MAP.new_grad;
+  const isGrad = purpose === 'grad_school';
+  const isParttime = purpose === 'parttime';
   const avatar = companyAvatar(item.company_name);
   const dday = calculateDday(item.deadline);
-  const registerType = EMPLOYMENT_TYPES.includes(item.employment_type) ? item.employment_type : 'other';
-  const memoParts = [item.summary, item.location ? `근무 지역: ${item.location}` : '', `AI 웹 검색 출처: ${item.url}`];
+  const mappedEmploymentType = isGrad || isParttime ? 'other' : item.employment_type;
+  const registerType =
+    isGrad || isParttime
+      ? 'other'
+      : EMPLOYMENT_TYPES.includes(item.employment_type)
+        ? item.employment_type
+        : 'other';
+  const employmentLabel = isGrad
+    ? '대학원'
+    : isParttime
+      ? '아르바이트'
+      : EMPLOYMENT_TYPE_LABELS[item.employment_type] || '형태 미상';
+  const summaryWithPrefix = spec.memoPrefix
+    ? [spec.memoPrefix, item.summary].filter(Boolean).join(' ')
+    : item.summary;
+  const locationLine = item.location
+    ? `${isGrad ? '지역' : '근무 지역'}: ${item.location}`
+    : '';
+  const registerMemo = [summaryWithPrefix, locationLine, `AI 웹 검색 출처: ${item.url}`]
+    .filter(Boolean)
+    .join('\n');
+  const deadlineText = item.deadline
+    ? `${item.deadline} ${spec.deadlineSuffix}`
+    : `${isGrad ? '원서 마감' : '마감일'} 미확인`;
+
   return {
     ...item,
+    purpose,
+    employment_type: mappedEmploymentType,
     avatar: { initial: avatar.initial, className: avatar.className },
     dday: { label: dday.label, state: dday.state },
-    employment_label: EMPLOYMENT_TYPE_LABELS[item.employment_type] || '형태 미상',
+    employment_label: employmentLabel,
+    org_label: spec.orgLabel,
+    deadline_text: deadlineText,
     register_employment_type: registerType,
-    register_memo: memoParts.filter(Boolean).join('\n'),
+    register_memo: registerMemo,
+    memo: registerMemo,
   };
 }
 
-async function runJobSearch(userId, form) {
-  if (!isAiEnabled()) return { status: 503, error: AI_DISABLED_MESSAGE };
-  if (!form.keyword) return { status: 422, error: '검색할 직무 또는 키워드를 입력해 주세요.' };
+async function runJobSearch(userId, rawBody) {
+  const parsed = validateDiscoverInput(rawBody);
+  if (!isAiEnabled()) return { status: 503, error: AI_DISABLED_MESSAGE, form: parsed.form };
+  if (!parsed.ok) return { status: 422, error: parsed.error, form: parsed.form };
   const rateCheck = checkRateLimit(userId);
-  if (!rateCheck.allowed) return { status: 429, error: rateCheck.message };
+  if (!rateCheck.allowed) return { status: 429, error: rateCheck.message, form: parsed.form };
   try {
-    const { results, citations, model } = await searchJobPostings(form);
-    return { status: 200, results: results.map(decorateSearchResult), citations, model };
+    const { results, citations, model } = await searchJobPostings(parsed.value);
+    const decorated = results.map((item) => decorateSearchResult(item, parsed.value.purpose));
+    return { status: 200, form: parsed.form, results: decorated, citations, model };
   } catch (err) {
-    return { status: err.status || 502, error: err.message || 'AI 공고 검색에 실패했습니다.' };
+    return {
+      status: err.status || 502,
+      error: err.message || 'AI 공고 검색에 실패했습니다.',
+      form: parsed.form,
+    };
   }
 }
 
@@ -89,7 +135,8 @@ function createJobDiscoverRouter() {
   const render = (res, status, locals) =>
     res.status(status).render('jobs/discover', {
       title: 'AI 공고 찾기',
-      form: { keyword: '', location: '', career: 'any', extra: '' },
+      discoverOptions: DISCOVER_VIEW_OPTIONS,
+      form: defaultDiscoverForm(),
       results: null,
       citations: [],
       error: null,
@@ -99,10 +146,15 @@ function createJobDiscoverRouter() {
   router.get('/jobs/discover', requireAuth, (req, res) => render(res, 200, {}));
 
   router.post('/jobs/discover', requireAuth, async (req, res) => {
-    const form = readSearchForm(req.body);
-    const outcome = await runJobSearch(req.session.user.id, form);
-    if (outcome.status !== 200) return render(res, outcome.status, { form, error: outcome.error });
-    return render(res, 200, { form, results: outcome.results, citations: outcome.citations });
+    const outcome = await runJobSearch(req.session.user.id, req.body);
+    if (outcome.status !== 200) {
+      return render(res, outcome.status, { form: outcome.form, error: outcome.error });
+    }
+    return render(res, 200, {
+      form: outcome.form,
+      results: outcome.results,
+      citations: outcome.citations,
+    });
   });
 
   return router;
@@ -114,9 +166,15 @@ function createAiRouter(db) {
   const briefingInFlight = new Map();
 
   router.post('/api/jobs/search', async (req, res) => {
-    const outcome = await runJobSearch(req.session.user.id, readSearchForm(req.body));
+    const outcome = await runJobSearch(req.session.user.id, req.body);
     if (outcome.status !== 200) return res.status(outcome.status).json({ error: outcome.error });
-    return res.status(200).json({ ok: true, model: outcome.model, results: outcome.results, citations: outcome.citations });
+    return res.status(200).json({
+      ok: true,
+      model: outcome.model,
+      purpose: outcome.form.purpose,
+      results: outcome.results,
+      citations: outcome.citations,
+    });
   });
 
   router.get('/api/briefing', (req, res) => {
@@ -130,24 +188,34 @@ function createAiRouter(db) {
 
     const now = new Date();
     const dateStr = toIsoDate(now);
-    const rawForce = req.body && req.body.force;
+    const rawForce =
+      req.body && req.body.force !== undefined ? req.body.force : req.query && req.query.force;
     const force = rawForce === true || rawForce === 1 || rawForce === '1' || rawForce === 'true';
     const cached = getBriefingForDate(db, userId, dateStr);
     if (cached && !force) return res.status(200).json({ ok: true, cached: true, briefing: cached });
 
     const inflightKey = `${userId}:${dateStr}`;
-    if (briefingInFlight.has(inflightKey)) {
-      return res.status(409).json({ error: 'AI 브리핑을 생성하는 중입니다. 잠시 후 다시 확인해 주세요.' });
+    const existingInflight = briefingInFlight.get(inflightKey);
+    if (existingInflight) {
+      try {
+        const saved = await existingInflight;
+        return res.status(200).json({ ok: true, cached: false, briefing: saved });
+      } catch (err) {
+        return res.status(err.status || 502).json({ error: err.message || 'AI 브리핑 생성에 실패했습니다.' });
+      }
     }
 
     const rateCheck = checkRateLimit(userId);
     if (!rateCheck.allowed) return res.status(429).json({ error: rateCheck.message });
 
-    briefingInFlight.set(inflightKey, true);
-    try {
+    const generationPromise = (async () => {
       const { context, allowedHrefs } = buildBriefingContext(db, userId, now);
       const { result, model } = await generateWeeklyBriefing(context, { allowedHrefs });
-      const saved = saveBriefing(db, userId, { dateStr, model, result });
+      return saveBriefing(db, userId, { dateStr, model, result });
+    })();
+    briefingInFlight.set(inflightKey, generationPromise);
+    try {
+      const saved = await generationPromise;
       return res.status(200).json({ ok: true, cached: false, briefing: saved });
     } catch (err) {
       return res.status(err.status || 502).json({ error: err.message || 'AI 브리핑 생성에 실패했습니다.' });

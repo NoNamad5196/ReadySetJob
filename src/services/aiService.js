@@ -401,7 +401,7 @@ async function searchJobPostings(payload = {}, options = {}) {
     input,
     fetchImpl: options.fetchImpl,
   });
-  const { results } = validateJobSearchOutput(parsed, createAiError);
+  const { results } = validateJobSearchOutput(parsed, createAiError, { purpose: payload.purpose });
   return { results, citations, model };
 }
 

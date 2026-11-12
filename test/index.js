@@ -17,4 +17,6 @@ require('./ai-errors-and-limits.test.js');
 require('./automation.test.js');
 require('./auto-feedback.test.js');
 require('./ai-search.test.js');
+require('./ai-search-options.test.js');
 require('./ai-briefing.test.js');
+require('./ai-briefing-safety.test.js');

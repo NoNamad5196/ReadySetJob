@@ -79,10 +79,10 @@ function createSettingsRouter(db) {
           ? req.body.monthly_goal
           : req.body.goal_target;
 
-    // Unchecked checkboxes are not submitted, so the hidden marker field tells us
-    // the settings form was used. A disabled checkbox (AI off) keeps the stored value.
-    const autoFeedback = req.body.auto_feedback_present !== undefined && isAiEnabled()
-      ? ['1', 'on', 'true'].includes(String(req.body.auto_feedback || ''))
+    const hasAutoFeedbackInput =
+      req.body.auto_feedback_present !== undefined || req.body.auto_feedback !== undefined;
+    const autoFeedback = hasAutoFeedbackInput && isAiEnabled()
+      ? ['1', 'on', 'true'].includes(String(req.body.auto_feedback || '').toLowerCase())
       : undefined;
 
     const renderInvalid = (errorMessage) =>

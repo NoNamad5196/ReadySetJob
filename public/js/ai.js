@@ -413,6 +413,7 @@
     var card = fragment.querySelector('[data-ai-discover-item]');
     if (!card || !isHttpUrl(item.url)) return null;
 
+    var isGrad = item.purpose === 'grad_school';
     var avatar = setField(card, 'avatar', item.avatar && item.avatar.initial);
     if (avatar && item.avatar && /^avatar--[0-7]$/.test(item.avatar.className)) {
       avatar.classList.add(item.avatar.className);
@@ -424,9 +425,17 @@
       dday.classList.add('badge--dday-' + item.dday.state);
     }
     setField(card, 'employment', item.employment_label);
+    setField(card, 'org-label', item.org_label || (isGrad ? '학교/프로그램' : '기업/직무'));
     setField(card, 'position', item.position);
     setField(card, 'location', item.location);
-    setField(card, 'deadline', item.deadline ? item.deadline + ' 마감' : '마감일 미확인');
+    var deadlineText =
+      item.deadline_text ||
+      (item.deadline
+        ? item.deadline + (isGrad ? ' 원서 마감' : ' 마감')
+        : isGrad
+          ? '원서 마감 미확인'
+          : '마감일 미확인');
+    setField(card, 'deadline', deadlineText);
     setField(card, 'summary', item.summary);
     var link = card.querySelector('[data-field="url"]');
     if (link) link.setAttribute('href', item.url);
@@ -486,24 +495,115 @@
   function bindJobDiscover() {
     var form = document.querySelector('[data-ai-discover-form]');
     if (!form) return;
+    form.setAttribute('data-js-ready', '1');
     var root = form.closest('[data-ai-discover-root]') || document;
     var errEl = root.querySelector('[data-ai-discover-error]');
     var statusEl = root.querySelector('[data-ai-discover-status]');
     var btn = form.querySelector('[data-ai-discover-btn]');
+    var fieldsHint = form.querySelector('[data-discover-fields-hint]');
+    var purposeInputs = form.querySelectorAll('[data-discover-purpose]');
+    var fieldGroups = form.querySelectorAll('[data-field-group]');
+    var purposeOnlyBlocks = form.querySelectorAll('[data-purpose-only]');
+    var fieldInputs = form.querySelectorAll('[data-discover-field]');
+
+    function getSelectedPurpose() {
+      var checked = form.querySelector('[data-discover-purpose]:checked');
+      return checked ? checked.value : 'new_grad';
+    }
+
+    function getActiveCheckedFields() {
+      var values = [];
+      fieldInputs.forEach(function (inp) {
+        if (!inp.disabled && inp.checked) values.push(inp.value);
+      });
+      return values;
+    }
+
+    function updateFieldsHint() {
+      if (!fieldsHint) return;
+      var count = getActiveCheckedFields().length;
+      fieldsHint.textContent = count > 0 ? '선택됨 ' + count + '/3개 (필수)' : '1~3개 선택 (필수)';
+    }
+
+    function syncPurposeSections() {
+      var purpose = getSelectedPurpose();
+      fieldGroups.forEach(function (groupEl) {
+        var allowed = (groupEl.getAttribute('data-field-purposes') || '').split(',');
+        var isMatch = allowed.indexOf(purpose) !== -1;
+        groupEl.classList.toggle('ai-hidden', !isMatch);
+        groupEl.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+          cb.disabled = !isMatch;
+          if (!isMatch) cb.checked = false;
+        });
+      });
+
+      purposeOnlyBlocks.forEach(function (blockEl) {
+        var target = blockEl.getAttribute('data-purpose-only');
+        var isMatch = target === purpose;
+        blockEl.classList.toggle('ai-hidden', !isMatch);
+        blockEl.querySelectorAll('input').forEach(function (inp) {
+          inp.disabled = !isMatch;
+          if (!isMatch) inp.checked = false;
+        });
+      });
+
+      updateFieldsHint();
+    }
+
+    purposeInputs.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        showError(errEl, '');
+        syncPurposeSections();
+      });
+    });
+
+    fieldInputs.forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        showError(errEl, '');
+        var active = getActiveCheckedFields();
+        if (active.length > 3) {
+          cb.checked = false;
+          showError(errEl, '분야는 최대 3개까지 선택할 수 있습니다.');
+        }
+        updateFieldsHint();
+      });
+    });
+
+    syncPurposeSections();
 
     form.addEventListener('submit', function (event) {
       event.preventDefault();
       showError(errEl, '');
+
+      var purpose = getSelectedPurpose();
+      var fields = getActiveCheckedFields();
+      var regionEl = form.querySelector('[data-discover-region]:checked');
+      var degreeEl = form.querySelector('[data-discover-degree]:checked:not(:disabled)');
+      var scheduleEl = form.querySelector('[data-discover-schedule]:checked:not(:disabled)');
+      var keywordEl = form.querySelector('[data-discover-keyword]');
+
       var payload = {
-        keyword: (form.elements.keyword && form.elements.keyword.value || '').trim(),
-        location: form.elements.location ? form.elements.location.value : '',
-        career: form.elements.career ? form.elements.career.value : 'any',
-        extra: form.elements.extra ? form.elements.extra.value : '',
+        purpose: purpose,
+        fields: fields,
+        region: regionEl ? regionEl.value : '',
+        degree: degreeEl ? degreeEl.value : '',
+        schedule: scheduleEl ? scheduleEl.value : '',
+        keyword: keywordEl ? (keywordEl.value || '').trim() : '',
       };
-      if (!payload.keyword) {
-        showError(errEl, '검색할 직무 또는 키워드를 입력해 주세요.');
+
+      if (!payload.purpose) {
+        showError(errEl, '찾으시는 목적(무엇을 찾나요?)을 올바르게 선택해 주세요.');
         return;
       }
+      if (payload.fields.length < 1 || payload.fields.length > 3) {
+        showError(errEl, '분야를 1개 이상 선택해 주세요 (최대 3개).');
+        return;
+      }
+      if (!payload.region) {
+        showError(errEl, '지역을 올바르게 선택해 주세요.');
+        return;
+      }
+
       var origLabel = btn ? btn.textContent : '';
       if (btn) {
         btn.disabled = true;

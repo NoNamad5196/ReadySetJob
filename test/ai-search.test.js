@@ -19,6 +19,13 @@ const SAMPLE_RESULTS = [
   { company_name: '네이버', title: '2026 신입 공개채용', position: 'FE', employment_type: 'bogus', deadline: '2026-02-30', url: 'https://recruit.navercorp.com/rcrt/view.do?annoId=999', location: '성남', summary: '<img src=x onerror=alert(1)>' },
 ];
 
+const VALID_PAYLOAD = {
+  purpose: 'new_grad',
+  fields: ['프론트엔드'],
+  region: '서울',
+  keyword: 'React',
+};
+
 function stubResponse(payloadText, annotations = []) {
   return {
     ok: true,
@@ -88,7 +95,7 @@ describe('AI job search (C): service + /jobs/discover + /api/jobs/search', () =>
       { type: 'url_citation', url: 'https://toss.im/career/job-detail?job_id=123', title: 'Toss Careers' },
       { type: 'url_citation', url: 'ftp://bad.example', title: 'bad' },
     ]);
-    const out = await searchJobPostings({ keyword: '프론트엔드', location: '서울', career: 'new_grad', extra: 'React' });
+    const out = await searchJobPostings(VALID_PAYLOAD);
     const { url, headers, body } = calls[0];
     assert.equal(url, 'https://api.openai.com/v1/responses');
     assert.equal(headers.Authorization, 'Bearer sk-search-service-test');
@@ -105,10 +112,15 @@ describe('AI job search (C): service + /jobs/discover + /api/jobs/search', () =>
     assert.deepEqual(out.citations, [{ url: 'https://toss.im/career/job-detail?job_id=123', title: 'Toss Careers' }]);
   });
 
-  it('GET /jobs/discover renders the page (not swallowed by /jobs/:id) and requires login', async () => {
+  it('GET /jobs/discover renders all 5 purpose chips, step sections, and requires login', async () => {
     const res = await user.agent.get('/jobs/discover');
     assert.equal(res.status, 200);
     assert.match(res.text, /AI 공고 찾기/);
+    assert.match(res.text, /무엇을 찾나요\?/);
+    for (const val of ['new_grad', 'experienced', 'intern', 'parttime', 'grad_school']) {
+      assert.match(res.text, new RegExp(`name="purpose"[^>]*value="${val}"`));
+    }
+    assert.match(res.text, /AI로 찾기/);
     assert.match(res.text, /AI 웹 검색 결과는 오래되었거나 부정확할 수 있으니 출처에서 확인 후 등록하세요\./);
     assert.match(res.text, /OPENAI_API_KEY 미설정/);
     const anon = await require('supertest')(ctx.app).get('/jobs/discover');
@@ -117,15 +129,15 @@ describe('AI job search (C): service + /jobs/discover + /api/jobs/search', () =>
     assert.match(listRes.text, /href="\/jobs\/discover"/);
   });
 
-  it('returns 503 when disabled, 403 without CSRF, 422 on empty keyword — without calling OpenAI', async () => {
+  it('returns 503 when disabled, 403 without CSRF, 422 on invalid input — without calling OpenAI', async () => {
     const calls = installStub('{}');
-    const disabled = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send({ keyword: '백엔드' });
+    const disabled = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send(VALID_PAYLOAD);
     assert.equal(disabled.status, 503);
     assert.match(disabled.body.error, /OPENAI_API_KEY 미설정/);
 
     process.env.OPENAI_API_KEY = 'sk-test';
-    assert.equal((await user.agent.post('/api/jobs/search').send({ keyword: '백엔드' })).status, 403);
-    const empty = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send({ keyword: '   ' });
+    assert.equal((await user.agent.post('/api/jobs/search').send(VALID_PAYLOAD)).status, 403);
+    const empty = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send({ purpose: 'new_grad', fields: [], region: '서울' });
     assert.equal(empty.status, 422);
     assert.equal(calls.length, 0);
   });
@@ -134,8 +146,7 @@ describe('AI job search (C): service + /jobs/discover + /api/jobs/search', () =>
     process.env.OPENAI_API_KEY = 'sk-route-test';
     installStub(JSON.stringify({ results: SAMPLE_RESULTS }));
     const before = ctx.db.prepare('SELECT COUNT(*) AS c FROM job_posts').get().c;
-    const res = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken)
-      .send({ keyword: '프론트엔드', career: 'hacker' });
+    const res = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send(VALID_PAYLOAD);
     assert.equal(res.status, 200);
     assert.equal(res.body.results.length, 2);
     const [toss, naver] = res.body.results;
@@ -149,7 +160,12 @@ describe('AI job search (C): service + /jobs/discover + /api/jobs/search', () =>
   it('no-JS form POST renders escaped results with source link and a working register form', async () => {
     process.env.OPENAI_API_KEY = 'sk-form-test';
     installStub('```json\n' + JSON.stringify({ results: SAMPLE_RESULTS }) + '\n```');
-    const res = await user.agent.post('/jobs/discover').type('form').send({ _csrf: user.csrfToken, keyword: '프론트엔드' });
+    const res = await user.agent.post('/jobs/discover').type('form').send({
+      _csrf: user.csrfToken,
+      purpose: 'new_grad',
+      fields: '프론트엔드',
+      region: '서울',
+    });
     assert.equal(res.status, 200);
     assert.match(res.text, /href="https:\/\/toss\.im\/career\/job-detail\?job_id=123" target="_blank" rel="noopener noreferrer"/);
     assert.equal(res.text.includes('<img src=x'), false);
@@ -166,12 +182,12 @@ describe('AI job search (C): service + /jobs/discover + /api/jobs/search', () =>
   it('returns 502 on non-JSON model output and 429 when the shared AI rate limit is exhausted', async () => {
     process.env.OPENAI_API_KEY = 'sk-bad-output';
     installStub('검색 결과를 찾지 못했습니다.');
-    const bad = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send({ keyword: '마케팅' });
+    const bad = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send(VALID_PAYLOAD);
     assert.equal(bad.status, 502);
 
     resetRateLimit();
     for (let i = 0; i < RATE_LIMIT_MAX; i += 1) checkRateLimit(1);
-    const limited = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send({ keyword: '마케팅' });
+    const limited = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send(VALID_PAYLOAD);
     assert.equal(limited.status, 429);
   });
 });

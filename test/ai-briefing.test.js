@@ -1,7 +1,7 @@
 const { it } = require('node:test');
 const assert = require('node:assert/strict');
 const { createTestContext, signupAndLogin } = require('./helpers');
-const { buildBriefingContext, saveBriefing } = require('../src/services/aiBriefingService');
+const { buildBriefingContext, saveBriefing, toIsoDate } = require('../src/services/aiBriefingService');
 const { createJobPostWithCompany } = require('../src/services/jobsService');
 const { setFetchImpl, resetRateLimit, checkRateLimit } = require('../src/services/aiService');
 
@@ -51,15 +51,16 @@ it('search and briefing endpoints enforce CSRF, disabled mode, input validation,
     assert.equal((await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken)
       .send({ keyword: '   ' })).status, 422);
     for (let index = 0; index < 20; index += 1) assert.equal(checkRateLimit(1).allowed, true);
+    const validSearchPayload = { purpose: 'new_grad', fields: ['백엔드'], region: '서울', keyword: '개발자' };
     for (const path of ['/api/jobs/search', '/api/briefing']) {
       assert.equal((await user.agent.post(path).set('X-CSRF-Token', user.csrfToken)
-        .send({ keyword: '개발자' })).status, 429);
+        .send(validSearchPayload)).status, 429);
     }
     resetRateLimit();
     setFetchImpl(async () => ({ ok: true, json: async () => ({ output_text: 'not JSON' }) }));
     for (const path of ['/api/jobs/search', '/api/briefing']) {
       assert.equal((await user.agent.post(path).set('X-CSRF-Token', user.csrfToken)
-        .send({ keyword: '개발자' })).status, 502);
+        .send(validSearchPayload)).status, 502);
     }
     assert.equal(ctx.db.prepare('SELECT COUNT(*) AS count FROM ai_briefings').get().count, 0);
   } finally {
@@ -73,10 +74,14 @@ it('search and briefing endpoints enforce CSRF, disabled mode, input validation,
 
 it('briefing generation is cached per date and user, refresh replaces one row, and dashboard escapes model text', async () => {
   const key = process.env.OPENAI_API_KEY;
+  const model = process.env.OPENAI_MODEL;
+  const briefingModel = process.env.OPENAI_MODEL_BRIEFING;
   const ctx = createTestContext();
   let calls = 0;
   try {
     process.env.OPENAI_API_KEY = 'stub-cache-key';
+    delete process.env.OPENAI_MODEL;
+    delete process.env.OPENAI_MODEL_BRIEFING;
     resetRateLimit();
     const userA = await signupAndLogin(ctx.app, { email: 'brief-cache-a@example.com' });
     const userB = await signupAndLogin(ctx.app, { email: 'brief-cache-b@example.com' });
@@ -90,6 +95,8 @@ it('briefing generation is cached per date and user, refresh replaces one row, a
       assert.equal(body.tools, undefined);
       assert.equal(init.headers.Authorization, 'Bearer stub-cache-key');
       assert.equal(body.reasoning.effort, 'low');
+      assert.equal(body.model, calls === 1 ? 'gpt-6-luna' : calls === 2 ? 'briefing-custom' : 'global-custom');
+      assert.equal(body.text.format.type, 'json_schema');
       if (calls < 3) {
         assert.match(body.input, /내 기업/);
         assert.doesNotMatch(body.input, /타인 비공개 기업/);
@@ -107,6 +114,7 @@ it('briefing generation is cached per date and user, refresh replaces one row, a
     assert.equal((await post(userA)).body.cached, true);
     assert.equal(calls, 1);
     assert.equal((await userB.agent.get('/api/briefing')).body.briefing, null);
+    process.env.OPENAI_MODEL_BRIEFING = 'briefing-custom';
     assert.equal((await post(userA, { force: 1 })).status, 200);
     assert.equal(calls, 2);
     assert.equal(ctx.db.prepare('SELECT COUNT(*) AS count FROM ai_briefings WHERE user_id = ?').get(1).count, 1);
@@ -115,11 +123,26 @@ it('briefing generation is cached per date and user, refresh replaces one row, a
     assert.match(page.text, /AI 주간 브리핑/);
     assert.match(page.text, /&lt;script&gt;unsafe&lt;\/script&gt;/);
     assert.doesNotMatch(page.text, /<script>unsafe<\/script>/);
-    assert.equal((await post(userB)).status, 200);
+    process.env.OPENAI_MODEL = 'global-custom';
+    assert.equal((await userA.agent.post('/api/briefing?force=1').set('X-CSRF-Token', userA.csrfToken).send({})).status, 200);
     assert.equal(calls, 3);
+    assert.equal((await post(userB)).status, 200);
+    assert.equal(calls, 4);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    ctx.db.prepare('UPDATE ai_briefings SET briefing_date = ? WHERE user_id = ?').run(toIsoDate(yesterday), 1);
+    assert.equal((await userA.agent.get('/api/briefing')).body.briefing, null);
+    assert.equal((await post(userA)).body.briefing.briefing_date, toIsoDate(new Date()));
+    assert.equal((await post(userA)).body.cached, true);
+    assert.equal(calls, 5);
+    assert.equal(ctx.db.prepare('SELECT COUNT(*) AS count FROM ai_briefings WHERE user_id = ?').get(1).count, 2);
   } finally {
     if (key === undefined) delete process.env.OPENAI_API_KEY;
     else process.env.OPENAI_API_KEY = key;
+    if (model === undefined) delete process.env.OPENAI_MODEL;
+    else process.env.OPENAI_MODEL = model;
+    if (briefingModel === undefined) delete process.env.OPENAI_MODEL_BRIEFING;
+    else process.env.OPENAI_MODEL_BRIEFING = briefingModel;
     resetRateLimit();
     setFetchImpl(null);
     ctx.cleanup();
