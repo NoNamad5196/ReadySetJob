@@ -58,6 +58,26 @@
       </p>
     </div>
 
+    <div class="form-field">
+      <input type="hidden" name="auto_feedback_present" value="1">
+      <label for="settings-auto-feedback">
+        <input
+          type="checkbox"
+          id="settings-auto-feedback"
+          name="auto_feedback"
+          value="1"
+          <%= values.auto_feedback ? 'checked' : '' %>
+          <%= aiEnabled ? '' : 'disabled' %>
+        >
+        자소서 버전 저장 시 AI 피드백 자동 생성 (호출 비용 발생)
+      </label>
+      <% if (aiEnabled) { %>
+        <p class="text-muted">버전을 저장하면 답변이 있는 문항마다 AI 피드백을 백그라운드에서 생성합니다. AI 요청 한도(10분당 20회)를 함께 사용합니다.</p>
+      <% } else { %>
+        <p class="text-muted">AI 기능이 비활성화되어 있어 사용할 수 없습니다 (OPENAI_API_KEY 미설정).</p>
+      <% } %>
+    </div>
+
     <button type="submit" class="btn btn-primary">설정 저장</button>
   </form>
   <p class="text-muted">

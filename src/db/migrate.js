@@ -30,6 +30,7 @@ function migrate(db) {
 
   ensureColumn(db, 'users', 'season_label', 'TEXT NULL');
   ensureColumn(db, 'applications', 'is_favorite', 'INTEGER NOT NULL DEFAULT 0');
+  ensureColumn(db, 'users', 'auto_feedback', 'INTEGER NOT NULL DEFAULT 0 CHECK (auto_feedback IN (0, 1))');
   db.exec('CREATE INDEX IF NOT EXISTS idx_todos_user_done_due ON todos(user_id, is_done, due_date)');
   db.exec('CREATE INDEX IF NOT EXISTS idx_essay_feedback_lookup ON essay_feedback(user_id, essay_id, question_id, id)');
   db.exec('CREATE INDEX IF NOT EXISTS idx_material_star_drafts_lookup ON material_star_drafts(user_id, material_id, id)');

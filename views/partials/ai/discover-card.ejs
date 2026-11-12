@@ -1,0 +1,39 @@
+<%
+  /*
+    Partial: views/partials/ai/discover-card.ejs
+    Used by views/jobs/discover.ejs for server-rendered results and, with item = null,
+    as the <template> markup that public/js/ai.js clones and fills via textContent.
+  */
+  const it = typeof item !== 'undefined' && item ? item : null;
+%>
+<li class="ai-discover-card" data-ai-discover-item>
+  <div class="ai-discover-card__head">
+    <span class="avatar avatar--md <%= it ? it.avatar.className : '' %>" data-field="avatar"><%= it ? it.avatar.initial : '' %></span>
+    <div class="ai-discover-card__titles">
+      <strong class="ai-discover-card__title" data-field="title"><%= it ? it.title : '' %></strong>
+      <span class="ai-discover-card__company" data-field="company"><%= it ? it.company_name : '' %></span>
+    </div>
+    <span class="badge num <%= it ? 'badge--dday-' + it.dday.state : '' %>" data-field="dday"><%= it ? it.dday.label : '' %></span>
+  </div>
+  <div class="ai-discover-card__meta">
+    <span class="badge" data-field="employment"><%= it ? it.employment_label : '' %></span>
+    <span data-field="position"><%= it ? it.position : '' %></span>
+    <span data-field="location"><%= it ? it.location : '' %></span>
+    <span class="num" data-field="deadline"><%= it ? (it.deadline ? it.deadline + ' 마감' : '마감일 미확인') : '' %></span>
+  </div>
+  <p class="ai-discover-card__summary" data-field="summary"><%= it ? it.summary : '' %></p>
+  <div class="ai-discover-card__actions">
+    <a class="btn btn-sm" href="<%= it ? it.url : '#' %>" target="_blank" rel="noopener noreferrer" data-field="url">출처 열기</a>
+    <form action="/jobs" method="POST" class="ai-discover-card__register">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="new_company_name" value="<%= it ? it.company_name : '' %>" data-field="f-company">
+      <input type="hidden" name="title" value="<%= it ? it.title : '' %>" data-field="f-title">
+      <input type="hidden" name="position" value="<%= it ? it.position : '' %>" data-field="f-position">
+      <input type="hidden" name="employment_type" value="<%= it ? it.register_employment_type : 'other' %>" data-field="f-employment">
+      <input type="hidden" name="deadline" value="<%= it && it.deadline ? it.deadline : '' %>" data-field="f-deadline">
+      <input type="hidden" name="url" value="<%= it ? it.url : '' %>" data-field="f-url">
+      <input type="hidden" name="memo" value="<%= it ? it.register_memo : '' %>" data-field="f-memo">
+      <button type="submit" class="btn btn-sm btn-primary">공고 등록</button>
+    </form>
+  </div>
+</li>

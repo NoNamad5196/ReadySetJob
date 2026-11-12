@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="<%= csrfToken %>">
   <title><%= typeof title !== 'undefined' && title ? `${title} | ReadySetJob` : 'ReadySetJob' %></title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#3182F6">
   <link rel="stylesheet" href="/vendor/pretendard/pretendardvariable.css">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/app.css">
@@ -104,7 +109,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="/jobs" class="sidebar__link <%= currentPath.startsWith('/jobs') ? 'sidebar__link--active' : '' %>">
+                  <a href="/jobs" class="sidebar__link <%= currentPath.startsWith('/jobs') && !currentPath.startsWith('/jobs/discover') ? 'sidebar__link--active' : '' %>">
                     <div class="sidebar__link-left">
                       <span class="sidebar__icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -113,6 +118,21 @@
                         </svg>
                       </span>
                       <span>채용 공고</span>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="/jobs/discover" class="sidebar__link <%= currentPath.startsWith('/jobs/discover') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="11" cy="11" r="7"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                          <path d="M11 8v6"></path>
+                          <path d="M8 11h6"></path>
+                        </svg>
+                      </span>
+                      <span>AI 공고 찾기</span>
                     </div>
                   </a>
                 </li>

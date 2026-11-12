@@ -11,6 +11,12 @@ const {
   validateStarDraftOutput,
   buildJobParsePrompt,
   validateJobParseOutput,
+  JOB_SEARCH_SCHEMA,
+  WEEKLY_BRIEFING_SCHEMA,
+  buildJobSearchPrompt,
+  validateJobSearchOutput,
+  buildBriefingPrompt,
+  validateBriefingOutput,
 } = require('./aiSchemas');
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
@@ -54,6 +60,34 @@ const FEATURE_SPECS = {
     schema: JOB_PARSE_SCHEMA,
     maxOutputTokens: 1200,
   },
+  search: {
+    label: 'AI 공고 검색·추천 (웹 검색)',
+    envVar: 'OPENAI_MODEL_SEARCH',
+    defaultModel: 'gpt-6.1-terra',
+    effort: 'low',
+    schemaName: 'job_search_results',
+    schema: JOB_SEARCH_SCHEMA,
+    maxOutputTokens: 6000,
+    timeoutMs: 90000,
+    // Hosted Responses API web search tool; tool_choice "required" forces at least one search.
+    tools: [
+      {
+        type: 'web_search',
+        search_context_size: 'medium',
+        user_location: { type: 'approximate', country: 'KR', timezone: 'Asia/Seoul' },
+      },
+    ],
+    toolChoice: 'required',
+  },
+  briefing: {
+    label: 'AI 주간 브리핑',
+    envVar: 'OPENAI_MODEL_BRIEFING',
+    defaultModel: 'gpt-6-luna',
+    effort: 'low',
+    schemaName: 'weekly_briefing',
+    schema: WEEKLY_BRIEFING_SCHEMA,
+    maxOutputTokens: 1600,
+  },
 };
 
 class AiError extends Error {
@@ -93,12 +127,10 @@ function getFeatureModel(featureKey) {
 }
 
 function getAiConfig() {
-  const models = {
-    interview: getFeatureModel('interview'),
-    feedback: getFeatureModel('feedback'),
-    draft: getFeatureModel('draft'),
-    extract: getFeatureModel('extract'),
-  };
+  const models = {};
+  for (const key of Object.keys(FEATURE_SPECS)) {
+    models[key] = getFeatureModel(key);
+  }
   const features = Object.entries(FEATURE_SPECS).map(([key, spec]) => ({
     key,
     label: spec.label,
@@ -208,9 +240,13 @@ async function callOpenAiStructured({ featureKey, instructions, input, fetchImpl
     },
     max_output_tokens: spec.maxOutputTokens,
   };
+  if (Array.isArray(spec.tools) && spec.tools.length > 0) {
+    requestBody.tools = spec.tools;
+    if (spec.toolChoice) requestBody.tool_choice = spec.toolChoice;
+  }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), spec.timeoutMs || REQUEST_TIMEOUT_MS);
   const fn = getFetchImpl(fetchImpl);
 
   let res;
@@ -254,14 +290,58 @@ async function callOpenAiStructured({ featureKey, instructions, input, fetchImpl
   }
 
   const rawText = extractResponseText(data);
-  let parsed;
-  try {
-    parsed = JSON.parse(rawText);
-  } catch {
+  const parsed = parseJsonLoose(rawText);
+  if (parsed === undefined) {
     throw createAiError('AI 응답이 유효한 JSON 형식이 아닙니다.', 502);
   }
 
-  return { parsed, model };
+  return { parsed, model, citations: extractUrlCitations(data) };
+}
+
+function parseJsonLoose(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const fenced = String(text).match(/```(?:json)?\s*([\s\S]*?)```/i);
+    const candidate = fenced ? fenced[1] : String(text);
+    const start = candidate.indexOf('{');
+    const end = candidate.lastIndexOf('}');
+    if (start === -1 || end <= start) return undefined;
+    try {
+      return JSON.parse(candidate.slice(start, end + 1));
+    } catch {
+      return undefined;
+    }
+  }
+}
+
+function extractUrlCitations(data) {
+  const citations = [];
+  const seen = new Set();
+  const outputItems = data && Array.isArray(data.output) ? data.output : [];
+  for (const item of outputItems) {
+    const parts = item && Array.isArray(item.content) ? item.content : [];
+    for (const part of parts) {
+      const annotations = part && Array.isArray(part.annotations) ? part.annotations : [];
+      for (const ann of annotations) {
+        if (!ann || ann.type !== 'url_citation' || typeof ann.url !== 'string') continue;
+        const url = ann.url.trim();
+        if (!isHttpUrl(url) || seen.has(url)) continue;
+        seen.add(url);
+        citations.push({ url, title: typeof ann.title === 'string' ? ann.title.trim().slice(0, 200) : '' });
+      }
+    }
+  }
+  return citations.slice(0, 10);
+}
+
+function isHttpUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 async function generateInterviewQuestions(payload = {}, options = {}) {
@@ -311,6 +391,32 @@ async function parseJobPostingText(payload = {}, options = {}) {
   return { result, model };
 }
 
+async function searchJobPostings(payload = {}, options = {}) {
+  const now = options.now || new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const { instructions, input } = buildJobSearchPrompt({ ...payload, today });
+  const { parsed, model, citations } = await callOpenAiStructured({
+    featureKey: 'search',
+    instructions,
+    input,
+    fetchImpl: options.fetchImpl,
+  });
+  const { results } = validateJobSearchOutput(parsed, createAiError);
+  return { results, citations, model };
+}
+
+async function generateWeeklyBriefing(context = {}, options = {}) {
+  const { instructions, input } = buildBriefingPrompt(context);
+  const { parsed, model } = await callOpenAiStructured({
+    featureKey: 'briefing',
+    instructions,
+    input,
+    fetchImpl: options.fetchImpl,
+  });
+  const result = validateBriefingOutput(parsed, createAiError, { allowedHrefs: options.allowedHrefs });
+  return { result, model };
+}
+
 module.exports = {
   AI_DISABLED_MESSAGE,
   RATE_LIMIT_MAX,
@@ -326,4 +432,6 @@ module.exports = {
   generateEssayFeedback,
   generateMaterialStarDraft,
   parseJobPostingText,
+  searchJobPostings,
+  generateWeeklyBriefing,
 };

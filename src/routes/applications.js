@@ -13,6 +13,9 @@ const {
 const { list: listInterviewQuestions } = require('../services/interviewQuestionsService');
 const { isAiEnabled } = require('../services/aiService');
 const { createInterviewQuestionsRouter } = require('./interviewQuestions');
+const { onApplicationCreated, onStageChanged, scheduleStageAi } = require('../services/automationService');
+
+const AUTO_ORGANIZED_MESSAGE = '마감 일정과 할 일이 자동으로 등록되었습니다.';
 
 function validateApplicationFormInput({ stage, result, applied_at }) {
   if (!APPLICATION_STAGES.includes(stage)) return '올바른 전형 단계를 선택해 주세요.';
@@ -134,8 +137,17 @@ function createApplicationsRouter(db) {
     }
 
     try {
-      const created = createApplication(db, userId, formValues);
-      req.setFlash('success', '지원 내역이 등록되었습니다.');
+      const { created, auto } = db.transaction(() => {
+        const app = createApplication(db, userId, formValues);
+        return { created: app, auto: onApplicationCreated(db, userId, app) };
+      })();
+      scheduleStageAi(db, userId, created.id);
+      req.setFlash(
+        'success',
+        auto.eventCreated || auto.todoCreated
+          ? `지원 내역이 등록되었습니다. ${AUTO_ORGANIZED_MESSAGE}`
+          : '지원 내역이 등록되었습니다.'
+      );
       return res.redirect(`/applications/${created.id}`);
     } catch (err) {
       if (err.code === 'DUPLICATE_APPLICATION') return renderInvalid(err.message);
@@ -199,8 +211,12 @@ function createApplicationsRouter(db) {
       });
     }
 
-    updateApplication(db, userId, existing.id, formValues);
-    req.setFlash('success', '지원 내역이 수정되었습니다.');
+    const updated = updateApplication(db, userId, existing.id, formValues);
+    const auto = onStageChanged(db, userId, updated, existing.stage);
+    req.setFlash(
+      'success',
+      auto.todoCreated ? '지원 내역이 수정되었습니다. 면접 준비 할 일이 자동으로 등록되었습니다.' : '지원 내역이 수정되었습니다.'
+    );
     return res.redirect(`/applications/${existing.id}`);
   });
 
@@ -210,17 +226,17 @@ function createApplicationsRouter(db) {
     const parsed = parseStagePayload(req.body);
     if (parsed.error) return next(createHttpError(422, parsed.error));
 
-    const updated = moveApplication(
-      db,
-      req.session.user.id,
-      id,
-      parsed.stage,
-      parsed.parsedIndex,
-      parsed.result
-    );
+    const userId = req.session.user.id;
+    const before = getApplicationById(db, userId, id);
+    if (!before) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
+    const updated = moveApplication(db, userId, id, parsed.stage, parsed.parsedIndex, parsed.result);
     if (!updated) return next(createHttpError(404, '요청한 지원 내역을 찾을 수 없습니다.'));
+    const auto = onStageChanged(db, userId, updated, before.stage);
 
-    req.setFlash('success', '전형 단계가 변경되었습니다.');
+    req.setFlash(
+      'success',
+      auto.todoCreated ? '전형 단계가 변경되었습니다. 면접 준비 할 일이 자동으로 등록되었습니다.' : '전형 단계가 변경되었습니다.'
+    );
     return res.redirect('/applications/board');
   });
 
@@ -264,13 +280,17 @@ function createApplicationsApiRouter(db) {
     const parsed = parseStagePayload(req.body);
     if (parsed.error) return res.status(422).json({ error: parsed.error });
 
-    const updated = patchApplicationStage(db, req.session.user.id, id, {
+    const userId = req.session.user.id;
+    const before = getApplicationById(db, userId, id);
+    if (!before) return res.status(404).json({ error: '요청한 지원 내역을 찾을 수 없습니다.' });
+    const updated = patchApplicationStage(db, userId, id, {
       stage: parsed.stage,
       result: parsed.result,
       index: parsed.parsedIndex,
       board_order: parsed.board_order,
     });
     if (!updated) return res.status(404).json({ error: '요청한 지원 내역을 찾을 수 없습니다.' });
+    const auto = onStageChanged(db, userId, updated, before.stage);
 
     return res.json({
       ok: true,
@@ -281,6 +301,7 @@ function createApplicationsApiRouter(db) {
       application: { ...updated },
       stageLogs: updated.stageLogs,
       stage_logs: updated.stageLogs,
+      auto_todo_created: auto.todoCreated,
     });
   });
 

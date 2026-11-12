@@ -167,6 +167,16 @@ CREATE TABLE IF NOT EXISTS material_star_drafts (
   created_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS ai_briefings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  briefing_date TEXT NOT NULL CHECK (briefing_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+  model TEXT NOT NULL,
+  result_json TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(user_id, briefing_date)
+);
+
 CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_user_id ON job_posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_company_id ON job_posts(company_id);
@@ -184,3 +194,4 @@ CREATE INDEX IF NOT EXISTS idx_interview_questions_user_id ON interview_question
 CREATE INDEX IF NOT EXISTS idx_todos_user_done_due ON todos(user_id, is_done, due_date);
 CREATE INDEX IF NOT EXISTS idx_essay_feedback_lookup ON essay_feedback(user_id, essay_id, question_id, id);
 CREATE INDEX IF NOT EXISTS idx_material_star_drafts_lookup ON material_star_drafts(user_id, material_id, id);
+CREATE INDEX IF NOT EXISTS idx_ai_briefings_user_date ON ai_briefings(user_id, briefing_date);

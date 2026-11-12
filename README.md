@@ -45,10 +45,14 @@
   * D-7 마감 임박 공고 및 다가오는 일정 요약 위젯
 * **경험 자료함**:
   * 프로젝트, 수상, 인턴, 대외활동 등 본인의 스펙을 카테고리 및 태그별로 정리
-* **AI 취업 도우미 (OpenAI Responses API)**:
+* **AI 취업 도우미 및 자동 정리 (OpenAI Responses API)**:
   * 지원 공고(기업명, 직무, 메모)와 자기소개서 답변을 기반으로 OpenAI Responses API 맞춤 면접 질문 도출, 자기소개서 문항 피드백, 경험 자료 STAR 초안 생성, 채용 공고 텍스트 자동 추출 지원
+  * **일정·할 일·AI 질문 자동 정리 (`automationService`)**: 공고 등록 시 마감 일정(`deadline`, 18:00) 자동 생성, 지원 등록 시 일정 연결 및 `[회사명] 자기소개서 작성` 할 일 자동 생성, 1차/2차 면접 단계 전환 시(`[회사명] 1차면접 준비` 등) 할 일 자동 생성 및 백그라운드 AI 면접 질문 자동 생성(기존 AI 질문 3개 미만 시, 중복 방지)
+  * **자소서 버전 저장 시 자동 AI 피드백**: 설정 화면(`users.auto_feedback`, 기본 off, 비용 안내) 활성화 시 버전 저장마다 답변이 있는 문항별 AI 피드백을 백그라운드로 생성·저장
+  * **AI 공고 검색·추천 (`/jobs/discover`)**: OpenAI 내장 `web_search` 도구(`tools: [{ type: "web_search" }]`, 한국 지역 힌트)와 JSON 스키마 검증으로 최대 8건 추천(유효 `http`/`https` 출처 URL 필수, 잘못된 마감일 `null` 처리, DB 자동 저장 없이 카드에서 `POST /jobs` 등록, 마감일 누락·부정확 가능성 면책 안내)
+  * **AI 주간 브리핑 (`/dashboard`)**: 대시보드 상단에서 본인 데이터(7일 내 마감·일정, 미완료 할 일, 단계별 진행 지원, 이번 달 목표)만 요약해 하루 1회 캐시(`ai_briefings`, `force=1` 새로고침, 내부 링크 allow-list)
   * API 키(`OPENAI_API_KEY`) 미설정 시 버튼이 비활성화되며 가짜 응답 없이 정직하게 안내
-  * 사용자별 10분당 최대 20회 생성 속도 제한 적용
+  * 사용자별 10분당 최대 20회 통합 속도 제한 적용
 
 ---
 
@@ -118,9 +122,9 @@ ReadySetJob은 사용자 경험 설계를 위해 3가지 콘셉트의 정적 HTM
    ```bash
    npm test
    ```
-    * Node.js 22 내장 테스트 러너를 통해 15개 스위트, 66개 테스트 케이스를 순차 실행합니다.
+    * Node.js 22 내장 테스트 러너를 통해 18개 스위트, 89개 테스트 케이스를 순차 실행합니다.
 
-### 5.3 Render 무료 배포 (시연용)
+### 5.3 Render 무료 배포 (시연용: https://readysetjob.onrender.com)
 
 Vercel 같은 서버리스 환경은 파일시스템이 휘발성이라 SQLite 데이터와 세션이 유지되지 않으므로, 상시 실행 서버를 제공하는 Render 무료 플랜을 사용합니다.
 
@@ -147,6 +151,9 @@ Vercel 같은 서버리스 환경은 파일시스템이 휘발성이라 SQLite �
 | `OPENAI_MODEL_FEEDBACK` | 선택 | `gpt-6.1-terra` | 자기소개서 문항 피드백에 사용할 OpenAI 모델 식별자 |
 | `OPENAI_MODEL_DRAFT` | 선택 | `gpt-6.1-terra` | 경험 자료 STAR 초안 생성에 사용할 OpenAI 모델 식별자 |
 | `OPENAI_MODEL_EXTRACT` | 선택 | `gpt-6-luna` | 채용 공고 텍스트 추출에 사용할 OpenAI 모델 식별자 |
+| `OPENAI_MODEL_SEARCH` | 선택 | `gpt-6.1-terra` | AI 채용 공고 웹 검색·추천(`web_search`)에 사용할 OpenAI 모델 식별자 |
+| `OPENAI_MODEL_BRIEFING` | 선택 | `gpt-6-luna` | 대시보드 AI 주간 브리핑 생성에 사용할 OpenAI 모델 식별자 |
+| `AUTO_SEED` | 선택 | `(빈 값)` | `1`로 설정 시 서버 시작 시점에 DB가 비어 있으면 한국어 데모 데이터를 자동 시드합니다 (Render 무료 플랜 등 휘발성 디스크 환경용). |
 
 ---
 
@@ -188,7 +195,7 @@ ReadySetJob/
 │   ├── DESIGN_REFERENCES.md # UI/UX 레퍼런스 분석서
 │   ├── IDEA_LOG.md          # 개발 일지 및 아이디어 로그
 │   └── notion/              # 원격 Notion 동기화 백업 마크다운 문서들
-└── test/                    # 통합 테스트 스위트 (15개 스위트, 66개 테스트)
+└── test/                    # 통합 테스트 스위트 (18개 스위트, 89개 테스트)
 ```
 
 ---

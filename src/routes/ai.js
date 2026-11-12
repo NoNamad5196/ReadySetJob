@@ -1,6 +1,12 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
-const { parseId } = require('../middleware/validation');
+const {
+  parseId,
+  calculateDday,
+  EMPLOYMENT_TYPES,
+  EMPLOYMENT_TYPE_LABELS,
+} = require('../middleware/validation');
+const { companyAvatar } = require('../utils/avatar');
 const { createHttpError } = require('../middleware/error');
 const {
   AI_DISABLED_MESSAGE,
@@ -9,7 +15,15 @@ const {
   generateEssayFeedback,
   generateMaterialStarDraft,
   parseJobPostingText,
+  searchJobPostings,
+  generateWeeklyBriefing,
 } = require('../services/aiService');
+const {
+  toIsoDate,
+  buildBriefingContext,
+  getBriefingForDate,
+  saveBriefing,
+} = require('../services/aiBriefingService');
 const {
   getOwnedEssayQuestionContext,
   saveEssayFeedback,
@@ -28,9 +42,119 @@ function wantsJson(req) {
   );
 }
 
+const SEARCH_CAREERS = ['new_grad', 'intern', 'experienced', 'any'];
+
+function readSearchForm(body = {}) {
+  const pick = (key, max) => (typeof body[key] === 'string' ? body[key].trim().slice(0, max) : '');
+  const career = pick('career', 20);
+  return {
+    keyword: pick('keyword', 100),
+    location: pick('location', 60),
+    career: SEARCH_CAREERS.includes(career) ? career : 'any',
+    extra: pick('extra', 300),
+  };
+}
+
+function decorateSearchResult(item) {
+  const avatar = companyAvatar(item.company_name);
+  const dday = calculateDday(item.deadline);
+  const registerType = EMPLOYMENT_TYPES.includes(item.employment_type) ? item.employment_type : 'other';
+  const memoParts = [item.summary, item.location ? `근무 지역: ${item.location}` : '', `AI 웹 검색 출처: ${item.url}`];
+  return {
+    ...item,
+    avatar: { initial: avatar.initial, className: avatar.className },
+    dday: { label: dday.label, state: dday.state },
+    employment_label: EMPLOYMENT_TYPE_LABELS[item.employment_type] || '형태 미상',
+    register_employment_type: registerType,
+    register_memo: memoParts.filter(Boolean).join('\n'),
+  };
+}
+
+async function runJobSearch(userId, form) {
+  if (!isAiEnabled()) return { status: 503, error: AI_DISABLED_MESSAGE };
+  if (!form.keyword) return { status: 422, error: '검색할 직무 또는 키워드를 입력해 주세요.' };
+  const rateCheck = checkRateLimit(userId);
+  if (!rateCheck.allowed) return { status: 429, error: rateCheck.message };
+  try {
+    const { results, citations, model } = await searchJobPostings(form);
+    return { status: 200, results: results.map(decorateSearchResult), citations, model };
+  } catch (err) {
+    return { status: err.status || 502, error: err.message || 'AI 공고 검색에 실패했습니다.' };
+  }
+}
+
+// Mounted before the /jobs router so "/jobs/discover" is not captured by "/jobs/:id".
+function createJobDiscoverRouter() {
+  const router = express.Router();
+  const render = (res, status, locals) =>
+    res.status(status).render('jobs/discover', {
+      title: 'AI 공고 찾기',
+      form: { keyword: '', location: '', career: 'any', extra: '' },
+      results: null,
+      citations: [],
+      error: null,
+      ...locals,
+    });
+
+  router.get('/jobs/discover', requireAuth, (req, res) => render(res, 200, {}));
+
+  router.post('/jobs/discover', requireAuth, async (req, res) => {
+    const form = readSearchForm(req.body);
+    const outcome = await runJobSearch(req.session.user.id, form);
+    if (outcome.status !== 200) return render(res, outcome.status, { form, error: outcome.error });
+    return render(res, 200, { form, results: outcome.results, citations: outcome.citations });
+  });
+
+  return router;
+}
+
 function createAiRouter(db) {
   const router = express.Router();
   router.use(requireAuth);
+  const briefingInFlight = new Map();
+
+  router.post('/api/jobs/search', async (req, res) => {
+    const outcome = await runJobSearch(req.session.user.id, readSearchForm(req.body));
+    if (outcome.status !== 200) return res.status(outcome.status).json({ error: outcome.error });
+    return res.status(200).json({ ok: true, model: outcome.model, results: outcome.results, citations: outcome.citations });
+  });
+
+  router.get('/api/briefing', (req, res) => {
+    const briefing = getBriefingForDate(db, req.session.user.id, toIsoDate(new Date()));
+    return res.status(200).json({ ok: true, enabled: isAiEnabled(), briefing: briefing || null });
+  });
+
+  router.post('/api/briefing', async (req, res) => {
+    const userId = req.session.user.id;
+    if (!isAiEnabled()) return res.status(503).json({ error: AI_DISABLED_MESSAGE });
+
+    const now = new Date();
+    const dateStr = toIsoDate(now);
+    const rawForce = req.body && req.body.force;
+    const force = rawForce === true || rawForce === 1 || rawForce === '1' || rawForce === 'true';
+    const cached = getBriefingForDate(db, userId, dateStr);
+    if (cached && !force) return res.status(200).json({ ok: true, cached: true, briefing: cached });
+
+    const inflightKey = `${userId}:${dateStr}`;
+    if (briefingInFlight.has(inflightKey)) {
+      return res.status(409).json({ error: 'AI 브리핑을 생성하는 중입니다. 잠시 후 다시 확인해 주세요.' });
+    }
+
+    const rateCheck = checkRateLimit(userId);
+    if (!rateCheck.allowed) return res.status(429).json({ error: rateCheck.message });
+
+    briefingInFlight.set(inflightKey, true);
+    try {
+      const { context, allowedHrefs } = buildBriefingContext(db, userId, now);
+      const { result, model } = await generateWeeklyBriefing(context, { allowedHrefs });
+      const saved = saveBriefing(db, userId, { dateStr, model, result });
+      return res.status(200).json({ ok: true, cached: false, briefing: saved });
+    } catch (err) {
+      return res.status(err.status || 502).json({ error: err.message || 'AI 브리핑 생성에 실패했습니다.' });
+    } finally {
+      briefingInFlight.delete(inflightKey);
+    }
+  });
 
   // GET /api/essays/:id/questions/:qid/feedback — latest saved feedback for question
   router.get('/api/essays/:id/questions/:qid/feedback', (req, res) => {
@@ -303,4 +427,4 @@ function createAiRouter(db) {
   return router;
 }
 
-module.exports = { createAiRouter };
+module.exports = { createAiRouter, createJobDiscoverRouter };

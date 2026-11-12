@@ -47,6 +47,7 @@ function createSettingsRouter(db) {
         name: user.name || '',
         season_label: user.season_label || '',
         target: goal.target !== null ? String(goal.target) : '',
+        auto_feedback: Number(user.auto_feedback) === 1,
       },
     });
   });
@@ -78,6 +79,12 @@ function createSettingsRouter(db) {
           ? req.body.monthly_goal
           : req.body.goal_target;
 
+    // Unchecked checkboxes are not submitted, so the hidden marker field tells us
+    // the settings form was used. A disabled checkbox (AI off) keeps the stored value.
+    const autoFeedback = req.body.auto_feedback_present !== undefined && isAiEnabled()
+      ? ['1', 'on', 'true'].includes(String(req.body.auto_feedback || ''))
+      : undefined;
+
     const renderInvalid = (errorMessage) =>
       res.status(422).render('settings/index', {
         title: '설정',
@@ -90,6 +97,7 @@ function createSettingsRouter(db) {
           name,
           season_label,
           target: rawTarget !== undefined && rawTarget !== null ? String(rawTarget).trim() : '',
+          auto_feedback: autoFeedback !== undefined ? autoFeedback : Number(user.auto_feedback) === 1,
         },
       });
 
@@ -114,6 +122,7 @@ function createSettingsRouter(db) {
         season_label,
         target: parsedTarget.value,
         month,
+        auto_feedback: autoFeedback,
       });
 
       if (updated && updated.user && req.session && req.session.user) {

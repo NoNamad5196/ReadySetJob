@@ -140,10 +140,22 @@
 | P4-03 | AI 전용 EJS 파셜 4종 및 CSS/JS 프론트엔드 모듈 구현 | `views/partials/ai/*`, `public/css/ai.css`, `public/js/ai.js` | `검증 완료` |
 | P4-04 | AI 비활성 상태(`503`), 권한/CSRF, 응답 검증, 속도 제한, 모델 오버라이드 자동화 테스트 | `test/ai-features.test.js`, `test/ai-errors-and-limits.test.js` | `검증 완료` |
 | P4-05 | 전체 66개 통합 테스트 검증 및 기술 문서 갱신 | `npm test`, `docs/*.md`, `README.md` | `검증 완료` |
+| P4-06 | 공고·지원·면접 단계 연동 일정·할 일 자동 정리 및 백그라운드 AI 면접 질문 자동 생성 | `src/services/automationService.js`, `test/automation.test.js` | `검증 완료` |
+| P4-07 | 설정 화면 `users.auto_feedback` 옵션 및 자소서 버전 저장 시 백그라운드 자동 AI 피드백 | `src/routes/settings.js`, `src/routes/essays.js`, `test/auto-feedback.test.js` | `검증 완료` |
+| P4-08 | OpenAI `web_search` 도구 기반 AI 공고 검색·추천 및 검증 문서화 (`OPENAI_MODEL_SEARCH || 'gpt-6.1-terra'`) | `GET /jobs/discover`, `POST /api/jobs/search`, `docs/AI_WEB_SEARCH_VERIFICATION.md`, `test/ai-search.test.js` | `검증 완료` |
+| P4-09 | 대시보드 AI 주간 브리핑 생성, `ai_briefings` 일일 캐시(`force=1`), 내부 링크 allow-list (`OPENAI_MODEL_BRIEFING || 'gpt-6-luna'`) | `GET/POST /api/briefing`, `src/services/aiBriefingService.js`, `test/ai-briefing.test.js` | `검증 완료` |
+| P4-10 | 파비콘·웹 앱 매니페스트 적용, Render 무료 배포(`AUTO_SEED=1`, `https://readysetjob.onrender.com`), 18개 스위트 89개 테스트 및 실호출 검증 | `public/favicon.*`, `public/site.webmanifest`, `render.yaml`, `test/` | `검증 완료` |
 
 ---
 
 ## 4. 변경 이력 (Changelog)
+
+### 2026-11-12
+- **일정·할 일·AI 질문 자동 정리 (`검증 완료`)**: `src/services/automationService.js`를 통해 공고 등록 시 `[회사명] 공고명 서류 마감` 일정(18:00) 자동 생성, 지원 등록 시 마감 일정 연결(없으면 생성) 및 `[회사명] 자기소개서 작성` 할 일 자동 생성, 1차/2차 면접 단계 전환 시(`PUT`, `PATCH` API, no-JS `POST` 3경로) 면접 준비 할 일 자동 생성 및 백그라운드 AI 면접 질문 자동 생성(기존 AI 질문 3개 미만 시, 공유 속도 제한 준수, 중복 생성 방지) 구현 (`test/automation.test.js` 6개 통과, 실호출 시 AI 질문 7개 자동 생성 확인).
+- **자동 AI 피드백 옵션 (`검증 완료`)**: 설정 화면 체크박스 `users.auto_feedback`(기본 off, 호출 비용 안내) 활성화 시 자소서 버전 저장마다 답변이 있는 문항별로 백그라운드 AI 피드백(`essay_feedback`) 자동 생성·저장, 속도 제한 도달 시 중단 및 응답 무영향 처리 (`test/auto-feedback.test.js` 6개 통과, 실호출 3문항 약 29초 검증).
+- **OpenAI `web_search` 기반 AI 공고 검색·추천 (`검증 완료`)**: `GET /jobs/discover`, `POST /api/jobs/search`에서 OpenAI Responses API 내장 `web_search` 도구(`tools: [{ type: "web_search" }]`, 한국 지역 힌트, `OPENAI_MODEL_SEARCH || 'gpt-6.1-terra'`)와 JSON 스키마 검증으로 최대 8건 추천, 유효한 `http`/`https` 출처 URL 필터링, 잘못된 마감일 `null` 처리, DB 자동 저장 없이 카드 내 "공고 등록" 버튼(`POST /jobs`) 연동 및 면책 문구 표시 (`test/ai-search.test.js` 7개 통과, 실호출 11초 3건 원티드 링크 HTTP 200 확인, `docs/AI_WEB_SEARCH_VERIFICATION.md`).
+- **AI 주간 브리핑 및 일일 캐시 (`검증 완료`)**: 대시보드 상단 카드 및 `GET/POST /api/briefing`에서 본인 데이터(7일 내 마감·일정, 미완료 할 일, 단계별 진행 지원, 이번 달 목표)만 사용해 주간 브리핑 생성(`OPENAI_MODEL_BRIEFING || 'gpt-6-luna'`), `ai_briefings` 테이블(`UNIQUE(user_id, briefing_date)`) 하루 1회 캐시 및 `force=1` 새로고침, 내부 링크 allow-list 적용 (`test/ai-briefing.test.js` 4개 통과, 실호출 검증 완료).
+- **파비콘·웹 앱 아이콘 및 Render 무료 배포 (`검증 완료`)**: `favicon.svg`/`.ico`, `apple-touch-icon`, `icon-192`/`512`, `site.webmanifest` 적용 및 Render 무료 배포(`https://readysetjob.onrender.com`, `AUTO_SEED=1` 빈 DB 데모 데이터 자동 시드, 재시작 시 초기화 한계 명시) 완료. 전체 18개 스위트 89개 테스트 전원 통과 및 인라인 `style` 0건 유지.
 
 ### 2026-11-11
 - **Figma 승인 디자인 시스템 전면 적용 (`검증 완료`)**: 승인된 Figma 대시보드 디자인을 기반으로 `docs/DESIGN_SYSTEM.md`, `tokens.css`, `app.css`, `pages.css`, `board.css`, `essay.css`, `ai.css` 확정. 전체 EJS 뷰에 일관된 헤더, 사이드바, 통계 카드, 퍼널 테이블, 필터 칩 적용.

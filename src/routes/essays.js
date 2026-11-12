@@ -8,6 +8,7 @@ const {
   createEssayVersion, getEssayVersion, restoreEssayVersion, compareEssayVersions,
   searchEssayQuestions, linkMaterialToEssay, unlinkMaterialFromEssay, deleteEssay,
 } = require('../services/essaysService');
+const { scheduleAutoFeedback } = require('../services/automationService');
 
 const toArray = (val) => (val === undefined || val === null ? [] : Array.isArray(val) ? val : [val]);
 
@@ -186,7 +187,13 @@ function createEssaysRouter(db) {
   router.post('/:id/versions', (req, res, next) => {
     const version = createEssayVersion(db, req.session.user.id, { essayId: req.params.id, label: String(req.body.label || '').trim() });
     if (!version) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
-    req.setFlash('success', `v${version.version_no} 버전이 생성되었습니다.`);
+    const feedbackTask = scheduleAutoFeedback(db, req.session.user.id, req.params.id);
+    req.setFlash(
+      'success',
+      feedbackTask
+        ? `v${version.version_no} 버전이 저장되었습니다. AI 피드백을 백그라운드에서 생성 중입니다(잠시 후 새로고침).`
+        : `v${version.version_no} 버전이 생성되었습니다.`
+    );
     return res.redirect(safeRedirectPath(req.body.redirect_to, `/essays/${req.params.id}`));
   });
 

@@ -17,6 +17,7 @@ const {
   toggleJobBookmark,
   deleteJobPost,
 } = require('../services/jobsService');
+const { onJobCreated } = require('../services/automationService');
 
 function extractJobValues(body, existing = {}) {
   const isBm = body.is_bookmarked;
@@ -133,8 +134,16 @@ function createJobsRouter(db) {
       }
     }
 
-    const created = createJobPostWithCompany(db, userId, formValues);
-    req.setFlash('success', '채용 공고가 등록되었습니다.');
+    const { created, auto } = db.transaction(() => {
+      const job = createJobPostWithCompany(db, userId, formValues);
+      return { created: job, auto: onJobCreated(db, userId, job) };
+    })();
+    req.setFlash(
+      'success',
+      auto.eventCreated
+        ? '채용 공고가 등록되었습니다. 서류 마감 일정이 캘린더에 자동으로 등록되었습니다.'
+        : '채용 공고가 등록되었습니다.'
+    );
     return res.redirect(`/jobs/${created.id}`);
   });
 

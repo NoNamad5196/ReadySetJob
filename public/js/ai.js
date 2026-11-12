@@ -372,9 +372,267 @@
     });
   }
 
+  function postJson(url, payload) {
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-CSRF-Token': getCsrfToken(),
+      },
+      body: JSON.stringify(payload || {}),
+    }).then(function (res) {
+      return res.json().then(function (body) {
+        return { ok: res.ok, status: res.status, body: body || {} };
+      });
+    });
+  }
+
+  function setField(card, name, value) {
+    var el = card.querySelector('[data-field="' + name + '"]');
+    if (el) el.textContent = value == null ? '' : String(value);
+    return el;
+  }
+
+  function setInput(card, name, value) {
+    var el = card.querySelector('[data-field="' + name + '"]');
+    if (el) el.value = value == null ? '' : String(value);
+  }
+
+  function isHttpUrl(value) {
+    try {
+      var parsed = new URL(String(value));
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function buildDiscoverCard(template, item) {
+    var fragment = template.content.cloneNode(true);
+    var card = fragment.querySelector('[data-ai-discover-item]');
+    if (!card || !isHttpUrl(item.url)) return null;
+
+    var avatar = setField(card, 'avatar', item.avatar && item.avatar.initial);
+    if (avatar && item.avatar && /^avatar--[0-7]$/.test(item.avatar.className)) {
+      avatar.classList.add(item.avatar.className);
+    }
+    setField(card, 'title', item.title);
+    setField(card, 'company', item.company_name);
+    var dday = setField(card, 'dday', item.dday && item.dday.label);
+    if (dday && item.dday && /^[a-z]+$/.test(item.dday.state)) {
+      dday.classList.add('badge--dday-' + item.dday.state);
+    }
+    setField(card, 'employment', item.employment_label);
+    setField(card, 'position', item.position);
+    setField(card, 'location', item.location);
+    setField(card, 'deadline', item.deadline ? item.deadline + ' 마감' : '마감일 미확인');
+    setField(card, 'summary', item.summary);
+    var link = card.querySelector('[data-field="url"]');
+    if (link) link.setAttribute('href', item.url);
+
+    setInput(card, 'f-company', item.company_name);
+    setInput(card, 'f-title', item.title);
+    setInput(card, 'f-position', item.position);
+    setInput(card, 'f-employment', item.register_employment_type || 'other');
+    setInput(card, 'f-deadline', item.deadline || '');
+    setInput(card, 'f-url', item.url);
+    setInput(card, 'f-memo', item.register_memo || item.summary || '');
+    return card;
+  }
+
+  function renderDiscoverResults(root, body) {
+    var card = document.querySelector('[data-ai-discover-results-card]');
+    var list = document.querySelector('[data-ai-discover-list]');
+    var template = document.querySelector('template[data-ai-discover-template]');
+    var countEl = document.querySelector('[data-ai-discover-count]');
+    var emptyEl = document.querySelector('[data-ai-discover-empty]');
+    var sourcesBox = document.querySelector('[data-ai-discover-sources]');
+    var sourcesList = document.querySelector('[data-ai-discover-sources-list]');
+    if (!card || !list || !template) return;
+
+    clearChildren(list);
+    var results = Array.isArray(body.results) ? body.results : [];
+    var rendered = 0;
+    results.forEach(function (item) {
+      var node = buildDiscoverCard(template, item || {});
+      if (node) {
+        list.appendChild(node);
+        rendered += 1;
+      }
+    });
+    if (countEl) countEl.textContent = String(rendered);
+    if (emptyEl) emptyEl.classList.toggle('ai-hidden', rendered > 0);
+
+    if (sourcesBox && sourcesList) {
+      clearChildren(sourcesList);
+      var citations = Array.isArray(body.citations) ? body.citations : [];
+      citations.forEach(function (c) {
+        if (!c || !isHttpUrl(c.url)) return;
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.setAttribute('href', c.url);
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+        a.textContent = c.title || c.url;
+        li.appendChild(a);
+        sourcesList.appendChild(li);
+      });
+      sourcesBox.classList.toggle('ai-hidden', sourcesList.children.length === 0);
+    }
+    card.classList.remove('ai-hidden');
+  }
+
+  function bindJobDiscover() {
+    var form = document.querySelector('[data-ai-discover-form]');
+    if (!form) return;
+    var root = form.closest('[data-ai-discover-root]') || document;
+    var errEl = root.querySelector('[data-ai-discover-error]');
+    var statusEl = root.querySelector('[data-ai-discover-status]');
+    var btn = form.querySelector('[data-ai-discover-btn]');
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      showError(errEl, '');
+      var payload = {
+        keyword: (form.elements.keyword && form.elements.keyword.value || '').trim(),
+        location: form.elements.location ? form.elements.location.value : '',
+        career: form.elements.career ? form.elements.career.value : 'any',
+        extra: form.elements.extra ? form.elements.extra.value : '',
+      };
+      if (!payload.keyword) {
+        showError(errEl, '검색할 직무 또는 키워드를 입력해 주세요.');
+        return;
+      }
+      var origLabel = btn ? btn.textContent : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '웹에서 공고 검색 중...';
+      }
+      if (statusEl) statusEl.textContent = '웹 검색에는 30초 이상 걸릴 수 있습니다.';
+
+      postJson('/api/jobs/search', payload)
+        .then(function (result) {
+          if (!result.ok) {
+            showError(errEl, result.body.error || 'AI 공고 검색에 실패했습니다.');
+            return;
+          }
+          renderDiscoverResults(root, result.body);
+        })
+        .catch(function () {
+          showError(errEl, '네트워크 오류로 공고 검색을 완료하지 못했습니다.');
+        })
+        .finally(function () {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = origLabel;
+          }
+          if (statusEl) statusEl.textContent = '';
+        });
+    });
+  }
+
+  function renderBriefing(root, briefing) {
+    if (!briefing || !briefing.result) return;
+    var br = briefing.result;
+    var q = function (sel) { return root.querySelector(sel); };
+    if (q('[data-ai-briefing-headline]')) q('[data-ai-briefing-headline]').textContent = br.headline || '';
+    if (q('[data-ai-briefing-summary]')) q('[data-ai-briefing-summary]').textContent = br.summary || '';
+    if (q('[data-ai-briefing-encouragement]')) q('[data-ai-briefing-encouragement]').textContent = br.encouragement || '';
+    if (q('[data-ai-briefing-meta]')) {
+      q('[data-ai-briefing-meta]').textContent = [briefing.model, briefing.created_at].filter(Boolean).join(' · ');
+    }
+
+    var pList = q('[data-ai-briefing-priorities]');
+    if (pList) {
+      clearChildren(pList);
+      (Array.isArray(br.priorities) ? br.priorities : []).forEach(function (p) {
+        var li = document.createElement('li');
+        li.className = 'ai-briefing__priority';
+        var safeHref = typeof p.href === 'string' && /^\/[A-Za-z0-9\-_/]*(#[A-Za-z0-9\-_]+)?$/.test(p.href) && p.href.indexOf('//') !== 0;
+        var titleEl = document.createElement(safeHref ? 'a' : 'span');
+        if (safeHref) titleEl.setAttribute('href', p.href);
+        titleEl.className = 'ai-briefing__priority-title';
+        titleEl.textContent = p.title || '';
+        var reasonEl = document.createElement('span');
+        reasonEl.className = 'ai-briefing__priority-reason';
+        reasonEl.textContent = p.reason || '';
+        li.appendChild(titleEl);
+        li.appendChild(reasonEl);
+        pList.appendChild(li);
+      });
+    }
+
+    var dList = q('[data-ai-briefing-deadlines]');
+    if (dList) {
+      clearChildren(dList);
+      (Array.isArray(br.deadlines) ? br.deadlines : []).forEach(function (d) {
+        var li = document.createElement('li');
+        li.className = 'ai-briefing__deadline';
+        var label = document.createElement('span');
+        label.className = 'ai-briefing__deadline-label';
+        label.textContent = d.label || '';
+        var date = document.createElement('span');
+        date.className = 'badge num';
+        date.textContent = d.date || '';
+        li.appendChild(label);
+        li.appendChild(date);
+        dList.appendChild(li);
+      });
+    }
+
+    var body = q('[data-ai-briefing-body]');
+    if (body) body.classList.remove('ai-hidden');
+    var placeholder = q('[data-ai-briefing-placeholder]');
+    if (placeholder) placeholder.classList.add('ai-hidden');
+    var gen = q('[data-ai-briefing-generate]');
+    if (gen) gen.classList.add('ai-hidden');
+    var refresh = q('[data-ai-briefing-refresh]');
+    if (refresh) refresh.classList.remove('ai-hidden');
+  }
+
+  function bindBriefing() {
+    var root = document.querySelector('[data-ai-briefing-root]');
+    if (!root) return;
+    var errEl = root.querySelector('[data-ai-briefing-error]');
+    var genBtn = root.querySelector('[data-ai-briefing-generate]');
+    var refreshBtn = root.querySelector('[data-ai-briefing-refresh]');
+    var placeholder = root.querySelector('[data-ai-briefing-placeholder]');
+    var busy = false;
+
+    function request(force) {
+      if (busy) return;
+      busy = true;
+      showError(errEl, '');
+      [genBtn, refreshBtn].forEach(function (b) { if (b) b.disabled = true; });
+      if (placeholder && !force) placeholder.textContent = 'AI가 이번 주 브리핑을 작성하고 있습니다...';
+      postJson('/api/briefing', force ? { force: 1 } : {})
+        .then(function (result) {
+          if (!result.ok) {
+            showError(errEl, result.body.error || 'AI 브리핑 생성에 실패했습니다.');
+            return;
+          }
+          renderBriefing(root, result.body.briefing);
+        })
+        .catch(function () {
+          showError(errEl, '네트워크 오류로 AI 브리핑을 불러오지 못했습니다.');
+        })
+        .finally(function () {
+          busy = false;
+          [genBtn, refreshBtn].forEach(function (b) { if (b) b.disabled = false; });
+        });
+    }
+
+    if (genBtn) genBtn.addEventListener('click', function () { request(false); });
+    if (refreshBtn) refreshBtn.addEventListener('click', function () { request(true); });
+    if (root.getAttribute('data-ai-briefing-autoload') === '1') request(false);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     bindEssayFeedbackButtons();
     bindJobParse();
     bindStarDraft();
+    bindJobDiscover();
+    bindBriefing();
   });
 })();

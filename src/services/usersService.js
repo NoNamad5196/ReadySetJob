@@ -9,7 +9,7 @@ function findByEmail(db, email) {
 
 function findById(db, id) {
   return db
-    .prepare('SELECT id, email, name, season_label, created_at FROM users WHERE id = ?')
+    .prepare('SELECT id, email, name, season_label, auto_feedback, created_at FROM users WHERE id = ?')
     .get(Number(id));
 }
 
@@ -98,7 +98,7 @@ function upsertMonthlyGoal(db, userId, { month = getCurrentYearMonth(), target }
   return getMonthlyGoalProgress(db, uid, ym);
 }
 
-function updateUserSettings(db, userId, { name, season_label, target, month = getCurrentYearMonth() }) {
+function updateUserSettings(db, userId, { name, season_label, target, month = getCurrentYearMonth(), auto_feedback }) {
   const uid = Number(userId);
   return db.transaction(() => {
     const existing = findById(db, uid);
@@ -121,9 +121,14 @@ function updateUserSettings(db, userId, { name, season_label, target, month = ge
     }
     const nextSeason = rawSeason ? rawSeason : null;
 
-    db.prepare('UPDATE users SET name = ?, season_label = ? WHERE id = ?').run(
+    const nextAutoFeedback = auto_feedback !== undefined
+      ? (auto_feedback ? 1 : 0)
+      : Number(existing.auto_feedback) === 1 ? 1 : 0;
+
+    db.prepare('UPDATE users SET name = ?, season_label = ?, auto_feedback = ? WHERE id = ?').run(
       trimmedName,
       nextSeason,
+      nextAutoFeedback,
       uid
     );
 

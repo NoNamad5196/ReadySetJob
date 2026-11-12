@@ -1,0 +1,73 @@
+<%
+  /*
+    Partial: views/partials/ai/briefing.ejs
+    Include location: top of views/dashboard/index.ejs main column.
+    Locals: aiBriefing ({ model, created_at, result } | null), aiEnabled.
+  */
+  const isEnabled = typeof aiEnabled !== 'undefined' ? Boolean(aiEnabled) : false;
+  const cachedBriefing = typeof aiBriefing !== 'undefined' && aiBriefing ? aiBriefing : null;
+  const br = cachedBriefing ? cachedBriefing.result : null;
+  const disabledMsg = typeof AI_DISABLED_MESSAGE !== 'undefined'
+    ? AI_DISABLED_MESSAGE
+    : 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)';
+%>
+<section
+  class="card ai-briefing"
+  data-ai-briefing-root
+  data-ai-briefing-autoload="<%= isEnabled && !br ? '1' : '0' %>"
+>
+  <div class="card__header">
+    <div class="inline-actions">
+      <h2 class="card__title">AI 주간 브리핑</h2>
+      <span class="badge ai-badge">OpenAI</span>
+    </div>
+    <% if (isEnabled) { %>
+      <div class="inline-actions">
+        <span class="text-muted text-sm num" data-ai-briefing-meta><%= cachedBriefing ? `${cachedBriefing.model} · ${cachedBriefing.created_at}` : '' %></span>
+        <button type="button" class="btn btn-sm btn-primary <%= br ? 'ai-hidden' : '' %>" data-ai-briefing-generate>AI 브리핑 생성</button>
+        <button type="button" class="btn btn-sm <%= br ? '' : 'ai-hidden' %>" data-ai-briefing-refresh>새로고침</button>
+      </div>
+    <% } %>
+  </div>
+
+  <% if (!isEnabled) { %>
+    <p class="ai-briefing__disabled"><%= disabledMsg %> — 키를 설정하면 이번 주 마감·일정·할 일을 바탕으로 우선순위 브리핑을 받아볼 수 있습니다.</p>
+  <% } else { %>
+    <p class="text-muted text-sm <%= br ? 'ai-hidden' : '' %>" data-ai-briefing-placeholder>이번 주 마감·일정·할 일을 바탕으로 우선순위 브리핑을 준비합니다.</p>
+    <div class="ai-alert ai-alert--error ai-hidden" role="alert" data-ai-briefing-error></div>
+
+    <div class="ai-briefing__body <%= br ? '' : 'ai-hidden' %>" data-ai-briefing-body aria-live="polite">
+      <h3 class="ai-briefing__headline" data-ai-briefing-headline><%= br ? br.headline : '' %></h3>
+      <p class="ai-briefing__summary" data-ai-briefing-summary><%= br ? br.summary : '' %></p>
+      <div class="ai-briefing__grid">
+        <div>
+          <h4 class="ai-feedback-section__title">이번 주 우선순위</h4>
+          <ol class="ai-briefing__priorities" data-ai-briefing-priorities>
+            <% if (br) { for (const p of br.priorities) { %>
+              <li class="ai-briefing__priority">
+                <% if (p.href) { %>
+                  <a href="<%= p.href %>" class="ai-briefing__priority-title"><%= p.title %></a>
+                <% } else { %>
+                  <span class="ai-briefing__priority-title"><%= p.title %></span>
+                <% } %>
+                <span class="ai-briefing__priority-reason"><%= p.reason %></span>
+              </li>
+            <% } } %>
+          </ol>
+        </div>
+        <div>
+          <h4 class="ai-feedback-section__title">다가오는 마감·일정</h4>
+          <ul class="ai-briefing__deadlines" data-ai-briefing-deadlines>
+            <% if (br) { for (const d of br.deadlines) { %>
+              <li class="ai-briefing__deadline">
+                <span class="ai-briefing__deadline-label"><%= d.label %></span>
+                <span class="badge num"><%= d.date %></span>
+              </li>
+            <% } } %>
+          </ul>
+        </div>
+      </div>
+      <p class="ai-briefing__encouragement" data-ai-briefing-encouragement><%= br ? br.encouragement : '' %></p>
+    </div>
+  <% } %>
+</section>

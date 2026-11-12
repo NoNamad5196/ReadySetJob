@@ -45,6 +45,8 @@
 
 <div class="dashboard-layout">
   <div class="dashboard-main">
+    <%- include('../partials/ai/briefing', { aiBriefing: typeof aiBriefing !== 'undefined' ? aiBriefing : null }) %>
+
     <section class="hero-card">
       <div class="hero-card__meta">
         <span class="hero-card__tag">가장 가까운 마감</span>

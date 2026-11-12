@@ -217,7 +217,187 @@
   gap: var(--space-1);
 }
 
+/* AI 공고 찾기 (/jobs/discover) */
+.ai-discover-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.ai-disclaimer {
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+.ai-discover-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.ai-discover-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.ai-discover-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.ai-discover-card__titles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ai-discover-card__title {
+  font-size: var(--font-size-body);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.ai-discover-card__company {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.ai-discover-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+}
+
+.ai-discover-card__meta span:empty {
+  display: none;
+}
+
+.ai-discover-card__summary {
+  margin: 0;
+  font-size: var(--font-size-small);
+  color: var(--color-text);
+  white-space: pre-wrap;
+}
+
+.ai-discover-card__actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.ai-discover-sources {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* AI 주간 브리핑 (dashboard) */
+.ai-briefing {
+  border-left: 3px solid var(--color-primary);
+}
+
+.ai-briefing__disabled {
+  margin: 0;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.ai-briefing__headline {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-section-title);
+  color: var(--color-text);
+  letter-spacing: -0.015em;
+}
+
+.ai-briefing__summary {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+
+.ai-briefing__grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: var(--space-4);
+}
+
+.ai-briefing__priorities,
+.ai-briefing__deadlines {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ai-briefing__priorities {
+  padding-left: var(--space-5);
+}
+
+.ai-briefing__deadlines {
+  list-style: none;
+}
+
+.ai-briefing__priority {
+  font-size: var(--font-size-small);
+}
+
+.ai-briefing__priority-title {
+  display: block;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+a.ai-briefing__priority-title:hover {
+  color: var(--color-primary-text);
+}
+
+.ai-briefing__priority-reason {
+  display: block;
+  color: var(--color-text-muted);
+}
+
+.ai-briefing__deadline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-small);
+  color: var(--color-text);
+}
+
+.ai-briefing__encouragement {
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-small);
+  color: var(--color-primary-text);
+}
+
 @media (max-width: 768px) {
+  .ai-discover-form__grid,
+  .ai-discover-list,
+  .ai-briefing__grid {
+    grid-template-columns: 1fr;
+  }
+
   .ai-score-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

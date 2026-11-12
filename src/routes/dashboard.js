@@ -5,6 +5,7 @@ const {
   getDashboardHome,
   serializeDashboardData,
 } = require('../services/dashboardService');
+const { toIsoDate, getBriefingForDate } = require('../services/aiBriefingService');
 
 function createDashboardRouter(db) {
   const router = express.Router();
@@ -14,7 +15,9 @@ function createDashboardRouter(db) {
     const stats = getDashboardStats(db, userId);
     const home = getDashboardHome(db, userId);
     const dashboardDataJson = serializeDashboardData(stats);
+    const aiBriefing = getBriefingForDate(db, userId, toIsoDate(new Date()));
     return res.render('dashboard/index', {
+      aiBriefing,
       title: '대시보드',
       stats,
       counts: stats.totals,

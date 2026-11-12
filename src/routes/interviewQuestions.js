@@ -7,12 +7,11 @@ const {
   list: listInterviewQuestions,
   createManual: createManualQuestion,
   deleteQuestion: deleteInterviewQuestion,
-  createMany: createManyInterviewQuestions,
+  generateAiQuestionsForApplication,
 } = require('../services/interviewQuestionsService');
 const {
   AI_DISABLED_MESSAGE,
   isAiEnabled,
-  generateInterviewQuestions,
   checkRateLimit,
 } = require('../services/aiService');
 
@@ -106,33 +105,8 @@ function createInterviewQuestionsRouter(db) {
       });
     }
 
-    const jobPost = db
-      .prepare('SELECT memo FROM job_posts WHERE id = ? AND user_id = ?')
-      .get(application.job_post_id, req.session.user.id);
-    const jobMemo = [application.memo, jobPost ? jobPost.memo : ''].filter(Boolean).join('\n');
-
-    const essayAnswers = db
-      .prepare(`
-        SELECT eq.answer
-        FROM essay_questions eq
-        INNER JOIN essays e ON e.id = eq.essay_id
-        WHERE e.application_id = ? AND e.user_id = ?
-        ORDER BY e.id ASC, eq.sort_order ASC, eq.id ASC
-      `)
-      .all(id, req.session.user.id)
-      .map((row) => row.answer)
-      .filter((a) => typeof a === 'string' && a.trim().length > 0);
-
     try {
-      const generatedQuestions = await generateInterviewQuestions({
-        jobTitle: application.job_title,
-        position: application.job_position,
-        companyName: application.company_name,
-        jobMemo,
-        essayAnswers,
-      });
-
-      createManyInterviewQuestions(db, req.session.user.id, id, generatedQuestions, 'ai');
+      const generatedQuestions = await generateAiQuestionsForApplication(db, req.session.user.id, application);
       req.setFlash('success', `AI 예상 면접 질문 ${generatedQuestions.length}개가 생성되었습니다.`);
       return res.redirect(`/applications/${id}`);
     } catch (err) {

@@ -102,6 +102,10 @@ describe('Stats Pass-Rates, Interview Prep, Global Search, Shell Data, and Home 
       question: '네이버 렌더링 최적화 질문',
     });
 
+    // Auto-organize (automationService) adds todos on application create/stage;
+    // drop them so this fixture keeps exact todo counts (covered in automation.test.js).
+    ctx.db.prepare('DELETE FROM todos WHERE user_id = 1').run();
+
     // Add open todo for today
     await userA.agent.post('/todos').type('form').send({
       _csrf: userA.csrfToken,
