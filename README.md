@@ -120,15 +120,15 @@ ReadySetJob은 사용자 경험 설계를 위해 3가지 콘셉트의 정적 HTM
    ```
     * Node.js 22 내장 테스트 러너를 통해 15개 스위트, 66개 테스트 케이스를 순차 실행합니다.
 
-### 5.3 Render 배포 (영구 디스크 + SQLite)
+### 5.3 Render 무료 배포 (시연용)
 
-Vercel 같은 서버리스 환경은 파일시스템이 휘발성이라 SQLite 데이터와 세션이 유지되지 않습니다. 상시 실행 서버와 영구 디스크를 제공하는 Render를 사용합니다.
+Vercel 같은 서버리스 환경은 파일시스템이 휘발성이라 SQLite 데이터와 세션이 유지되지 않으므로, 상시 실행 서버를 제공하는 Render 무료 플랜을 사용합니다.
 
-1. Render 대시보드 → **New → Blueprint** → 이 GitHub 저장소 선택 (루트의 `render.yaml` 자동 인식)
-2. `OPENAI_API_KEY` 값을 입력 (`SESSION_SECRET`은 자동 생성, `DB_PATH=/var/data/readysetjob.db`는 1GB 영구 디스크에 저장)
-3. 배포 완료 후 데모 데이터가 필요하면 Render Shell에서 `npm run seed` 실행
+1. Render 대시보드 → **New → Web Service** → 이 GitHub 저장소 선택
+2. Build Command `npm ci`, Start Command `npm start`, Instance Type **Free**
+3. 환경 변수: `NODE_ENV=production`, `AUTO_SEED=1`, `SESSION_SECRET`(임의의 긴 문자열), `OPENAI_API_KEY`
 
-> 영구 디스크는 유료 플랜(Starter)에서만 지원됩니다.
+> 무료 플랜은 디스크가 휘발성이라 재시작·재배포 시 데이터가 초기화됩니다. `AUTO_SEED=1`이면 DB가 비어 있을 때 데모 데이터(`demo@readysetjob.dev` / `demo1234!`)가 자동으로 채워집니다. 15분간 접속이 없으면 서버가 잠들어 다음 첫 접속이 약 30초 지연됩니다. 데이터를 영구 보존하려면 유료 플랜에 영구 디스크를 붙이고 `DB_PATH`를 디스크 경로로 지정합니다.
 
 ---
 
