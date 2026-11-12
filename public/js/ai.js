@@ -600,6 +600,22 @@
     var placeholder = root.querySelector('[data-ai-briefing-placeholder]');
     var busy = false;
 
+    function waitForInflight(attempt) {
+      if (attempt > 20) {
+        showError(errEl, 'AI 브리핑 생성이 지연되고 있습니다. 잠시 후 새로고침해 주세요.');
+        return;
+      }
+      setTimeout(function () {
+        fetch('/api/briefing', { headers: { Accept: 'application/json' } })
+          .then(function (res) { return res.json(); })
+          .then(function (body) {
+            if (body && body.briefing) renderBriefing(root, body.briefing);
+            else waitForInflight(attempt + 1);
+          })
+          .catch(function () { waitForInflight(attempt + 1); });
+      }, 3000);
+    }
+
     function request(force) {
       if (busy) return;
       busy = true;
@@ -608,6 +624,10 @@
       if (placeholder && !force) placeholder.textContent = 'AI가 이번 주 브리핑을 작성하고 있습니다...';
       postJson('/api/briefing', force ? { force: 1 } : {})
         .then(function (result) {
+          if (result.status === 409) {
+            waitForInflight(0);
+            return;
+          }
           if (!result.ok) {
             showError(errEl, result.body.error || 'AI 브리핑 생성에 실패했습니다.');
             return;
