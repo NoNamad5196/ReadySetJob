@@ -156,6 +156,9 @@
 - **OpenAI `web_search` 기반 AI 공고 검색·추천 (`검증 완료`)**: `GET /jobs/discover`, `POST /api/jobs/search`에서 OpenAI Responses API 내장 `web_search` 도구(`tools: [{ type: "web_search" }]`, 한국 지역 힌트, `OPENAI_MODEL_SEARCH || 'gpt-6.1-terra'`)와 JSON 스키마 검증으로 최대 8건 추천, 유효한 `http`/`https` 출처 URL 필터링, 잘못된 마감일 `null` 처리, DB 자동 저장 없이 카드 내 "공고 등록" 버튼(`POST /jobs`) 연동 및 면책 문구 표시 (`test/ai-search.test.js` 7개 통과, 실호출 11초 3건 원티드 링크 HTTP 200 확인, `docs/AI_WEB_SEARCH_VERIFICATION.md`).
 - **AI 주간 브리핑 및 일일 캐시 (`검증 완료`)**: 대시보드 상단 카드 및 `GET/POST /api/briefing`에서 본인 데이터(7일 내 마감·일정, 미완료 할 일, 단계별 진행 지원, 이번 달 목표)만 사용해 주간 브리핑 생성(`OPENAI_MODEL_BRIEFING || 'gpt-6-luna'`), `ai_briefings` 테이블(`UNIQUE(user_id, briefing_date)`) 하루 1회 캐시 및 `force=1` 새로고침, 내부 링크 allow-list 적용 (`test/ai-briefing.test.js` 4개 통과, 실호출 검증 완료).
 - **파비콘·웹 앱 아이콘 및 Render 무료 배포 (`검증 완료`)**: `favicon.svg`/`.ico`, `apple-touch-icon`, `icon-192`/`512`, `site.webmanifest` 적용 및 Render 무료 배포(`https://readysetjob.onrender.com`, `AUTO_SEED=1` 빈 DB 데모 데이터 자동 시드, 재시작 시 초기화 한계 명시) 완료. 전체 18개 스위트 89개 테스트 전원 통과 및 인라인 `style` 0건 유지.
+- **컨트롤 높이 통일 (`검증 완료`)**: `--control-height`(38px)/`-sm`(30px)/`-lg`(44px) 토큰으로 버튼·입력·선택 상자 높이를 통일하고 자소서 상단바·칸반 카드 정렬 수정 (27개 화면 데스크톱·모바일 자동 정렬 검사 0건).
+- **AI 공고 찾기 버튼식 개편 (`검증 완료`)**: 신입·경력·인턴·아르바이트·대학원 목적 선택 후 분야·지역·학위·근무 형태를 칩으로 고르는 방식으로 전환, 서버 화이트리스트(`src/services/discoverOptions.js`) 검증과 목적별 검색 출처 지정 (실호출: 알바 6건, 대학원 3건, 신입 2건).
+- **기업 로고 표시 (`검증 완료`)**: `GET /logos/company`가 기업 홈페이지 도메인으로 구글·DuckDuckGo 파비콘 서비스에서만 로고를 받아 `company_logos` 테이블에 캐시(성공 30일, 없음 7일), 로고가 없으면 투명 이미지로 기존 이니셜 아바타 유지. 채용 사이트 도메인 제외, 이미지 시그니처 검사, 사용자 소유권 검증 (`test/company-logos.test.js`, 전체 109개 테스트 통과).
 
 ### 2026-11-11
 - **Figma 승인 디자인 시스템 전면 적용 (`검증 완료`)**: 승인된 Figma 대시보드 디자인을 기반으로 `docs/DESIGN_SYSTEM.md`, `tokens.css`, `app.css`, `pages.css`, `board.css`, `essay.css`, `ai.css` 확정. 전체 EJS 뷰에 일관된 헤더, 사이드바, 통계 카드, 퍼널 테이블, 필터 칩 적용.
