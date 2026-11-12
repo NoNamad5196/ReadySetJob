@@ -451,6 +451,7 @@
 .ai-discover-card__company {
   font-size: var(--font-size-small);
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .ai-discover-card__meta {
@@ -471,6 +472,7 @@
   font-size: var(--font-size-small);
   color: var(--color-text);
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .ai-discover-card__actions {
@@ -502,12 +504,14 @@
   font-size: var(--font-size-section-title);
   color: var(--color-text);
   letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
 }
 
 .ai-briefing__summary {
   margin: 0 0 var(--space-4);
   font-size: var(--font-size-body);
   color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
 }
 
 .ai-briefing__grid {
@@ -541,6 +545,7 @@
   display: block;
   font-weight: 600;
   color: var(--color-text);
+  overflow-wrap: anywhere;
 }
 
 a.ai-briefing__priority-title:hover {
@@ -550,6 +555,7 @@ a.ai-briefing__priority-title:hover {
 .ai-briefing__priority-reason {
   display: block;
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .ai-briefing__deadline {
@@ -561,12 +567,18 @@ a.ai-briefing__priority-title:hover {
   color: var(--color-text);
 }
 
+.ai-briefing__deadline-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .ai-briefing__encouragement {
   margin: var(--space-4) 0 0;
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border-subtle);
   font-size: var(--font-size-small);
   color: var(--color-primary-text);
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 768px) {

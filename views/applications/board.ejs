@@ -69,7 +69,7 @@
           >
             <div class="kanban-card__header">
               <div class="kanban-card__brand">
-                <span class="avatar avatar--sm <%= av.className %>"><%= av.initial %></span>
+                <span class="avatar avatar--sm <%= av.className %>"><%= av.initial %><% if (av.logoSrc) { %><img class="avatar__logo" src="<%= av.logoSrc %>" alt="" loading="lazy" decoding="async"><% } %></span>
                 <div class="kanban-card__brand-text">
                   <span class="kanban-card__company"><%= appItem.company_name %></span>
                   <span class="kanban-card__position"><%= appItem.job_position || appItem.job_title %></span>

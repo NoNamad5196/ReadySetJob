@@ -5,6 +5,20 @@
     root.setAttribute('data-theme', savedTheme);
   }
 
+  function settleLogo(img) {
+    if (!img || !img.classList || !img.classList.contains('avatar__logo')) return;
+    if (img.naturalWidth > 1) {
+      img.classList.add('is-loaded');
+    } else if (img.complete) {
+      img.remove();
+    }
+  }
+
+  document.addEventListener('load', (e) => settleLogo(e.target), true);
+  document.addEventListener('error', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('avatar__logo')) e.target.remove();
+  }, true);
+
   function applyProgressBars() {
     const bars = document.querySelectorAll('[data-progress]');
     bars.forEach((el) => {
@@ -18,6 +32,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('img.avatar__logo').forEach((img) => {
+      if (img.complete) settleLogo(img);
+    });
     const themeToggleBtn = document.getElementById('theme-toggle');
     if (themeToggleBtn) {
       themeToggleBtn.addEventListener('click', () => {

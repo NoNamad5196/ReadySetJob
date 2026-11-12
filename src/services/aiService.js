@@ -17,6 +17,7 @@ const {
   validateJobSearchOutput,
   buildBriefingPrompt,
   validateBriefingOutput,
+  isHttpUrl,
 } = require('./aiSchemas');
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
@@ -78,6 +79,7 @@ const FEATURE_SPECS = {
       },
     ],
     toolChoice: 'required',
+    include: ['web_search_call.action.sources'],
   },
   briefing: {
     label: 'AI 주간 브리핑',
@@ -243,6 +245,7 @@ async function callOpenAiStructured({ featureKey, instructions, input, fetchImpl
   if (Array.isArray(spec.tools) && spec.tools.length > 0) {
     requestBody.tools = spec.tools;
     if (spec.toolChoice) requestBody.tool_choice = spec.toolChoice;
+    if (Array.isArray(spec.include) && spec.include.length > 0) requestBody.include = spec.include;
   }
 
   const controller = new AbortController();
@@ -289,13 +292,24 @@ async function callOpenAiStructured({ featureKey, instructions, input, fetchImpl
     throw createAiError('AI 응답을 JSON으로 파싱할 수 없습니다.', 502);
   }
 
+  if (data.status && data.status !== 'completed') {
+    throw createAiError('AI 응답이 완료되지 않았습니다 (길이 제한 또는 안전 필터).', 502);
+  }
+
   const rawText = extractResponseText(data);
   const parsed = parseJsonLoose(rawText);
   if (parsed === undefined) {
     throw createAiError('AI 응답이 유효한 JSON 형식이 아닙니다.', 502);
   }
 
-  return { parsed, model, citations: extractUrlCitations(data) };
+  const consultedUrls = extractConsultedSourceUrls(data);
+  return {
+    parsed,
+    model,
+    citations: extractUrlCitations(data),
+    webSearchUsed: hasCompletedWebSearch(data),
+    consultedUrls,
+  };
 }
 
 function parseJsonLoose(text) {
@@ -335,13 +349,34 @@ function extractUrlCitations(data) {
   return citations.slice(0, 10);
 }
 
-function isHttpUrl(value) {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
+function hasCompletedWebSearch(data) {
+  const output = data && Array.isArray(data.output) ? data.output : [];
+  return output.some((item) => item && item.type === 'web_search_call' && item.status === 'completed');
+}
+
+function extractConsultedSourceUrls(data) {
+  const output = data && Array.isArray(data.output) ? data.output : [];
+  const urls = [];
+  const seen = new Set();
+  for (const item of output) {
+    if (!item || item.type !== 'web_search_call' || item.status !== 'completed') continue;
+    const action = item.action || {};
+    const sources = Array.isArray(action.sources) ? action.sources : [];
+    for (const source of sources) {
+      const url = source && typeof source.url === 'string' ? source.url.trim() : '';
+      if (!isHttpUrl(url) || seen.has(url)) continue;
+      seen.add(url);
+      urls.push(url);
+    }
+    if (action.type === 'open_page' && typeof action.url === 'string') {
+      const url = action.url.trim();
+      if (isHttpUrl(url) && !seen.has(url)) {
+        seen.add(url);
+        urls.push(url);
+      }
+    }
   }
+  return urls;
 }
 
 async function generateInterviewQuestions(payload = {}, options = {}) {
@@ -395,13 +430,18 @@ async function searchJobPostings(payload = {}, options = {}) {
   const now = options.now || new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const { instructions, input } = buildJobSearchPrompt({ ...payload, today });
-  const { parsed, model, citations } = await callOpenAiStructured({
+  const { parsed, model, citations, webSearchUsed, consultedUrls } = await callOpenAiStructured({
     featureKey: 'search',
     instructions,
     input,
     fetchImpl: options.fetchImpl,
   });
-  const { results } = validateJobSearchOutput(parsed, createAiError, { purpose: payload.purpose });
+  if (!webSearchUsed) {
+    throw createAiError('AI 응답에서 완료된 웹 검색을 확인할 수 없습니다.', 502);
+  }
+  const validationOptions = { purpose: payload.purpose };
+  if (consultedUrls.length > 0) validationOptions.sourceUrls = consultedUrls;
+  const { results } = validateJobSearchOutput(parsed, createAiError, validationOptions);
   return { results, citations, model };
 }
 

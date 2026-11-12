@@ -418,6 +418,15 @@
     if (avatar && item.avatar && /^avatar--[0-7]$/.test(item.avatar.className)) {
       avatar.classList.add(item.avatar.className);
     }
+    if (avatar && item.avatar && typeof item.avatar.logoSrc === 'string' && item.avatar.logoSrc.indexOf('/logos/company?') === 0) {
+      var logo = document.createElement('img');
+      logo.className = 'avatar__logo';
+      logo.src = item.avatar.logoSrc;
+      logo.alt = '';
+      logo.loading = 'lazy';
+      logo.decoding = 'async';
+      avatar.appendChild(logo);
+    }
     setField(card, 'title', item.title);
     setField(card, 'company', item.company_name);
     var dday = setField(card, 'dday', item.dday && item.dday.label);
@@ -730,12 +739,14 @@
           }
           if (!result.ok) {
             showError(errEl, result.body.error || 'AI 브리핑 생성에 실패했습니다.');
+            if (placeholder) placeholder.textContent = '이번 주 마감·일정·할 일을 바탕으로 우선순위 브리핑을 준비합니다.';
             return;
           }
           renderBriefing(root, result.body.briefing);
         })
         .catch(function () {
           showError(errEl, '네트워크 오류로 AI 브리핑을 불러오지 못했습니다.');
+          if (placeholder) placeholder.textContent = '이번 주 마감·일정·할 일을 바탕으로 우선순위 브리핑을 준비합니다.';
         })
         .finally(function () {
           busy = false;

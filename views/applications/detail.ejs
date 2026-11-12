@@ -4,7 +4,7 @@
 
 <div class="entity-header">
   <div class="entity-header__avatar">
-    <span class="avatar avatar--md <%= av.className %>"><%= av.initial %></span>
+    <span class="avatar avatar--md <%= av.className %>"><%= av.initial %><% if (av.logoSrc) { %><img class="avatar__logo" src="<%= av.logoSrc %>" alt="" loading="lazy" decoding="async"><% } %></span>
   </div>
   <div class="entity-header__info">
     <div class="entity-header__meta">

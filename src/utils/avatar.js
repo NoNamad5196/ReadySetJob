@@ -1,4 +1,12 @@
-function companyAvatar(name) {
+function companyLogoSrc(name, url) {
+  const str = String(name || '').trim();
+  if (!str) return '';
+  let src = `/logos/company?name=${encodeURIComponent(str)}`;
+  if (url) src += `&url=${encodeURIComponent(String(url))}`;
+  return src;
+}
+
+function companyAvatar(name, opts = {}) {
   const str = String(name || '').trim();
   const initial = str ? Array.from(str)[0].toUpperCase() : '?';
   let hash = 0;
@@ -12,9 +20,11 @@ function companyAvatar(name) {
     tokenIndex: index,
     colorIndex: index,
     className: `avatar--${index}`,
+    logoSrc: companyLogoSrc(str, opts && opts.url),
   };
 }
 
 module.exports = {
   companyAvatar,
+  companyLogoSrc,
 };

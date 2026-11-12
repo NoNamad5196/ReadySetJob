@@ -68,7 +68,7 @@ function decorateSearchResult(item, purpose = 'new_grad') {
   const spec = PURPOSE_MAP[purpose] || PURPOSE_MAP.new_grad;
   const isGrad = purpose === 'grad_school';
   const isParttime = purpose === 'parttime';
-  const avatar = companyAvatar(item.company_name);
+  const avatar = companyAvatar(item.company_name, { url: item.url });
   const dday = calculateDday(item.deadline);
   const mappedEmploymentType = isGrad || isParttime ? 'other' : item.employment_type;
   const registerType =
@@ -99,7 +99,7 @@ function decorateSearchResult(item, purpose = 'new_grad') {
     ...item,
     purpose,
     employment_type: mappedEmploymentType,
-    avatar: { initial: avatar.initial, className: avatar.className },
+    avatar: { initial: avatar.initial, className: avatar.className, logoSrc: avatar.logoSrc },
     dday: { label: dday.label, state: dday.state },
     employment_label: employmentLabel,
     org_label: spec.orgLabel,

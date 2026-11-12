@@ -20,3 +20,4 @@ require('./ai-search.test.js');
 require('./ai-search-options.test.js');
 require('./ai-briefing.test.js');
 require('./ai-briefing-safety.test.js');
+require('./company-logos.test.js');

@@ -239,7 +239,7 @@
                   <% const favAv = companyAvatar(f.company_name); %>
                   <li>
                     <a href="/applications/<%= f.id %>" class="sidebar__fav-link">
-                      <span class="avatar avatar--sm <%= favAv.className %>"><%= favAv.initial %></span>
+                      <span class="avatar avatar--sm <%= favAv.className %>"><%= favAv.initial %><% if (favAv.logoSrc) { %><img class="avatar__logo" src="<%= favAv.logoSrc %>" alt="" loading="lazy" decoding="async"><% } %></span>
                       <div class="sidebar__fav-info">
                         <span class="sidebar__fav-name"><%= f.company_name %></span>
                         <span class="sidebar__fav-pos"><%= f.position || f.job_title || '' %></span>

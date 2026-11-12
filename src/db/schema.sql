@@ -177,6 +177,15 @@ CREATE TABLE IF NOT EXISTS ai_briefings (
   UNIQUE(user_id, briefing_date)
 );
 
+-- Shared cache of third-party favicon lookups keyed by normalized domain (no user data).
+CREATE TABLE IF NOT EXISTS company_logos (
+  domain TEXT PRIMARY KEY,
+  content_type TEXT,
+  data BLOB,
+  status TEXT NOT NULL CHECK (status IN ('ok', 'missing')),
+  fetched_at INTEGER NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_user_id ON job_posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_company_id ON job_posts(company_id);

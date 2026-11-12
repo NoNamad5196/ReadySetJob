@@ -92,7 +92,7 @@
               </td>
               <td>
                 <div class="cell-two-line">
-                  <span class="avatar avatar--sm <%= av.className %>"><%= av.initial %></span>
+                  <span class="avatar avatar--sm <%= av.className %>"><%= av.initial %><% if (av.logoSrc) { %><img class="avatar__logo" src="<%= av.logoSrc %>" alt="" loading="lazy" decoding="async"><% } %></span>
                   <div class="cell-two-line__content">
                     <a href="/jobs/<%= job.id %>" class="cell-two-line__title">
                       <strong><%= job.title %></strong>

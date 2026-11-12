@@ -30,6 +30,7 @@ const { createStatsRouter } = require('./routes/stats');
 const { createInterviewPrepRouter } = require('./routes/interviewPrep');
 const { createSearchRouter } = require('./routes/search');
 const { createAiRouter, createJobDiscoverRouter } = require('./routes/ai');
+const { createLogosRouter } = require('./routes/logos');
 const { isAiEnabled } = require('./services/aiService');
 
 const BaseSqliteStore = createSqliteStore(session);
@@ -162,6 +163,7 @@ function createApp({ dbPath } = {}) {
   app.use('/', createAuthRouter(db));
   app.use('/', createDashboardRouter(db));
   app.use('/', createSearchRouter(db));
+  app.use('/logos', createLogosRouter(db));
   app.use('/companies', createCompaniesRouter(db));
   app.use('/', createJobDiscoverRouter());
   app.use('/jobs', createJobsRouter(db));

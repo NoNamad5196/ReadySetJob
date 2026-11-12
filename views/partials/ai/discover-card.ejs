@@ -15,7 +15,7 @@
 %>
 <li class="ai-discover-card" data-ai-discover-item>
   <div class="ai-discover-card__head">
-    <span class="avatar avatar--md <%= it ? it.avatar.className : '' %>" data-field="avatar"><%= it ? it.avatar.initial : '' %></span>
+    <span class="avatar avatar--md <%= it ? it.avatar.className : '' %>" data-field="avatar"><%= it ? it.avatar.initial : '' %><% if (it && it.avatar.logoSrc) { %><img class="avatar__logo" src="<%= it.avatar.logoSrc %>" alt="" loading="lazy" decoding="async"><% } %></span>
     <div class="ai-discover-card__titles">
       <strong class="ai-discover-card__title" data-field="title"><%= it ? it.title : '' %></strong>
       <span class="ai-discover-card__company" data-field="company"><%= it ? it.company_name : '' %></span>

@@ -77,7 +77,7 @@
             </div>
 
             <div class="hero-card__company">
-              <span class="avatar avatar--sm <%= hdAv.className %>"><%= hdAv.initial %></span>
+              <span class="avatar avatar--sm <%= hdAv.className %>"><%= hdAv.initial %><% if (hdAv.logoSrc) { %><img class="avatar__logo" src="<%= hdAv.logoSrc %>" alt="" loading="lazy" decoding="async"><% } %></span>
               <span class="hero-card__company-name"><%= hd.company %></span>
               <span class="hero-card__company-pos"><%= hd.position %></span>
               <span class="badge badge--stage-<%= hd.stage %>"><%= hd.stage_label %></span>
@@ -159,7 +159,7 @@
                 <span class="week-item-time num"><%= item.dayLabel %> <%= item.time %></span>
                 <% if (item.company) { %>
                   <% const itemAv = companyAvatar(item.company); %>
-                  <span class="avatar avatar--sm <%= itemAv.className %>"><%= itemAv.initial %></span>
+                  <span class="avatar avatar--sm <%= itemAv.className %>"><%= itemAv.initial %><% if (itemAv.logoSrc) { %><img class="avatar__logo" src="<%= itemAv.logoSrc %>" alt="" loading="lazy" decoding="async"><% } %></span>
                 <% } %>
                 <span class="week-item-title"><%= item.title %></span>
               </div>
@@ -206,7 +206,7 @@
                 <tr>
                   <td>
                     <a href="<%= app.href %>" class="cell-two-line">
-                      <span class="avatar avatar--md <%= appAv.className %>"><%= appAv.initial %></span>
+                      <span class="avatar avatar--md <%= appAv.className %>"><%= appAv.initial %><% if (appAv.logoSrc) { %><img class="avatar__logo" src="<%= appAv.logoSrc %>" alt="" loading="lazy" decoding="async"><% } %></span>
                       <div class="cell-two-line__content">
                         <span class="cell-two-line__title"><%= app.company %></span>
                         <span class="cell-two-line__sub"><%= app.position %></span>
