@@ -3,6 +3,7 @@ const {
   ESSAY_FEEDBACK_SCHEMA,
   STAR_DRAFT_SCHEMA,
   JOB_PARSE_SCHEMA,
+  ESSAY_QUESTIONS_EXTRACT_SCHEMA,
   buildInterviewPrompt,
   validateInterviewOutput,
   buildFeedbackPrompt,
@@ -11,6 +12,8 @@ const {
   validateStarDraftOutput,
   buildJobParsePrompt,
   validateJobParseOutput,
+  buildEssayQuestionsPrompt,
+  validateEssayQuestionsOutput,
   JOB_SEARCH_SCHEMA,
   WEEKLY_BRIEFING_SCHEMA,
   buildJobSearchPrompt,
@@ -89,6 +92,15 @@ const FEATURE_SPECS = {
     schemaName: 'weekly_briefing',
     schema: WEEKLY_BRIEFING_SCHEMA,
     maxOutputTokens: 1600,
+  },
+  essay_questions: {
+    label: '자기소개서 문항 자동 추출',
+    envVar: 'OPENAI_MODEL_EXTRACT',
+    defaultModel: 'gpt-6-luna',
+    effort: 'none',
+    schemaName: 'essay_questions_extract',
+    schema: ESSAY_QUESTIONS_EXTRACT_SCHEMA,
+    maxOutputTokens: 1200,
   },
 };
 
@@ -426,6 +438,18 @@ async function parseJobPostingText(payload = {}, options = {}) {
   return { result, model };
 }
 
+async function extractEssayQuestions(payload = {}, options = {}) {
+  const { instructions, input } = buildEssayQuestionsPrompt(payload);
+  const { parsed, model } = await callOpenAiStructured({
+    featureKey: 'essay_questions',
+    instructions,
+    input,
+    fetchImpl: options.fetchImpl,
+  });
+  const result = validateEssayQuestionsOutput(parsed, createAiError);
+  return { result, questions: result.questions, essay_questions: result.questions, model };
+}
+
 async function searchJobPostings(payload = {}, options = {}) {
   const now = options.now || new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -476,6 +500,7 @@ module.exports = {
   generateEssayFeedback,
   generateMaterialStarDraft,
   parseJobPostingText,
+  extractEssayQuestions,
   searchJobPostings,
   generateWeeklyBriefing,
 };

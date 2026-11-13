@@ -1,0 +1,42 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title"><%= entry.title %></h1>
+    <% if (entry.question) { %>
+      <p class="text-muted">출처 문항: <%= entry.question %></p>
+    <% } %>
+  </div>
+  <div class="inline-actions">
+    <a href="/library/<%= entry.id %>/edit" class="btn">수정</a>
+    <form
+      action="/library/<%= entry.id %>?_method=DELETE"
+      method="POST"
+      data-confirm="이 라이브러리 항목을 삭제하시겠습니까?"
+    >
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="_method" value="DELETE">
+      <button type="submit" class="btn btn-danger">삭제</button>
+    </form>
+    <a href="/library" class="btn">목록으로</a>
+  </div>
+</div>
+
+<section class="card">
+  <h2>메타 정보 및 태그</h2>
+  <% if (entry.tagList && entry.tagList.length > 0) { %>
+    <div class="tag-list">
+      <% for (const tag of entry.tagList) { %>
+        <a href="/library?tag=<%= encodeURIComponent(tag) %>" class="badge"><%= tag %></a>
+      <% } %>
+    </div>
+  <% } else { %>
+    <p class="text-muted">등록된 태그가 없습니다.</p>
+  <% } %>
+  <div class="text-muted text-sm">
+    등록일: <%= entry.created_at %> | 최근 수정: <%= entry.updated_at %> | 분량: <%= entry.body.length %>자 (공백 포함)
+  </div>
+</section>
+
+<section class="card">
+  <h2>본문 내용</h2>
+  <div class="prose-pre"><%= entry.body %></div>
+</section>

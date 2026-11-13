@@ -29,4 +29,5 @@ require('./spec-sources.test.js');
 require('./spec-verifier.test.js');
 require('./spec-discover.test.js');
 require('./account-features.test.js');
+require('./essay-library.test.js');
 

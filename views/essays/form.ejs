@@ -5,6 +5,8 @@
   <a href="/essays" class="btn">목록으로</a>
 </div>
 
+<%- include('../partials/ai/essay-question-extract', { aiEnabled, csrfToken }) %>
+
 <section class="card">
   <% if (error) { %>
     <div class="flash flash--error" role="alert"><%= error %></div>

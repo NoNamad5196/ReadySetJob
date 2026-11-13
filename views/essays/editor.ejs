@@ -71,11 +71,20 @@
       <button
         type="button"
         role="tab"
-        class="essay-tab <%= activeTab !== 'materials' ? 'essay-tab--active' : '' %>"
+        class="essay-tab <%= activeTab === 'past' ? 'essay-tab--active' : '' %>"
         data-tab-target="panel-past"
-        aria-selected="<%= activeTab !== 'materials' ? 'true' : 'false' %>"
+        aria-selected="<%= activeTab === 'past' ? 'true' : 'false' %>"
       >
         과거 자기소개서
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="essay-tab <%= activeTab === 'library' ? 'essay-tab--active' : '' %>"
+        data-tab-target="panel-library"
+        aria-selected="<%= activeTab === 'library' ? 'true' : 'false' %>"
+      >
+        라이브러리에서 불러오기
       </button>
       <button
         type="button"
@@ -88,7 +97,7 @@
       </button>
     </div>
 
-    <div id="panel-past" class="essay-tab-panel <%= activeTab === 'materials' ? 'essay-tab-panel--hidden' : '' %>" role="tabpanel">
+    <div id="panel-past" class="essay-tab-panel <%= activeTab !== 'past' ? 'essay-tab-panel--hidden' : '' %>" role="tabpanel">
       <form action="/essays/<%= essay.id %>" method="GET" id="past-essay-search-form" class="essay-ref-search">
         <input type="hidden" name="tab" value="past">
         <input
@@ -119,6 +128,64 @@
               <div class="essay-ref-item__question">Q<%= pq.sort_order %>. <%= pq.question %></div>
               <p class="essay-ref-item__snippet"><%= pq.answer || '(답변 없음)' %></p>
               <a href="/essays/<%= pq.essay_id %>" class="btn btn-sm">원문 보기</a>
+            </article>
+          <% } %>
+        <% } %>
+      </div>
+    </div>
+
+    <div id="panel-library" class="essay-tab-panel <%= activeTab !== 'library' ? 'essay-tab-panel--hidden' : '' %>" role="tabpanel">
+      <form action="/essays/<%= essay.id %>" method="GET" id="library-ref-search-form" class="essay-ref-search">
+        <input type="hidden" name="tab" value="library">
+        <input
+          type="search"
+          id="library-ref-search-input"
+          name="lib_q"
+          class="input"
+          placeholder="라이브러리 제목/문항/본문 검색..."
+          value="<%= typeof libQ !== 'undefined' ? libQ : '' %>"
+        >
+        <input
+          type="text"
+          id="library-ref-tag-input"
+          name="lib_tag"
+          class="input"
+          placeholder="태그"
+          value="<%= typeof libTag !== 'undefined' ? libTag : '' %>"
+          aria-label="라이브러리 태그 검색"
+        >
+        <button type="submit" class="btn btn-sm">검색</button>
+      </form>
+
+      <div id="library-ref-results" class="essay-ref-list">
+        <% const libItems = typeof libraryEntries !== 'undefined' && Array.isArray(libraryEntries) ? libraryEntries : []; %>
+        <% if (libItems.length === 0) { %>
+          <div class="empty-state">
+            <p>저장된 라이브러리 항목이 없습니다.</p>
+            <a href="/library" class="btn btn-sm">라이브러리 관리</a>
+          </div>
+        <% } else { %>
+          <% for (const item of libItems) { %>
+            <article class="essay-ref-item" data-library-entry-id="<%= item.id %>">
+              <div class="essay-ref-item__meta">
+                <strong><%= item.title %></strong>
+                <% if (item.tags) { %>
+                  <span class="badge"><%= item.tags %></span>
+                <% } %>
+              </div>
+              <% if (item.question) { %>
+                <div class="essay-ref-item__question"><%= item.question %></div>
+              <% } %>
+              <p class="essay-ref-item__snippet"><%= item.body %></p>
+              <div class="inline-actions">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary"
+                  data-library-insert-btn
+                  data-library-body="<%= item.body %>"
+                >답변에 불러오기</button>
+                <a href="/library/<%= item.id %>" class="btn btn-sm">상세</a>
+              </div>
             </article>
           <% } %>
         <% } %>
@@ -239,6 +306,20 @@
           >
             글자수 제한 초과!
           </span>
+          <form action="/essays/<%= essay.id %>/questions/<%= q.id %>/to-library" method="POST" class="inline-actions" data-save-to-library-form>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button
+              type="submit"
+              class="btn btn-sm"
+              data-save-to-library-btn
+              data-essay-id="<%= essay.id %>"
+              data-question-id="<%= q.id %>"
+              data-question-order="<%= idx + 1 %>"
+              data-question-text="<%= q.question %>"
+              data-essay-title="<%= essay.title %>"
+            >라이브러리에 저장</button>
+            <span class="text-muted text-sm" data-save-to-library-status="<%= q.id %>"></span>
+          </form>
         </div>
 
         <%- include('../partials/ai/essay-feedback', { essay, question: q, aiEnabled, csrfToken }) %>
@@ -254,6 +335,8 @@
         <button type="submit" class="btn btn-primary">+ 문항 추가</button>
       </form>
     </section>
+
+    <%- include('../partials/ai/essay-question-extract', { aiEnabled, csrfToken, essayId: essay.id }) %>
 
     <section class="card essay-danger-zone">
       <div class="inline-actions">

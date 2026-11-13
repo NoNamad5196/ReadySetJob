@@ -1,0 +1,82 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title">과거 자소서 파일 가져오기</h1>
+    <p class="text-muted">.txt, .md, .docx, .pdf 파일(최대 5MB)에서 텍스트를 추출하고 문항별로 나누어 라이브러리에 저장합니다.</p>
+  </div>
+  <a href="/library" class="btn">라이브러리 목록</a>
+</div>
+
+<section class="card">
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form action="/library/import" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="form-field">
+      <label for="library-import-file">자소서 파일 선택 (.txt, .md, .docx, .pdf · 최대 5MB) *</label>
+      <input
+        type="file"
+        id="library-import-file"
+        name="file"
+        class="input"
+        accept=".txt,.md,.docx,.pdf"
+        required
+      >
+    </div>
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary">텍스트 추출 및 문항 분할 미리보기</button>
+      <a href="/library" class="btn">취소</a>
+    </div>
+  </form>
+</section>
+
+<% if (previewEntries && previewEntries.length > 0) { %>
+  <section class="card" id="library-import-preview">
+    <div class="card__header">
+      <div>
+        <h2 class="card__title">분할 미리보기 및 편집 (<%= previewEntries.length %>건 감지됨)</h2>
+        <p class="text-muted text-sm">
+          <% if (filename) { %>파일: <strong><%= filename %></strong> · <% } %>
+          자동 분할된 항목의 제목, 문항, 본문, 태그를 확인·수정한 뒤 저장하세요.
+        </p>
+      </div>
+    </div>
+
+    <form action="/library/import/save" method="POST" id="library-import-save-form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="filename" value="<%= filename || '' %>">
+
+      <div id="library-split-items">
+        <% previewEntries.forEach((item, idx) => { %>
+          <div class="card" data-split-item>
+            <div class="essay-section-header">
+              <h3 class="essay-subcard-title">항목 #<%= idx + 1 %></h3>
+            </div>
+            <div class="form-field">
+              <label>제목 *</label>
+              <input type="text" name="title" class="input" required maxlength="200" value="<%= item.title || '' %>">
+            </div>
+            <div class="form-field">
+              <label>출처 문항 (선택)</label>
+              <input type="text" name="question" class="input" maxlength="500" value="<%= item.question || '' %>">
+            </div>
+            <div class="form-field">
+              <label>태그 (선택, 쉼표 구분)</label>
+              <input type="text" name="tags" class="input" maxlength="300" placeholder="예: 지원동기, 프로젝트" value="<%= item.tags || '' %>">
+            </div>
+            <div class="form-field">
+              <label>본문 내용 *</label>
+              <textarea name="body" class="input" rows="6" required maxlength="20000"><%= item.body || item.content || '' %></textarea>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+
+      <div class="inline-actions">
+        <button type="submit" class="btn btn-primary">라이브러리에 일괄 저장</button>
+        <a href="/library" class="btn">취소</a>
+      </div>
+    </form>
+  </section>
+<% } %>

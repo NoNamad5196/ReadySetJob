@@ -25,6 +25,8 @@ const { createApplicationsRouter, createApplicationsApiRouter } = require('./rou
 const { createEventsRouter } = require('./routes/events');
 const { createEssaysRouter, createEssaysApiRouter } = require('./routes/essays');
 const { createMaterialsRouter } = require('./routes/materials');
+const { createLibraryRouter, createLibraryApiRouter } = require('./routes/library');
+const { multipartUploadMiddleware } = require('./services/libraryImportService');
 const { createTodosRouter, createTodosApiRouter } = require('./routes/todos');
 const { createSettingsRouter } = require('./routes/settings');
 const { createStatsRouter } = require('./routes/stats');
@@ -120,6 +122,8 @@ function createApp({ dbPath } = {}) {
   );
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
+  app.use('/library/import', multipartUploadMiddleware);
+  app.use('/api/library/import', multipartUploadMiddleware);
 
 
   app.use(methodOverride('_method'));
@@ -196,6 +200,8 @@ function createApp({ dbPath } = {}) {
   app.use('/events', createEventsRouter(db));
   app.use('/essays', createEssaysRouter(db));
   app.use('/api/essays', createEssaysApiRouter(db));
+  app.use('/library', createLibraryRouter(db));
+  app.use('/api/library', createLibraryApiRouter(db));
   app.use('/materials', createMaterialsRouter(db));
   app.use('/todos', createTodosRouter(db));
   app.use('/api/todos', createTodosApiRouter(db));

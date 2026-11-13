@@ -121,6 +121,17 @@ CREATE TABLE IF NOT EXISTS essay_materials (
   PRIMARY KEY (essay_id, material_id)
 );
 
+CREATE TABLE IF NOT EXISTS essay_library (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  question TEXT NOT NULL DEFAULT '',
+  body TEXT NOT NULL DEFAULT '',
+  tags TEXT NOT NULL DEFAULT '',
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS interview_questions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -244,6 +255,7 @@ CREATE INDEX IF NOT EXISTS idx_essays_user_id ON essays(user_id);
 CREATE INDEX IF NOT EXISTS idx_essay_questions_essay_id ON essay_questions(essay_id);
 CREATE INDEX IF NOT EXISTS idx_essay_versions_essay_id ON essay_versions(essay_id);
 CREATE INDEX IF NOT EXISTS idx_materials_user_id ON materials(user_id);
+CREATE INDEX IF NOT EXISTS idx_essay_library_user_id ON essay_library(user_id);
 CREATE INDEX IF NOT EXISTS idx_interview_questions_user_id ON interview_questions(user_id);
 CREATE INDEX IF NOT EXISTS idx_todos_user_done_due ON todos(user_id, is_done, due_date);
 CREATE INDEX IF NOT EXISTS idx_essay_feedback_lookup ON essay_feedback(user_id, essay_id, question_id, id);

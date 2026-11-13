@@ -15,9 +15,15 @@ const {
   generateEssayFeedback,
   generateMaterialStarDraft,
   parseJobPostingText,
+  extractEssayQuestions,
   searchJobPostings,
   generateWeeklyBriefing,
 } = require('../services/aiService');
+const {
+  getEssayById,
+  addEssayQuestion,
+  listUserApplications,
+} = require('../services/essaysService');
 const {
   toIsoDate,
   buildBriefingContext,
@@ -495,6 +501,137 @@ function createAiRouter(db) {
       });
     }
   });
+
+  async function handleExtractEssayQuestions(req, res, next) {
+    const userId = req.session.user.id;
+    const isJson = wantsJson(req);
+    const essayId = req.params.id !== undefined ? parseId(req.params.id) : null;
+
+    if (req.params.id !== undefined && !essayId) {
+      if (isJson) return res.status(404).json({ error: '요청한 자기소개서를 찾을 수 없습니다.' });
+      return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
+    }
+
+    const existingEssay = essayId ? getEssayById(db, userId, essayId) : null;
+    if (essayId && !existingEssay) {
+      if (isJson) return res.status(404).json({ error: '요청한 자기소개서를 찾을 수 없습니다.' });
+      return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
+    }
+
+    const renderFormFallback = (status, error, questions = null) => {
+      const applications = listUserApplications(db, userId);
+      const defaultQs = [{ question: '지원 동기 및 입사 후 포부를 기술해 주세요.', char_limit: 1000, answer: '' }];
+      return res.status(status).render('essays/form', {
+        title: '새 자기소개서 작성',
+        error,
+        applications,
+        essay: {
+          title: String((req.body && req.body.title) || '').trim(),
+          application_id: (req.body && req.body.application_id) || '',
+          questions: Array.isArray(questions) && questions.length > 0
+            ? questions.map((q) => ({ question: q.question, char_limit: q.char_limit ?? '', answer: '' }))
+            : defaultQs,
+        },
+      });
+    };
+
+    if (!isAiEnabled()) {
+      if (isJson) return res.status(503).json({ error: AI_DISABLED_MESSAGE });
+      if (existingEssay) {
+        req.setFlash('error', AI_DISABLED_MESSAGE);
+        return res.redirect(`/essays/${existingEssay.id}`);
+      }
+      return renderFormFallback(503, AI_DISABLED_MESSAGE);
+    }
+
+    const rawText =
+      req.body && typeof req.body.text === 'string'
+        ? req.body.text
+        : req.body && typeof req.body.job_text === 'string'
+          ? req.body.job_text
+          : req.body && typeof req.body.url === 'string'
+            ? req.body.url
+            : '';
+    const trimmed = rawText.trim();
+    if (!trimmed) {
+      const msg = '추출할 채용 공고 텍스트를 입력해 주세요.';
+      if (isJson) return res.status(422).json({ error: msg });
+      if (existingEssay) {
+        req.setFlash('error', msg);
+        return res.redirect(`/essays/${existingEssay.id}`);
+      }
+      return renderFormFallback(422, msg);
+    }
+    if (rawText.length > 12000) {
+      const msg = '채용 공고 텍스트는 12000자 이하여야 합니다.';
+      if (isJson) return res.status(422).json({ error: msg });
+      if (existingEssay) {
+        req.setFlash('error', msg);
+        return res.redirect(`/essays/${existingEssay.id}`);
+      }
+      return renderFormFallback(422, msg);
+    }
+
+    const rateCheck = checkRateLimit(userId);
+    if (!rateCheck.allowed) {
+      if (isJson) return res.status(429).json({ error: rateCheck.message });
+      if (existingEssay) {
+        req.setFlash('error', rateCheck.message);
+        return res.redirect(`/essays/${existingEssay.id}`);
+      }
+      return renderFormFallback(429, rateCheck.message);
+    }
+
+    try {
+      const { questions } = await extractEssayQuestions({ text: trimmed });
+      if (existingEssay && (!isJson || (req.body && (req.body.apply === '1' || req.body.apply === true)))) {
+        for (const q of questions) {
+          addEssayQuestion(db, userId, {
+            essayId: existingEssay.id,
+            question: q.question,
+            char_limit: q.char_limit,
+            answer: '',
+          });
+        }
+      }
+      if (isJson) {
+        return res.status(200).json({
+          ok: true,
+          model: 'OpenAI',
+          questions,
+          essay_questions: questions,
+        });
+      }
+      if (existingEssay) {
+        req.setFlash(
+          questions.length > 0 ? 'success' : 'error',
+          questions.length > 0
+            ? `${questions.length}개의 자기소개서 문항이 추출되어 추가되었습니다.`
+            : '공고 본문에서 자기소개서 문항을 찾지 못했습니다.'
+        );
+        return res.redirect(`/essays/${existingEssay.id}`);
+      }
+      return renderFormFallback(
+        200,
+        questions.length === 0 ? '공고 본문에서 자기소개서 문항을 찾지 못했습니다.' : null,
+        questions
+      );
+    } catch (err) {
+      const status = err.status || 502;
+      const msg = err.message || 'AI 자기소개서 문항 추출에 실패했습니다.';
+      if (isJson) return res.status(status).json({ error: msg });
+      if (existingEssay) {
+        req.setFlash('error', msg);
+        return res.redirect(`/essays/${existingEssay.id}`);
+      }
+      return renderFormFallback(status, msg);
+    }
+  }
+
+  router.post('/api/essays/extract-questions', handleExtractEssayQuestions);
+  router.post('/essays/extract-questions', handleExtractEssayQuestions);
+  router.post('/api/essays/:id/extract-questions', handleExtractEssayQuestions);
+  router.post('/essays/:id/extract-questions', handleExtractEssayQuestions);
 
   return router;
 }

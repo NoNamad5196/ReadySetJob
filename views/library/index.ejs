@@ -1,0 +1,111 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title">자소서 라이브러리</h1>
+    <p class="text-muted">과거 자기소개서 답변, 자주 쓰는 문단, 핵심 경험 스토리를 저장하고 작성 중 바로 불러옵니다.</p>
+  </div>
+  <div class="inline-actions">
+    <a href="/library/import" class="btn">파일 가져오기 (.txt, .md, .docx, .pdf)</a>
+    <a href="/library/new" class="btn btn-primary">새 항목 등록</a>
+  </div>
+</div>
+
+<form action="/library" method="GET" class="filter-bar">
+  <input
+    type="search"
+    name="q"
+    class="input"
+    placeholder="제목, 출처 문항, 본문 내용, 태그 검색..."
+    value="<%= filters.q %>"
+  >
+  <input
+    type="text"
+    name="tag"
+    class="input"
+    placeholder="태그 필터 (예: 협업)"
+    value="<%= filters.tag %>"
+    aria-label="태그 필터"
+  >
+  <button type="submit" class="btn">검색</button>
+  <% if (filters.q || filters.tag) { %>
+    <a href="/library" class="btn">초기화</a>
+  <% } %>
+</form>
+
+<% if (tags && tags.length > 0) { %>
+  <div class="card">
+    <div class="inline-actions">
+      <span class="text-muted text-sm">태그 빠른 필터:</span>
+      <a href="/library<%= filters.q ? '?q=' + encodeURIComponent(filters.q) : '' %>" class="badge <%= !filters.tag ? 'badge--stage-document' : '' %>">전체</a>
+      <% for (const t of tags) { %>
+        <a
+          href="/library?tag=<%= encodeURIComponent(t) %><%= filters.q ? '&q=' + encodeURIComponent(filters.q) : '' %>"
+          class="badge <%= filters.tag.toLowerCase() === t.toLowerCase() ? 'badge--stage-document' : '' %>"
+        ><%= t %></a>
+      <% } %>
+    </div>
+  </div>
+<% } %>
+
+<section class="card">
+  <% if (!entries || entries.length === 0) { %>
+    <div class="empty-state">
+      <p>저장된 자소서 라이브러리 항목이 없습니다.</p>
+      <div class="inline-actions">
+        <a href="/library/new" class="btn btn-primary">직접 등록하기</a>
+        <a href="/library/import" class="btn">과거 자소서 파일 가져오기</a>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>제목 / 출처 문항</th>
+            <th>본문 미리보기</th>
+            <th>태그</th>
+            <th>최근 수정</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const item of entries) { %>
+            <tr>
+              <td>
+                <a href="/library/<%= item.id %>"><strong><%= item.title %></strong></a>
+                <% if (item.question) { %>
+                  <div class="text-muted text-sm">문항: <%= item.question %></div>
+                <% } %>
+              </td>
+              <td>
+                <div class="text-muted text-sm">
+                  <%= item.body.length > 120 ? item.body.slice(0, 120) + '...' : item.body %>
+                </div>
+              </td>
+              <td>
+                <% if (item.tagList && item.tagList.length > 0) { %>
+                  <% for (const tag of item.tagList) { %>
+                    <a href="/library?tag=<%= encodeURIComponent(tag) %>" class="badge"><%= tag %></a>
+                  <% } %>
+                <% } else { %>
+                  -
+                <% } %>
+              </td>
+              <td class="text-muted text-sm"><%= item.updated_at %></td>
+              <td>
+                <div class="inline-actions">
+                  <a href="/library/<%= item.id %>" class="btn btn-sm">상세</a>
+                  <a href="/library/<%= item.id %>/edit" class="btn btn-sm">수정</a>
+                  <form action="/library/<%= item.id %>?_method=DELETE" method="POST" data-confirm="이 라이브러리 항목을 삭제하시겠습니까?">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

@@ -1,0 +1,78 @@
+<div class="page-header">
+  <h1 class="page-header__title"><%= isEdit ? '라이브러리 항목 수정' : '라이브러리 항목 등록' %></h1>
+  <a href="<%= isEdit ? `/library/${entry.id}` : '/library' %>" class="btn">목록으로</a>
+</div>
+
+<section class="card">
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form
+    action="<%= isEdit ? `/library/${entry.id}?_method=PUT` : '/library' %>"
+    method="POST"
+  >
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (isEdit) { %>
+      <input type="hidden" name="_method" value="PUT">
+    <% } %>
+
+    <div class="form-field">
+      <label for="library-title">제목 *</label>
+      <input
+        type="text"
+        id="library-title"
+        name="title"
+        class="input"
+        required
+        maxlength="200"
+        placeholder="예: 대규모 트래픽 병목 해결 경험 (백엔드 공통)"
+        value="<%= entry.title || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="library-question">출처 문항 (선택)</label>
+      <input
+        type="text"
+        id="library-question"
+        name="question"
+        class="input"
+        maxlength="500"
+        placeholder="예: 직무 관련 가장 도전적이었던 기술적 문제와 해결 과정을 기술해 주세요."
+        value="<%= entry.question || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="library-tags">태그 (선택, 쉼표로 구분)</label>
+      <input
+        type="text"
+        id="library-tags"
+        name="tags"
+        class="input"
+        maxlength="300"
+        placeholder="예: 문제해결, 성능최적화, 협업, 지원동기"
+        value="<%= entry.tags || '' %>"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="library-body">본문 내용 *</label>
+      <textarea
+        id="library-body"
+        name="body"
+        class="input"
+        required
+        maxlength="20000"
+        rows="10"
+        placeholder="자소서 답변이나 재사용할 문단을 입력해 주세요."
+      ><%= entry.body || entry.content || '' %></textarea>
+    </div>
+
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary"><%= isEdit ? '수정 저장' : '등록하기' %></button>
+      <a href="<%= isEdit ? `/library/${entry.id}` : '/library' %>" class="btn">취소</a>
+    </div>
+  </form>
+</section>

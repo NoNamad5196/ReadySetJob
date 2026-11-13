@@ -9,6 +9,7 @@ const {
   searchEssayQuestions, linkMaterialToEssay, unlinkMaterialFromEssay, deleteEssay,
 } = require('../services/essaysService');
 const { scheduleAutoFeedback } = require('../services/automationService');
+const { listLibraryEntries, createLibraryEntry } = require('../services/libraryService');
 
 const toArray = (val) => (val === undefined || val === null ? [] : Array.isArray(val) ? val : [val]);
 
@@ -31,12 +32,13 @@ const parseDraftAnswersFromBody = (body, existingQuestions = []) => {
   return existingQuestions.filter((q) => `answer_${q.id}` in body).map((q) => ({ question_id: q.id, answer: String(body[`answer_${q.id}`] ?? '') }));
 };
 
-const renderEditorView = (res, db, { userId, essay, refQ = '', activeTab = 'past', status = 200, error = null }) =>
+const renderEditorView = (res, db, { userId, essay, refQ = '', libQ = '', libTag = '', activeTab = 'past', status = 200, error = null }) =>
   res.status(status).render('essays/editor', {
     title: `${essay.title} — 자기소개서 편집`, essay,
     applications: listUserApplications(db, userId),
     pastQuestions: searchEssayQuestions(db, userId, { q: refQ, excludeEssayId: essay.id }),
-    refQ, activeTab, error,
+    libraryEntries: listLibraryEntries(db, userId, { q: libQ, tag: libTag }),
+    refQ, libQ, libTag, activeTab, error,
   });
 
 function createEssaysRouter(db) {
@@ -104,8 +106,10 @@ function createEssaysRouter(db) {
     const essay = getEssayById(db, req.session.user.id, req.params.id);
     if (!essay) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
     const refQ = String(req.query.ref_q || '').trim();
-    const activeTab = req.query.tab === 'materials' ? 'materials' : 'past';
-    return renderEditorView(res, db, { userId: req.session.user.id, essay, refQ, activeTab });
+    const libQ = String(req.query.lib_q || '').trim();
+    const libTag = String(req.query.lib_tag || '').trim();
+    const activeTab = req.query.tab === 'materials' ? 'materials' : req.query.tab === 'library' ? 'library' : 'past';
+    return renderEditorView(res, db, { userId: req.session.user.id, essay, refQ, libQ, libTag, activeTab });
   });
 
   router.put('/:id', (req, res, next) => {
@@ -182,6 +186,26 @@ function createEssaysRouter(db) {
       return next(createHttpError(404, '요청한 문항을 찾을 수 없습니다.'));
     }
     return res.redirect(`/essays/${req.params.id}`);
+  });
+
+  router.post('/:id/questions/:qid/to-library', (req, res, next) => {
+    const userId = req.session.user.id;
+    const existing = getEssayById(db, userId, req.params.id);
+    if (!existing) return next(createHttpError(404, '요청한 자기소개서를 찾을 수 없습니다.'));
+    const targetQ = existing.questions.find((q) => q.id === req.params.qid);
+    if (!targetQ) return next(createHttpError(404, '요청한 문항을 찾을 수 없습니다.'));
+    const bodyText = String(req.body.answer !== undefined ? req.body.answer : targetQ.answer || '').trim();
+    if (!bodyText) {
+      if (req.get('Accept')?.includes('application/json')) return res.status(422).json({ error: '라이브러리에 저장할 답변 내용을 먼저 입력해 주세요.' });
+      return renderEditorView(res, db, { userId, essay: existing, status: 422, error: '라이브러리에 저장할 답변 내용을 먼저 입력해 주세요.' });
+    }
+    const title = String(req.body.title || `${existing.title} — 문항 ${targetQ.sort_order}`).trim().slice(0, 200);
+    const question = String(req.body.question || targetQ.question || '').trim().slice(0, 500);
+    const tags = String(req.body.tags || existing.company_name || '').trim().slice(0, 300);
+    const entry = createLibraryEntry(db, userId, { title, question, body: bodyText, tags });
+    if (req.get('Accept')?.includes('application/json')) return res.status(201).json({ ok: true, entry });
+    req.setFlash('success', '답변이 자소서 라이브러리에 저장되었습니다.');
+    return res.redirect(`/essays/${existing.id}?tab=library`);
   });
 
   router.post('/:id/versions', (req, res, next) => {

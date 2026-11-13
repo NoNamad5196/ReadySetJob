@@ -45,6 +45,11 @@ function migrate(db) {
   db.exec('CREATE INDEX IF NOT EXISTS idx_essay_feedback_lookup ON essay_feedback(user_id, essay_id, question_id, id)');
   db.exec('CREATE INDEX IF NOT EXISTS idx_material_star_drafts_lookup ON material_star_drafts(user_id, material_id, id)');
 
+  ensureColumn(db, 'essay_library', 'question', "TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, 'essay_library', 'body', "TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, 'essay_library', 'tags', "TEXT NOT NULL DEFAULT ''");
+  db.exec('CREATE INDEX IF NOT EXISTS idx_essay_library_user_id ON essay_library(user_id)');
+
   return db;
 }
 
