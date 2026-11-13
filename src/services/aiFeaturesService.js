@@ -12,6 +12,7 @@ function hydrateRow(row) {
   const data = parsed && typeof parsed === 'object' ? parsed : {};
   return {
     ...row,
+    model: 'OpenAI',
     ...data,
     result: data,
     parsed: data,

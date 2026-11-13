@@ -1,0 +1,50 @@
+<%
+  const profileUser = typeof user !== 'undefined' && user ? user : (currentUser || {});
+  const profileAvatar = companyAvatar(profileUser.name || '김');
+  const profileAvatarData = profileUser.avatar_data || null;
+%>
+<section class="card" id="profile-avatar-section">
+  <h2>프로필 사진</h2>
+  <div class="avatar-settings">
+    <div class="avatar-settings__preview">
+      <span class="avatar avatar--lg <%= profileAvatar.className %>" id="avatar-preview-box" data-avatar-preview>
+        <% if (profileAvatarData) { %>
+          <img class="avatar__photo" src="<%= profileAvatarData %>" alt="<%= profileUser.name || '프로필 사진' %>" id="avatar-preview-img">
+        <% } else { %>
+          <span data-avatar-initial><%= profileAvatar.initial %></span>
+        <% } %>
+      </span>
+      <div class="avatar-settings__meta">
+        <p class="text-sm">PNG, JPEG, WebP 이미지 (최대 256×256 자동 리사이즈, 200KB 이하)</p>
+        <p class="text-muted" id="avatar-file-status" data-avatar-status></p>
+      </div>
+    </div>
+
+    <div class="avatar-settings__actions">
+      <form action="/settings/avatar" method="POST" id="avatar-upload-form" data-avatar-upload-form>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="avatar_data" id="avatar-data-input" data-avatar-data-input value="">
+        <div class="form-field">
+          <label for="avatar-file-input">사진 선택</label>
+          <input
+            type="file"
+            id="avatar-file-input"
+            class="input"
+            accept="image/png,image/jpeg,image/webp"
+            data-avatar-file-input
+          >
+        </div>
+        <div class="inline-actions">
+          <button type="submit" class="btn btn-primary btn-sm" id="avatar-save-btn">사진 저장</button>
+        </div>
+      </form>
+
+      <% if (profileAvatarData) { %>
+        <form action="/settings/avatar/delete" method="POST" class="avatar-settings__remove-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-secondary btn-sm">사진 삭제</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</section>

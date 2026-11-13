@@ -92,7 +92,7 @@ function parseRow(row) {
   } catch {
     return null;
   }
-  return { id: row.id, briefing_date: row.briefing_date, model: row.model, created_at: row.created_at, result };
+  return { id: row.id, briefing_date: row.briefing_date, model: 'OpenAI', created_at: row.created_at, result };
 }
 
 function getBriefingForDate(db, userId, dateStr) {

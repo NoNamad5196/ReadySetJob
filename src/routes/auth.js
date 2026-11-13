@@ -1,11 +1,28 @@
 const express = require('express');
 const { ensureCsrfToken } = require('../middleware/csrf');
+const { REMEMBER_ME_MAX_AGE, sanitizeReturnTo } = require('../middleware/auth');
 const { isValidEmail } = require('../middleware/validation');
 const {
   findByEmail,
   createUser,
   verifyUserCredentials,
 } = require('../services/usersService');
+
+function isRememberMeChecked(body) {
+  if (!body || typeof body !== 'object') return false;
+  const raw =
+    body.remember_me !== undefined
+      ? body.remember_me
+      : body.rememberMe !== undefined
+        ? body.rememberMe
+        : body.remember;
+  if (raw === true || raw === 1) return true;
+  if (typeof raw === 'string') {
+    return ['1', 'on', 'true', 'yes'].includes(raw.trim().toLowerCase());
+  }
+  return false;
+}
+
 
 function createAuthRouter(db) {
   const router = express.Router();
@@ -113,23 +130,33 @@ function createAuthRouter(db) {
     if (req.session && req.session.user) {
       return res.redirect('/dashboard');
     }
+    const queryReturnTo = sanitizeReturnTo(req.query && req.query.returnTo);
+    if (queryReturnTo && req.session) {
+      req.session.returnTo = queryReturnTo;
+    }
+    const returnTo = queryReturnTo || sanitizeReturnTo(req.session && req.session.returnTo) || '';
     return res.render('auth/login', {
       title: '로그인',
       error: null,
-      values: { email: '' },
+      values: { email: '', remember_me: false, returnTo },
     });
   });
 
   router.post('/login', (req, res, next) => {
     const email = String(req.body.email || '').trim();
     const password = String(req.body.password || '');
+    const rememberMe = isRememberMeChecked(req.body);
+    const returnTo =
+      sanitizeReturnTo(req.body && (req.body.returnTo || req.body.redirect_to)) ||
+      sanitizeReturnTo(req.query && req.query.returnTo) ||
+      sanitizeReturnTo(req.session && req.session.returnTo);
     const genericError = '이메일 또는 비밀번호가 올바르지 않습니다.';
 
     if (!isValidEmail(email) || !password) {
       return res.status(422).render('auth/login', {
         title: '로그인',
         error: genericError,
-        values: { email },
+        values: { email, remember_me: rememberMe, returnTo: returnTo || '' },
       });
     }
 
@@ -138,7 +165,7 @@ function createAuthRouter(db) {
       return res.status(401).render('auth/login', {
         title: '로그인',
         error: genericError,
-        values: { email },
+        values: { email, remember_me: rememberMe, returnTo: returnTo || '' },
       });
     }
 
@@ -147,6 +174,12 @@ function createAuthRouter(db) {
         return next(regenErr);
       }
       req.session.user = verifiedUser;
+      if (rememberMe) {
+        req.session.rememberMe = true;
+        req.session.cookie.maxAge = REMEMBER_ME_MAX_AGE;
+      } else {
+        req.session.rememberMe = false;
+      }
       ensureCsrfToken(req);
       req.session.flash = {
         type: 'success',
@@ -156,10 +189,11 @@ function createAuthRouter(db) {
         if (saveErr) {
           return next(saveErr);
         }
-        return res.redirect('/dashboard');
+        return res.redirect(returnTo || '/dashboard');
       });
     });
   });
+
 
   router.post('/logout', (req, res, next) => {
     return req.session.destroy((err) => {

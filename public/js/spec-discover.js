@@ -55,6 +55,7 @@
       img.alt = '';
       img.loading = 'lazy';
       img.decoding = 'async';
+      img.onerror = function () { img.remove(); };
       img.src = item.avatar.logoSrc;
       avatar.appendChild(img);
     }

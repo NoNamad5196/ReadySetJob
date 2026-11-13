@@ -13,7 +13,7 @@
   const isEnabled = typeof aiEnabled !== 'undefined' ? Boolean(aiEnabled) : false;
   const disabledMsg = typeof AI_DISABLED_MESSAGE !== 'undefined'
     ? AI_DISABLED_MESSAGE
-    : 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)';
+    : 'AI 기능을 지금은 사용할 수 없습니다';
   const latestDraft = material && material.latestStarDraft ? material.latestStarDraft : null;
   const star = latestDraft && latestDraft.result ? latestDraft.result : latestDraft;
 %>
@@ -68,7 +68,7 @@
         <strong data-ai-star-oneliner><%= star ? star.one_liner : '' %></strong>
       </div>
       <span class="text-muted text-sm num" data-ai-star-meta>
-        <% if (latestDraft && latestDraft.model) { %><%= latestDraft.model %> · <%= latestDraft.created_at || '' %><% } %>
+        <% if (latestDraft) { %>OpenAI 사용<%= latestDraft.created_at ? ` · ${latestDraft.created_at}` : '' %><% } %>
       </span>
     </div>
 

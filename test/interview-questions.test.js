@@ -102,14 +102,14 @@ describe('Interview Questions Feature', () => {
   it('generate with AI disabled creates no rows and shows disabled explanation', async () => {
     delete process.env.OPENAI_API_KEY;
     const detailRes = await userA.agent.get(`/applications/${appA.id}`);
-    assert.match(detailRes.text, /AI 기능이 비활성화되어 있습니다 \(OPENAI_API_KEY 미설정\)/);
+    assert.match(detailRes.text, /AI 기능을 지금은 사용할 수 없습니다/);
     assert.match(detailRes.text, /disabled/);
 
     const genRes = await userA.agent.post(`/applications/${appA.id}/interview-questions/generate`).type('form').send({ _csrf: userA.csrfToken });
     assert.equal(genRes.status, 302);
 
     const redirectRes = await userA.agent.get(`/applications/${appA.id}`);
-    assert.match(redirectRes.text, /AI 기능이 비활성화되어 있습니다 \(OPENAI_API_KEY 미설정\)/);
+    assert.match(redirectRes.text, /AI 기능을 지금은 사용할 수 없습니다/);
     assert.equal(list(ctx.db, 1, appA.id).length, 0);
   });
 

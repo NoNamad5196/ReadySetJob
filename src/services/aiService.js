@@ -21,7 +21,7 @@ const {
 } = require('./aiSchemas');
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
-const AI_DISABLED_MESSAGE = 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)';
+const AI_DISABLED_MESSAGE = 'AI 기능을 지금은 사용할 수 없습니다';
 const REQUEST_TIMEOUT_MS = 25000;
 
 const FEATURE_SPECS = {
@@ -439,7 +439,11 @@ async function searchJobPostings(payload = {}, options = {}) {
   if (!webSearchUsed) {
     throw createAiError('AI 응답에서 완료된 웹 검색을 확인할 수 없습니다.', 502);
   }
-  const validationOptions = { purpose: payload.purpose };
+  const validationOptions = {
+    purpose: payload.purpose,
+    purposes: payload.purposes,
+    employment_type: payload.employment_type,
+  };
   if (consultedUrls.length > 0) validationOptions.sourceUrls = consultedUrls;
   const { results } = validateJobSearchOutput(parsed, createAiError, validationOptions);
   return { results, citations, model };

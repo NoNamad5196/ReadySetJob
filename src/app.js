@@ -113,8 +113,14 @@ function createApp({ dbPath } = {}) {
     '/vendor/pretendard',
     express.static(path.join(__dirname, '../node_modules/pretendard/dist/web/variable'))
   );
+  app.use(
+    '/settings/avatar',
+    express.urlencoded({ extended: false, limit: '350kb' }),
+    express.json({ limit: '350kb' })
+  );
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
+
 
   app.use(methodOverride('_method'));
   app.use(

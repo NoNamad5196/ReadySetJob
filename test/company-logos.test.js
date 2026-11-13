@@ -169,4 +169,46 @@ describe('Company logos', () => {
     const expected = '/logos/company?name=' + encodeURIComponent('카카오');
     assert.ok(res.text.includes(`<img class="avatar__logo" src="${expected}" alt="" loading="lazy" decoding="async">`));
   });
+
+  it('expires negative (missing) cache entries after 1-day TTL and re-fetches', async () => {
+    assert.equal(logo.MISSING_TTL_MS, 24 * 60 * 60 * 1000);
+    handler = () => reply(404, '');
+    assert.equal(await logo.getLogoForDomain(ctx.db, 'retry.example'), null);
+    assert.equal(calls.length, 2);
+
+    calls = [];
+    handler = () => reply(200, png(64));
+    assert.equal(await logo.getLogoForDomain(ctx.db, 'retry.example'), null);
+    assert.equal(calls.length, 0);
+
+    ctx.db
+      .prepare('UPDATE company_logos SET fetched_at = ? WHERE domain = ?')
+      .run(Date.now() - logo.MISSING_TTL_MS - 1000, 'retry.example');
+    const refreshed = await logo.getLogoForDomain(ctx.db, 'retry.example');
+    assert.ok(refreshed);
+    assert.equal(calls.length, 1);
+    const row = ctx.db.prepare('SELECT status FROM company_logos WHERE domain = ?').get('retry.example');
+    assert.equal(row.status, 'ok');
+  });
+
+  it('tries additional candidate domains/aliases (about.*, career domains, known owned companies) when primary fails', async () => {
+    assert.equal(logo.normalizeDomain('https://about.daangn.com'), 'daangn.com');
+
+    const idA = ctx.db.prepare('SELECT id FROM users WHERE email = ?').get('logo_a@readysetjob.dev').id;
+    ctx.db.prepare('INSERT INTO companies (user_id, name, website) VALUES (?, ?, ?)').run(idA, '쿠팡', 'https://www.coupang.jobs');
+    ctx.db.prepare('INSERT INTO companies (user_id, name, website) VALUES (?, ?, ?)').run(idA, '무신사', '');
+
+    handler = (url) => (url.includes('coupang.com') ? reply(200, png(64)) : reply(404, ''));
+    const resCoupang = await userA.agent.get('/logos/company?name=' + encodeURIComponent('쿠팡')).buffer(true);
+    assert.equal(resCoupang.status, 200);
+    assert.equal(resCoupang.body.length, png(64).length);
+    assert.ok(calls.some((u) => u.includes('coupang.com')));
+
+    calls = [];
+    handler = (url) => (url.includes('musinsa.com') ? reply(200, png(64)) : reply(404, ''));
+    const resMusinsa = await userA.agent.get('/logos/company?name=' + encodeURIComponent('무신사')).buffer(true);
+    assert.equal(resMusinsa.status, 200);
+    assert.equal(resMusinsa.body.length, png(64).length);
+    assert.ok(calls.some((u) => u.includes('musinsa.com')));
+  });
 });

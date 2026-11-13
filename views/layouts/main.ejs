@@ -29,6 +29,7 @@
       const sNotifications = s.notifications || [];
       const seasonLabel = (s.user && s.user.season_label) || '2026 하반기 취업 준비';
       const userAvatar = companyAvatar(currentUser.name || '김');
+      const userAvatarData = (s.user && s.user.avatar_data) || currentUser.avatar_data || null;
     %>
     <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
 
@@ -44,7 +45,7 @@
 
           <a href="/settings" class="sidebar__season" title="시즌 설정">
             <div class="sidebar__season-left">
-              <span class="avatar avatar--sm <%= userAvatar.className %>"><%= userAvatar.initial %></span>
+              <span class="avatar avatar--sm <%= userAvatar.className %>"><% if (userAvatarData) { %><img class="avatar__photo" src="<%= userAvatarData %>" alt="<%= currentUser.name %>"><% } else { %><%= userAvatar.initial %><% } %></span>
               <span class="sidebar__season-text"><%= seasonLabel %></span>
             </div>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -294,7 +295,7 @@
 
           <div class="sidebar__profile-row">
             <a href="/settings" class="sidebar__profile-user">
-              <span class="avatar avatar--sm <%= userAvatar.className %>"><%= userAvatar.initial %></span>
+              <span class="avatar avatar--sm <%= userAvatar.className %>"><% if (userAvatarData) { %><img class="avatar__photo" src="<%= userAvatarData %>" alt="<%= currentUser.name %>"><% } else { %><%= userAvatar.initial %><% } %></span>
               <div class="sidebar__profile-info">
                 <span class="sidebar__profile-name"><%= currentUser.name %></span>
                 <span class="sidebar__profile-email"><%= currentUser.email %></span>
@@ -347,7 +348,7 @@
           </div>
 
           <div class="topbar__right">
-            <form action="/search" method="GET" class="topbar__search-form" role="search">
+            <form action="/search" method="GET" class="topbar__search-form" role="search" data-quick-search-form>
               <svg class="topbar__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -359,11 +360,13 @@
                 class="topbar__search-input"
                 placeholder="기업, 공고, 자료 검색"
                 autocomplete="off"
+                data-quick-search-input
               >
               <span class="topbar__search-kbd"><kbd class="kbd">⌘K</kbd></span>
+              <div class="dropdown-menu topbar__search-dropdown ai-hidden" id="global-search-results" data-quick-search-results role="listbox" aria-label="빠른 검색 결과"></div>
             </form>
 
-            <details class="dropdown-wrapper">
+            <details class="dropdown-wrapper" id="quick-launch-dropdown" data-quick-launch>
               <summary class="btn btn-sm">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -371,7 +374,21 @@
                 </svg>
                 <span>빠른 실행</span>
               </summary>
-              <div class="dropdown-menu">
+              <div class="dropdown-menu quick-launch-menu">
+                <div class="quick-launch__search-box">
+                  <input
+                    type="search"
+                    id="quick-launch-search-input"
+                    class="input input-sm"
+                    placeholder="기업, 공고 빠른 이동..."
+                    autocomplete="off"
+                    data-quick-launch-input
+                    aria-label="빠른 실행 기업 검색"
+                  >
+                </div>
+                <div class="quick-launch__results ai-hidden" id="quick-launch-results" data-quick-launch-results role="listbox"></div>
+                <div class="dropdown-header">새로 만들기</div>
+                <a href="/companies/new" class="dropdown-item">기업 추가</a>
                 <a href="/applications/new" class="dropdown-item">지원 추가</a>
                 <a href="/jobs/new" class="dropdown-item">공고 추가</a>
                 <a href="/essays/new" class="dropdown-item">자기소개서 작성</a>
@@ -408,7 +425,7 @@
               </div>
             </details>
 
-            <a href="/settings" class="avatar avatar--sm <%= userAvatar.className %>" title="<%= currentUser.name %>"><%= userAvatar.initial %></a>
+            <a href="/settings" class="avatar avatar--sm <%= userAvatar.className %>" title="<%= currentUser.name %>"><% if (userAvatarData) { %><img class="avatar__photo" src="<%= userAvatarData %>" alt="<%= currentUser.name %>"><% } else { %><%= userAvatar.initial %><% } %></a>
           </div>
         </header>
 

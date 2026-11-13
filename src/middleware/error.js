@@ -29,7 +29,12 @@ function errorHandler(err, req, res, _next) {
     return res.status(status).json({ error: message });
   }
 
+  if (res.locals.currentUser === undefined) res.locals.currentUser = null;
+  if (res.locals.csrfToken === undefined) res.locals.csrfToken = '';
+  if (res.locals.flash === undefined) res.locals.flash = null;
+
   return res.status(status).render('error', {
+
     title: status === 404 ? '페이지를 찾을 수 없습니다 (404)' : `오류 (${status})`,
     status,
     message,

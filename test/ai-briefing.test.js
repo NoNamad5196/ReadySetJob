@@ -45,7 +45,7 @@ it('search and briefing endpoints enforce CSRF, disabled mode, input validation,
       assert.equal((await user.agent.post(path).send({})).status, 403);
       const disabled = await user.agent.post(path).set('X-CSRF-Token', user.csrfToken).send({});
       assert.equal(disabled.status, 503);
-      assert.match(disabled.body.error, /OPENAI_API_KEY 미설정/);
+      assert.match(disabled.body.error, /지금은 사용할 수 없습니다/);
     }
     process.env.OPENAI_API_KEY = 'stub-boundary-key';
     assert.equal((await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken)

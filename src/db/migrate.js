@@ -29,6 +29,7 @@ function migrate(db) {
   db.exec(sql);
 
   ensureColumn(db, 'users', 'season_label', 'TEXT NULL');
+  ensureColumn(db, 'users', 'avatar_data', 'TEXT NULL');
   ensureColumn(db, 'applications', 'is_favorite', 'INTEGER NOT NULL DEFAULT 0');
   ensureColumn(db, 'users', 'auto_feedback', 'INTEGER NOT NULL DEFAULT 0 CHECK (auto_feedback IN (0, 1))');
   // Fresh DBs get the FK from schema.sql; pre-existing DBs get a plain column

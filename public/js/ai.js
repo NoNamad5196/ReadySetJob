@@ -36,9 +36,8 @@
 
     var metaEl = panel.querySelector('[data-ai-fb-meta]');
     if (metaEl) {
-      var modelName = (data.feedback && data.feedback.model) || data.model || '';
       var createdAt = (data.feedback && data.feedback.created_at) || '';
-      metaEl.textContent = [modelName, createdAt].filter(Boolean).join(' · ');
+      metaEl.textContent = ['OpenAI 사용', createdAt].filter(Boolean).join(' · ');
     }
 
     var scores = fb.scores || {};
@@ -304,6 +303,11 @@
       var el = panel.querySelector(sel);
       if (el) el.textContent = fields[sel] || '';
     });
+    var starMeta = panel.querySelector('[data-ai-star-meta]');
+    if (starMeta) {
+      var createdAt = (data.draft && data.draft.created_at) || '';
+      starMeta.textContent = ['OpenAI 사용', createdAt].filter(Boolean).join(' · ');
+    }
     var missing = panel.querySelector('[data-ai-star-missing]');
     if (missing) {
       clearChildren(missing);
@@ -425,6 +429,7 @@
       logo.alt = '';
       logo.loading = 'lazy';
       logo.decoding = 'async';
+      logo.onerror = function () { logo.remove(); };
       avatar.appendChild(logo);
     }
     setField(card, 'title', item.title);
@@ -509,15 +514,20 @@
     var errEl = root.querySelector('[data-ai-discover-error]');
     var statusEl = root.querySelector('[data-ai-discover-status]');
     var btn = form.querySelector('[data-ai-discover-btn]');
+    var purposeHint = form.querySelector('[data-discover-purpose-hint]');
     var fieldsHint = form.querySelector('[data-discover-fields-hint]');
     var purposeInputs = form.querySelectorAll('[data-discover-purpose]');
+    var employmentHidden = form.querySelector('[data-discover-employment-input]');
     var fieldGroups = form.querySelectorAll('[data-field-group]');
     var purposeOnlyBlocks = form.querySelectorAll('[data-purpose-only]');
     var fieldInputs = form.querySelectorAll('[data-discover-field]');
 
-    function getSelectedPurpose() {
-      var checked = form.querySelector('[data-discover-purpose]:checked');
-      return checked ? checked.value : 'new_grad';
+    function getSelectedPurposes() {
+      var values = [];
+      purposeInputs.forEach(function (inp) {
+        if (inp.checked) values.push(inp.value);
+      });
+      return values;
     }
 
     function getActiveCheckedFields() {
@@ -528,6 +538,17 @@
       return values;
     }
 
+    function updatePurposeHint(purposes) {
+      if (employmentHidden) {
+        employmentHidden.value = purposes.join(',');
+      }
+      if (!purposeHint) return;
+      purposeHint.textContent =
+        purposes.length > 0
+          ? '선택됨 ' + purposes.length + '개 (복수 선택 가능)'
+          : '1개 이상 선택 (필수, 복수 선택 가능)';
+    }
+
     function updateFieldsHint() {
       if (!fieldsHint) return;
       var count = getActiveCheckedFields().length;
@@ -535,10 +556,13 @@
     }
 
     function syncPurposeSections() {
-      var purpose = getSelectedPurpose();
+      var purposes = getSelectedPurposes();
+      var activePurposes = purposes.length > 0 ? purposes : ['new_grad'];
       fieldGroups.forEach(function (groupEl) {
         var allowed = (groupEl.getAttribute('data-field-purposes') || '').split(',');
-        var isMatch = allowed.indexOf(purpose) !== -1;
+        var isMatch = activePurposes.some(function (p) {
+          return allowed.indexOf(p) !== -1;
+        });
         groupEl.classList.toggle('ai-hidden', !isMatch);
         groupEl.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
           cb.disabled = !isMatch;
@@ -548,7 +572,7 @@
 
       purposeOnlyBlocks.forEach(function (blockEl) {
         var target = blockEl.getAttribute('data-purpose-only');
-        var isMatch = target === purpose;
+        var isMatch = activePurposes.indexOf(target) !== -1;
         blockEl.classList.toggle('ai-hidden', !isMatch);
         blockEl.querySelectorAll('input').forEach(function (inp) {
           inp.disabled = !isMatch;
@@ -556,11 +580,12 @@
         });
       });
 
+      updatePurposeHint(purposes);
       updateFieldsHint();
     }
 
-    purposeInputs.forEach(function (radio) {
-      radio.addEventListener('change', function () {
+    purposeInputs.forEach(function (inp) {
+      inp.addEventListener('change', function () {
         showError(errEl, '');
         syncPurposeSections();
       });
@@ -584,7 +609,7 @@
       event.preventDefault();
       showError(errEl, '');
 
-      var purpose = getSelectedPurpose();
+      var purposes = getSelectedPurposes();
       var fields = getActiveCheckedFields();
       var regionEl = form.querySelector('[data-discover-region]:checked');
       var degreeEl = form.querySelector('[data-discover-degree]:checked:not(:disabled)');
@@ -592,7 +617,9 @@
       var keywordEl = form.querySelector('[data-discover-keyword]');
 
       var payload = {
-        purpose: purpose,
+        purpose: purposes.length === 1 ? purposes[0] : purposes,
+        purposes: purposes,
+        employment_type: purposes,
         fields: fields,
         region: regionEl ? regionEl.value : '',
         degree: degreeEl ? degreeEl.value : '',
@@ -600,8 +627,8 @@
         keyword: keywordEl ? (keywordEl.value || '').trim() : '',
       };
 
-      if (!payload.purpose) {
-        showError(errEl, '찾으시는 목적(무엇을 찾나요?)을 올바르게 선택해 주세요.');
+      if (!purposes.length) {
+        showError(errEl, '찾으시는 목적(무엇을 찾나요?)을 1개 이상 선택해 주세요.');
         return;
       }
       if (payload.fields.length < 1 || payload.fields.length > 3) {
@@ -649,7 +676,7 @@
     if (q('[data-ai-briefing-summary]')) q('[data-ai-briefing-summary]').textContent = br.summary || '';
     if (q('[data-ai-briefing-encouragement]')) q('[data-ai-briefing-encouragement]').textContent = br.encouragement || '';
     if (q('[data-ai-briefing-meta]')) {
-      q('[data-ai-briefing-meta]').textContent = [briefing.model, briefing.created_at].filter(Boolean).join(' · ');
+      q('[data-ai-briefing-meta]').textContent = ['OpenAI 사용', briefing.created_at].filter(Boolean).join(' · ');
     }
 
     var pList = q('[data-ai-briefing-priorities]');

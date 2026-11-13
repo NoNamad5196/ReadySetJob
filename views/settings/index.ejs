@@ -2,6 +2,8 @@
   <h1 class="page-header__title">설정</h1>
 </div>
 
+<%- include('../partials/settings/avatar', { user }) %>
+
 <section class="card">
   <h2>프로필 및 시즌 목표 설정</h2>
   <% if (error) { %>
@@ -74,15 +76,12 @@
       <% if (aiEnabled) { %>
         <p class="text-muted">버전을 저장하면 답변이 있는 문항마다 AI 피드백을 백그라운드에서 생성합니다. AI 요청 한도(10분당 20회)를 함께 사용합니다.</p>
       <% } else { %>
-        <p class="text-muted">AI 기능이 비활성화되어 있어 사용할 수 없습니다 (OPENAI_API_KEY 미설정).</p>
+        <p class="text-muted">현재 AI 기능이 비활성화되어 있어 사용할 수 없습니다.</p>
       <% } %>
     </div>
 
     <button type="submit" class="btn btn-primary">설정 저장</button>
   </form>
-  <p class="text-muted">
-    <a href="/settings/ai">AI 기능 상태와 모델 설정 보기</a>
-  </p>
 </section>
 
 <section class="card">

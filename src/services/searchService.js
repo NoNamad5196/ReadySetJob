@@ -4,6 +4,45 @@ function escapeLike(str) {
   return String(str || '').replace(/[\\%_]/g, '\\$&');
 }
 
+function searchCompanies(db, userId, rawQuery, { limit = 5 } = {}) {
+  const uid = Number(userId);
+  const query = String(rawQuery || '').trim();
+  const cap = Math.max(1, Math.min(50, Number(limit) || 5));
+  if (!uid || !query) return [];
+
+  const escaped = escapeLike(query);
+  const pattern = `%${escaped}%`;
+  const prefixPattern = `${escaped}%`;
+
+  return db
+    .prepare(`
+      SELECT id, name, industry, website, memo
+      FROM companies
+      WHERE user_id = ?
+        AND (
+          name LIKE ? ESCAPE '\\'
+          OR COALESCE(industry, '') LIKE ? ESCAPE '\\'
+          OR COALESCE(website, '') LIKE ? ESCAPE '\\'
+          OR COALESCE(memo, '') LIKE ? ESCAPE '\\'
+        )
+      ORDER BY
+        CASE
+          WHEN lower(name) = lower(?) THEN 0
+          WHEN lower(name) LIKE lower(?) ESCAPE '\\' THEN 1
+          WHEN lower(name) LIKE lower(?) ESCAPE '\\' THEN 2
+          ELSE 3
+        END ASC,
+        updated_at DESC,
+        id DESC
+      LIMIT ?
+    `)
+    .all(uid, pattern, pattern, pattern, pattern, query, prefixPattern, pattern, cap)
+    .map((c) => ({
+      ...c,
+      href: `/companies/${c.id}`,
+    }));
+}
+
 function searchAll(db, userId, rawQuery, { limit = 5 } = {}) {
   const uid = Number(userId);
   const query = String(rawQuery || '').trim();
@@ -23,24 +62,7 @@ function searchAll(db, userId, rawQuery, { limit = 5 } = {}) {
 
   const pattern = `%${escapeLike(query)}%`;
 
-  const companies = db
-    .prepare(`
-      SELECT id, name, industry, website, memo
-      FROM companies
-      WHERE user_id = ?
-        AND (
-          name LIKE ? ESCAPE '\\'
-          OR industry LIKE ? ESCAPE '\\'
-          OR memo LIKE ? ESCAPE '\\'
-        )
-      ORDER BY updated_at DESC, id DESC
-      LIMIT ?
-    `)
-    .all(uid, pattern, pattern, pattern, cap)
-    .map((c) => ({
-      ...c,
-      href: `/companies/${c.id}`,
-    }));
+  const companies = searchCompanies(db, uid, query, { limit: cap });
 
   const jobs = db
     .prepare(`
@@ -181,5 +203,6 @@ function searchAll(db, userId, rawQuery, { limit = 5 } = {}) {
 
 module.exports = {
   escapeLike,
+  searchCompanies,
   searchAll,
 };

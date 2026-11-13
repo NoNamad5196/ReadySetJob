@@ -65,9 +65,11 @@ const DISCOVER_VIEW_OPTIONS = {
 };
 
 function decorateSearchResult(item, purpose = 'new_grad') {
-  const spec = PURPOSE_MAP[purpose] || PURPOSE_MAP.new_grad;
-  const isGrad = purpose === 'grad_school';
-  const isParttime = purpose === 'parttime';
+  const purposeList = Array.isArray(purpose) ? purpose : [purpose || 'new_grad'];
+  const primaryPurpose = purposeList[0] || 'new_grad';
+  const spec = PURPOSE_MAP[primaryPurpose] || PURPOSE_MAP.new_grad;
+  const isGrad = purposeList.length === 1 && primaryPurpose === 'grad_school';
+  const isParttime = purposeList.length === 1 && primaryPurpose === 'parttime';
   const avatar = companyAvatar(item.company_name, { url: item.url });
   const dday = calculateDday(item.deadline);
   const mappedEmploymentType = isGrad || isParttime ? 'other' : item.employment_type;
@@ -97,7 +99,7 @@ function decorateSearchResult(item, purpose = 'new_grad') {
 
   return {
     ...item,
-    purpose,
+    purpose: primaryPurpose,
     employment_type: mappedEmploymentType,
     avatar: { initial: avatar.initial, className: avatar.className, logoSrc: avatar.logoSrc },
     dday: { label: dday.label, state: dday.state },
@@ -118,7 +120,7 @@ async function runJobSearch(userId, rawBody) {
   if (!rateCheck.allowed) return { status: 429, error: rateCheck.message, form: parsed.form };
   try {
     const { results, citations, model } = await searchJobPostings(parsed.value);
-    const decorated = results.map((item) => decorateSearchResult(item, parsed.value.purpose));
+    const decorated = results.map((item) => decorateSearchResult(item, parsed.value.purposes || parsed.value.purpose));
     return { status: 200, form: parsed.form, results: decorated, citations, model };
   } catch (err) {
     return {
@@ -170,8 +172,10 @@ function createAiRouter(db) {
     if (outcome.status !== 200) return res.status(outcome.status).json({ error: outcome.error });
     return res.status(200).json({
       ok: true,
-      model: outcome.model,
+      model: 'OpenAI',
       purpose: outcome.form.purpose,
+      purposes: outcome.form.purposes,
+      employment_type: outcome.form.employment_type,
       results: outcome.results,
       citations: outcome.citations,
     });
@@ -308,7 +312,7 @@ function createAiRouter(db) {
       return res.status(200).json({
         ok: true,
         feedback: saved,
-        model,
+        model: 'OpenAI',
         ...result,
       });
     } catch (err) {
@@ -401,7 +405,7 @@ function createAiRouter(db) {
         return res.status(200).json({
           ok: true,
           draft: saved,
-          model,
+          model: 'OpenAI',
           ...result,
         });
       }
@@ -478,11 +482,11 @@ function createAiRouter(db) {
     }
 
     try {
-      const { result, model } = await parseJobPostingText({ text: trimmed });
+      const { result } = await parseJobPostingText({ text: trimmed });
       return res.status(200).json({
         ok: true,
         parsed: result,
-        model,
+        model: 'OpenAI',
         ...result,
       });
     } catch (err) {

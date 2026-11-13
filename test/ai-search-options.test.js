@@ -195,4 +195,80 @@ describe('AI job search options: whitelist validation, purpose prompts, parttime
     assert.equal(savedJob.employment_type, 'other');
     assert.match(savedJob.memo, /^\[대학원\]/);
   });
+
+  it('supports multi-select employment_type / purpose (array and comma list), validates each value, and includes all in prompt', async () => {
+    const calls = stubSuccess([
+      {
+        company_name: '토스',
+        title: '프론트엔드 인턴 및 신입 채용',
+        position: 'Frontend',
+        employment_type: 'intern',
+        deadline: '2099-12-31',
+        url: 'https://toss.im/career/jobs/1',
+        location: '서울',
+        summary: '인턴·신입 동시 모집',
+      },
+    ]);
+
+    const arrayRes = await user.agent
+      .post('/api/jobs/search')
+      .set('X-CSRF-Token', user.csrfToken)
+      .send({
+        purpose: ['intern', 'new_grad'],
+        employment_type: ['intern', 'new_grad'],
+        fields: ['프론트엔드'],
+        region: '서울',
+      });
+    assert.equal(arrayRes.status, 200);
+    assert.deepEqual(arrayRes.body.employment_type, ['intern', 'new_grad']);
+    assert.equal(arrayRes.body.model, 'OpenAI');
+    assert.equal(calls.length, 1);
+    assert.match(calls[0].body.input, /인턴 \(intern\)/);
+    assert.match(calls[0].body.input, /신입 \(new_grad\)/);
+
+    const commaRes = await user.agent
+      .post('/api/jobs/search')
+      .set('X-CSRF-Token', user.csrfToken)
+      .send({
+        employment_type: 'intern,new_grad,experienced',
+        fields: ['백엔드'],
+        region: '서울',
+      });
+    assert.equal(commaRes.status, 200);
+    assert.deepEqual(commaRes.body.employment_type, ['intern', 'new_grad', 'experienced']);
+    assert.equal(calls.length, 2);
+    assert.match(calls[1].body.input, /인턴 \(intern\).*신입 \(new_grad\).*경력 \(experienced\)/);
+
+    const badMulti = await user.agent
+      .post('/api/jobs/search')
+      .set('X-CSRF-Token', user.csrfToken)
+      .send({
+        employment_type: ['intern', 'invalid_type'],
+        fields: ['프론트엔드'],
+        region: '서울',
+      });
+    assert.equal(badMulti.status, 422);
+
+    const badComma = await user.agent
+      .post('/api/jobs/search')
+      .set('X-CSRF-Token', user.csrfToken)
+      .send({
+        employment_type: 'intern,bogus',
+        fields: ['프론트엔드'],
+        region: '서울',
+      });
+    assert.equal(badComma.status, 422);
+    assert.equal(calls.length, 2);
+
+    const multiFormRes = await user.agent.post('/jobs/discover').type('form').send({
+      _csrf: user.csrfToken,
+      purpose: ['intern', 'new_grad'],
+      fields: ['프론트엔드', '백엔드'],
+      region: '서울',
+    });
+    assert.equal(multiFormRes.status, 200);
+    assert.match(multiFormRes.text, /name="purpose"[\s\S]*?value="intern"[\s\S]*?checked/);
+    assert.match(multiFormRes.text, /name="purpose"[\s\S]*?value="new_grad"[\s\S]*?checked/);
+    assert.equal(calls.length, 3);
+  });
 });

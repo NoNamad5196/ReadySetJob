@@ -67,7 +67,7 @@ describe('OpenAI Responses API Features (Feedback, STAR Draft, Job Parse, Settin
       .set('X-CSRF-Token', userA.csrfToken)
       .send({});
     assert.equal(fbRes.status, 503);
-    assert.match(fbRes.body.error, /OPENAI_API_KEY 미설정/);
+    assert.match(fbRes.body.error, /지금은 사용할 수 없습니다/);
     assert.equal(ctx.db.prepare('SELECT COUNT(*) AS cnt FROM essay_feedback').get().cnt, 0);
 
     const starJsonRes = await userA.agent
@@ -75,7 +75,7 @@ describe('OpenAI Responses API Features (Feedback, STAR Draft, Job Parse, Settin
       .set('X-CSRF-Token', userA.csrfToken)
       .send({});
     assert.equal(starJsonRes.status, 503);
-    assert.match(starJsonRes.body.error, /OPENAI_API_KEY 미설정/);
+    assert.match(starJsonRes.body.error, /지금은 사용할 수 없습니다/);
 
     const starFormRes = await userA.agent
       .post(`/materials/${matA.id}/star-draft`)
@@ -89,7 +89,7 @@ describe('OpenAI Responses API Features (Feedback, STAR Draft, Job Parse, Settin
       .set('X-CSRF-Token', userA.csrfToken)
       .send({ text: '토스 프론트엔드 개발자 채용 마감 2026-12-01' });
     assert.equal(parseRes.status, 503);
-    assert.match(parseRes.body.error, /OPENAI_API_KEY 미설정/);
+    assert.match(parseRes.body.error, /지금은 사용할 수 없습니다/);
   });
 
   it('enforces CSRF (403) and ownership (404) across AI endpoints', async () => {

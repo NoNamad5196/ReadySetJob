@@ -1,5 +1,5 @@
 const OK_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const MISSING_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const MISSING_TTL_MS = 24 * 60 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 4000;
 const MAX_BYTES = 200 * 1024;
 const MIN_BYTES = 64;
@@ -25,11 +25,71 @@ const AGGREGATOR_DOMAINS = [
   'jasoseol.com', 'jumpit.co.kr', 'superookie.com', 'peoplenjob.com', 'work.go.kr', 'worknet.go.kr',
 ];
 
-const STRIPPABLE_PREFIXES = ['www', 'm', 'recruit', 'careers', 'career', 'jobs'];
+const STRIPPABLE_PREFIXES = [
+  'www', 'm', 'recruit', 'careers', 'career', 'jobs',
+  'about', 'corp', 'company', 'info', 'team', 'tech', 'kr', 'global', 'developers',
+];
 const SECOND_LEVEL_SUFFIXES = new Set([
   'co.kr', 'or.kr', 'go.kr', 'ac.kr', 'ne.kr', 're.kr', 'pe.kr',
   'co.uk', 'org.uk', 'ac.uk', 'co.jp', 'ne.jp', 'or.jp', 'com.au', 'com.cn', 'com.sg', 'com.tw',
 ]);
+
+const DOMAIN_ALIASES = {
+  'coupang.jobs': ['coupang.com'],
+  'musinsacareers.com': ['musinsa.com'],
+  'yanolja.co': ['yanolja.com'],
+  'navercorp.com': ['naver.com'],
+  'linecorp.com': ['line.me'],
+  'ridicorp.com': ['ridibooks.com'],
+  'woowahan.com': ['baemin.com'],
+};
+
+const KNOWN_COMPANY_DOMAINS = {
+  '토스': ['toss.im'],
+  '비바리퍼블리카': ['toss.im'],
+  '토스뱅크': ['tossbank.com', 'toss.im'],
+  '토스증권': ['tossinvest.com', 'toss.im'],
+  '토스페이먼츠': ['tosspayments.com', 'toss.im'],
+  '카카오': ['kakao.com'],
+  '카카오뱅크': ['kakaobank.com', 'kakao.com'],
+  '카카오페이': ['kakaopay.com', 'kakao.com'],
+  '네이버': ['navercorp.com', 'naver.com'],
+  '당근': ['daangn.com'],
+  '당근마켓': ['daangn.com'],
+  '라인': ['linecorp.com', 'line.me'],
+  '라인플러스': ['linecorp.com', 'line.me'],
+  '우아한형제들': ['woowahan.com', 'baemin.com'],
+  '배달의민족': ['baemin.com', 'woowahan.com'],
+  '쿠팡': ['coupang.com', 'coupang.jobs'],
+  '무신사': ['musinsa.com', 'musinsacareers.com'],
+  '리디': ['ridicorp.com', 'ridibooks.com'],
+  '리디북스': ['ridibooks.com', 'ridicorp.com'],
+  '하이퍼커넥트': ['hyperconnect.com'],
+  '야놀자': ['yanolja.com', 'yanolja.co'],
+  '뱅크샐러드': ['banksalad.com'],
+  '삼성전자': ['samsung.com', 'samsung.co.kr'],
+  '삼성': ['samsung.com', 'samsung.co.kr'],
+  'lg전자': ['lge.co.kr', 'lg.com'],
+  'sk하이닉스': ['skhynix.com'],
+  '현대자동차': ['hyundai.com'],
+  '크래프톤': ['krafton.com'],
+  '넥슨': ['nexon.com'],
+  '엔씨소프트': ['ncsoft.com'],
+  '넷마블': ['netmarble.com'],
+  '두나무': ['dunamu.com', 'upbit.com'],
+  '쏘카': ['socar.kr'],
+  '컬리': ['kurly.com'],
+  '마켓컬리': ['kurly.com'],
+  '오늘의집': ['ohou.se'],
+  '버킷플레이스': ['ohou.se'],
+  '직방': ['zigbang.com'],
+  '강남언니': ['gangnamunni.com'],
+  '센드버드': ['sendbird.com'],
+  '채널코퍼레이션': ['channel.io'],
+  '채널톡': ['channel.io'],
+  '업스테이지': ['upstage.ai'],
+  '뤼튼': ['wrtn.ai'],
+};
 
 // RFC 1123 labels, at least two labels, alphabetic TLD (so IPv4 literals never match).
 const HOSTNAME_REGEX = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
@@ -87,23 +147,104 @@ function domainFromSourceUrl(url) {
   return domain;
 }
 
-function lookupCompanyDomain(db, userId, name) {
+function canonicalCompanyName(rawName) {
+  return String(rawName || '')
+    .trim()
+    .replace(/^\(주\)\s*|^주식회사\s*|^㈜\s*|\s*\(주\)$|\s*주식회사$|\s*㈜$/gi, '')
+    .trim()
+    .toLowerCase();
+}
+
+function expandDomainCandidates(domain) {
+  const normalized = normalizeDomain(domain);
+  if (!normalized) return [];
+  const out = [normalized];
+  const aliases = DOMAIN_ALIASES[normalized] || [];
+  for (const a of aliases) {
+    if (!out.includes(a)) out.push(a);
+  }
+  const labels = normalized.split('.');
+  const minLabels = SECOND_LEVEL_SUFFIXES.has(labels.slice(-2).join('.')) ? 3 : 2;
+  if (labels.length > minLabels) {
+    const rootDomain = labels.slice(-minLabels).join('.');
+    if (isRegistrable(rootDomain) && !isAggregatorHost(rootDomain) && !out.includes(rootDomain)) {
+      out.push(rootDomain);
+    }
+  }
+  return out;
+}
+
+function lookupCompanyDomains(db, userId, name) {
   const trimmed = String(name || '').trim();
-  if (!trimmed || !userId) return null;
-  const row = db
-    .prepare('SELECT website FROM companies WHERE user_id = ? AND name = ?')
+  if (!trimmed || !userId) return [];
+  const canonical = canonicalCompanyName(trimmed);
+  let row = db
+    .prepare('SELECT id, name, website FROM companies WHERE user_id = ? AND lower(trim(name)) = lower(?)')
     .get(userId, trimmed);
-  if (!row || !row.website) return null;
-  const domain = normalizeDomain(row.website);
-  return domain && !isAggregatorHost(domain) ? domain : null;
+  if (!row && canonical) {
+    const userCompanies = db
+      .prepare('SELECT id, name, website FROM companies WHERE user_id = ?')
+      .all(userId);
+    row = userCompanies.find((c) => canonicalCompanyName(c.name) === canonical) || null;
+  }
+  if (!row) return [];
+
+  const candidates = [];
+  const addCandidate = (d) => {
+    for (const expanded of expandDomainCandidates(d)) {
+      if (!isAggregatorHost(expanded) && !candidates.includes(expanded)) {
+        candidates.push(expanded);
+      }
+    }
+  };
+
+  if (row.website) {
+    addCandidate(row.website);
+  }
+
+  const jobUrls = db
+    .prepare("SELECT url FROM job_posts WHERE user_id = ? AND company_id = ? AND url IS NOT NULL AND url != '' ORDER BY id DESC LIMIT 5")
+    .all(userId, row.id);
+  for (const j of jobUrls) {
+    const fromJob = domainFromSourceUrl(j.url);
+    if (fromJob) addCandidate(fromJob);
+  }
+
+  const known = KNOWN_COMPANY_DOMAINS[canonical] || KNOWN_COMPANY_DOMAINS[trimmed.toLowerCase()] || [];
+  for (const d of known) {
+    if (!candidates.includes(d)) candidates.push(d);
+  }
+
+  return candidates;
+}
+
+function lookupCompanyDomain(db, userId, name) {
+  const domains = lookupCompanyDomains(db, userId, name);
+  return domains[0] || null;
+}
+
+function resolveLogoDomains(db, userId, { name, url } = {}) {
+  const candidates = [];
+  const add = (d) => {
+    if (d && !candidates.includes(d)) candidates.push(d);
+  };
+  if (url) {
+    const fromUrl = domainFromSourceUrl(url);
+    if (fromUrl) {
+      for (const d of expandDomainCandidates(fromUrl)) {
+        add(d);
+      }
+    }
+  }
+  for (const d of lookupCompanyDomains(db, userId, name)) {
+    add(d);
+  }
+  return candidates;
 }
 
 function resolveLogoDomain(db, userId, { name, url } = {}) {
-  if (url) {
-    const fromUrl = domainFromSourceUrl(url);
-    if (fromUrl) return fromUrl;
-  }
-  return lookupCompanyDomain(db, userId, name);
+  const domains = resolveLogoDomains(db, userId, { name, url });
+  return domains[0] || null;
 }
 
 function sniffImage(buf) {
@@ -229,7 +370,14 @@ function readCache(db, domain) {
   const row = db.prepare('SELECT domain, content_type, data, status, fetched_at FROM company_logos WHERE domain = ?').get(domain);
   if (!row) return null;
   const ttl = row.status === 'ok' ? OK_TTL_MS : MISSING_TTL_MS;
-  return Date.now() - row.fetched_at < ttl ? row : null;
+  const age = Date.now() - Number(row.fetched_at);
+  if (!Number.isFinite(age) || age < 0 || age >= ttl) {
+    if (db.open) {
+      db.prepare('DELETE FROM company_logos WHERE domain = ?').run(domain);
+    }
+    return null;
+  }
+  return row;
 }
 
 function writeCache(db, domain, result) {
@@ -240,9 +388,7 @@ function writeCache(db, domain, result) {
   ).run(domain, result ? result.contentType : null, result ? result.data : null, result ? 'ok' : 'missing', Date.now());
 }
 
-async function getLogoForDomain(db, domain) {
-  const normalized = normalizeDomain(domain);
-  if (!normalized) return null;
+async function fetchLogoForSingleDomain(db, normalized) {
   const cached = readCache(db, normalized);
   if (cached) return cached.status === 'ok' ? { contentType: cached.content_type, data: cached.data } : null;
 
@@ -267,7 +413,19 @@ async function getLogoForDomain(db, domain) {
   return inflight.get(normalized);
 }
 
+async function getLogoForDomain(db, domain) {
+  const candidates = expandDomainCandidates(domain);
+  if (!candidates.length) return null;
+  for (const candidate of candidates) {
+    const result = await fetchLogoForSingleDomain(db, candidate);
+    if (result) return result;
+  }
+  return null;
+}
+
 module.exports = {
+  OK_TTL_MS,
+  MISSING_TTL_MS,
   TRANSPARENT_PNG,
   AGGREGATOR_DOMAINS,
   setLogoFetchImpl,
@@ -275,6 +433,7 @@ module.exports = {
   isAggregatorHost,
   domainFromSourceUrl,
   resolveLogoDomain,
+  resolveLogoDomains,
   sniffImage,
   isAllowedFetchUrl,
   getLogoForDomain,

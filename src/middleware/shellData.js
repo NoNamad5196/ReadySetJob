@@ -14,8 +14,10 @@ function getShellData(db, userId, now = new Date()) {
         name: userRow.name,
         email: userRow.email,
         season_label: userRow.season_label || null,
+        avatar_data: userRow.avatar_data || null,
       }
-    : { id: uid, name: '', email: '', season_label: null };
+    : { id: uid, name: '', email: '', season_label: null, avatar_data: null };
+
 
   const inProgressRow = db
     .prepare("SELECT COUNT(*) AS cnt FROM applications WHERE user_id = ? AND result = 'in_progress'")
@@ -143,7 +145,11 @@ function attachShellData(db) {
       return next();
     }
     res.locals.shell = getShellData(db, req.session.user.id);
+    if (res.locals.currentUser && res.locals.shell && res.locals.shell.user) {
+      res.locals.currentUser.avatar_data = res.locals.shell.user.avatar_data || null;
+    }
     return next();
+
   };
 }
 

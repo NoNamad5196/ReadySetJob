@@ -1,17 +1,22 @@
 const bcrypt = require('bcryptjs');
 
+const MAX_AVATAR_BYTES = 200 * 1024;
+const AVATAR_DATA_URL_REGEX = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/i;
+const BASE64_FORMAT_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
 function findByEmail(db, email) {
   const normalized = String(email || '').trim().toLowerCase();
   return db
-    .prepare('SELECT id, email, password_hash, name, season_label, created_at FROM users WHERE lower(email) = ?')
+    .prepare('SELECT id, email, password_hash, name, season_label, avatar_data, created_at FROM users WHERE lower(email) = ?')
     .get(normalized);
 }
 
 function findById(db, id) {
   return db
-    .prepare('SELECT id, email, name, season_label, auto_feedback, created_at FROM users WHERE id = ?')
+    .prepare('SELECT id, email, name, season_label, auto_feedback, avatar_data, created_at FROM users WHERE id = ?')
     .get(Number(id));
 }
+
 
 function createUser(db, { email, password, name, season_label = null }) {
   const normalizedEmail = String(email).trim().toLowerCase();
@@ -143,6 +148,72 @@ function updateUserSettings(db, userId, { name, season_label, target, month = ge
   })();
 }
 
+function validateAvatarDataUrl(raw) {
+  if (typeof raw !== 'string') {
+    return { error: '유효한 이미지 데이터(PNG, JPEG, WebP)를 선택해 주세요.' };
+  }
+  const trimmed = raw.trim().replace(/[\r\n\s]+/g, '');
+  const match = trimmed.match(AVATAR_DATA_URL_REGEX);
+  if (!match) {
+    return { error: 'PNG, JPEG, WebP 형식의 이미지(base64 Data URL)만 업로드할 수 있습니다.' };
+  }
+
+  const mimeSubtype = match[1].toLowerCase();
+  const base64Payload = match[2];
+  if (!base64Payload || base64Payload.length % 4 !== 0 || !BASE64_FORMAT_REGEX.test(base64Payload)) {
+    return { error: '유효하지 않은 base64 이미지 데이터입니다.' };
+  }
+
+  const decoded = Buffer.from(base64Payload, 'base64');
+  if (decoded.length === 0) {
+    return { error: '비어 있는 이미지는 업로드할 수 없습니다.' };
+  }
+  if (decoded.length > MAX_AVATAR_BYTES) {
+    return { error: '프로필 사진은 디코딩 기준 200KB 이하만 업로드할 수 있습니다.' };
+  }
+
+  const headText = decoded.subarray(0, 256).toString('utf8').toLowerCase();
+  if (headText.includes('<svg') || headText.includes('<?xml') || headText.includes('<html')) {
+    return { error: 'SVG 또는 허용되지 않는 파일 형식은 업로드할 수 없습니다.' };
+  }
+
+  return {
+    value: `data:image/${mimeSubtype};base64,${base64Payload}`,
+    byteLength: decoded.length,
+  };
+}
+
+function updateUserAvatar(db, userId, avatarDataUrl) {
+  const uid = Number(userId);
+  const existing = findById(db, uid);
+  if (!existing) return null;
+
+  if (avatarDataUrl === null || avatarDataUrl === '') {
+    db.prepare('UPDATE users SET avatar_data = NULL WHERE id = ?').run(uid);
+    return findById(db, uid);
+  }
+
+  const parsed = validateAvatarDataUrl(avatarDataUrl);
+  if (parsed.error) {
+    const err = new Error(parsed.error);
+    err.status = 422;
+    err.expose = true;
+    throw err;
+  }
+
+  db.prepare('UPDATE users SET avatar_data = ? WHERE id = ?').run(parsed.value, uid);
+  return findById(db, uid);
+}
+
+function removeUserAvatar(db, userId) {
+  const uid = Number(userId);
+  const existing = findById(db, uid);
+  if (!existing) return null;
+  db.prepare('UPDATE users SET avatar_data = NULL WHERE id = ?').run(uid);
+  return findById(db, uid);
+}
+
+
 function getDashboardCounts(db, userId) {
   const companiesCount = db
     .prepare('SELECT COUNT(*) AS cnt FROM companies WHERE user_id = ?')
@@ -178,6 +249,7 @@ function getDashboardCounts(db, userId) {
 }
 
 module.exports = {
+  MAX_AVATAR_BYTES,
   findByEmail,
   findById,
   createUser,
@@ -187,4 +259,8 @@ module.exports = {
   getMonthlyGoalProgress,
   upsertMonthlyGoal,
   updateUserSettings,
+  validateAvatarDataUrl,
+  updateUserAvatar,
+  removeUserAvatar,
 };
+

@@ -16,6 +16,9 @@
 
   <form action="/login" method="POST">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (typeof values !== 'undefined' && values && values.returnTo) { %>
+      <input type="hidden" name="returnTo" value="<%= values.returnTo %>">
+    <% } %>
     <div class="form-field">
       <label for="email">이메일</label>
       <input
@@ -39,7 +42,20 @@
         autocomplete="current-password"
       >
     </div>
+    <div class="form-field form-field--checkbox">
+      <label for="remember_me" class="checkbox-label">
+        <input
+          type="checkbox"
+          id="remember_me"
+          name="remember_me"
+          value="1"
+          <%= (typeof values !== 'undefined' && values && values.remember_me) ? 'checked' : '' %>
+        >
+        <span>로그인 상태 유지</span>
+      </label>
+    </div>
     <div class="auth-actions">
+
       <button type="submit" class="btn btn-primary btn-lg">로그인</button>
       <a href="/signup" class="btn btn-lg">회원가입</a>
     </div>

@@ -10,12 +10,20 @@
   };
   const f = typeof form !== 'undefined' && form ? form : {
     purpose: 'new_grad',
+    purposes: ['new_grad'],
+    employment_type: ['new_grad'],
     fields: [],
     region: '서울',
     degree: '',
     schedule: '',
     keyword: '',
   };
+  const selectedPurposes = Array.isArray(f.purposes) && f.purposes.length
+    ? f.purposes
+    : (f.purpose ? [f.purpose] : ['new_grad']);
+  const selectedEmploymentTypes = Array.isArray(f.employment_type) && f.employment_type.length
+    ? f.employment_type
+    : selectedPurposes;
   const selectedFields = Array.isArray(f.fields) ? f.fields : [];
   const list = Array.isArray(results) ? results : null;
   const sources = Array.isArray(citations) ? citations : [];
@@ -41,7 +49,7 @@
   </div>
 
   <% if (!aiEnabled) { %>
-    <div class="ai-alert ai-alert--warning" role="status"><%= typeof AI_DISABLED_MESSAGE !== 'undefined' ? AI_DISABLED_MESSAGE : 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)' %></div>
+    <div class="ai-alert ai-alert--warning" role="status"><%= typeof AI_DISABLED_MESSAGE !== 'undefined' ? AI_DISABLED_MESSAGE : 'AI 기능을 지금은 사용할 수 없습니다' %></div>
   <% } %>
 
   <form action="/jobs/discover" method="POST" class="ai-discover-form" data-ai-discover-form>
@@ -51,24 +59,25 @@
       <legend class="ai-step__legend">
         <span class="ai-step__num num">1</span>
         <span class="ai-step__title">무엇을 찾나요?</span>
-        <span class="ai-step__hint">1개 선택 (필수)</span>
+        <span class="ai-step__hint" data-discover-purpose-hint>1개 이상 선택 (필수, 복수 선택 가능)</span>
       </legend>
-      <div class="ai-chip-row" role="radiogroup" aria-label="무엇을 찾나요?">
+      <div class="ai-chip-row" role="group" aria-label="무엇을 찾나요?">
         <% for (const p of opts.PURPOSES) { %>
           <label class="ai-chip">
             <input
-              type="radio"
+              type="checkbox"
               name="purpose"
               value="<%= p.value %>"
               class="ai-chip__input"
               data-discover-purpose
-              required
-              <%= f.purpose === p.value ? 'checked' : '' %>
+              data-discover-employment-type
+              <%= selectedPurposes.includes(p.value) ? 'checked' : '' %>
             >
             <span class="ai-chip__label"><%= p.label %></span>
           </label>
         <% } %>
       </div>
+      <input type="hidden" value="<%= selectedEmploymentTypes.join(',') %>" data-discover-employment-input>
     </fieldset>
 
     <fieldset class="ai-step" data-discover-step="fields">

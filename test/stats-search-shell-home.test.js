@@ -190,6 +190,19 @@ describe('Stats Pass-Rates, Interview Prep, Global Search, Shell Data, and Home 
     assert.equal(wildcardRes.status, 200);
     assert.equal(wildcardRes.body.jobs.length, 1);
     assert.match(wildcardRes.body.jobs[0].title, /쿠팡 커머스_100%/);
+
+    const compSearchRes = await userA.agent.get('/api/search/companies?q=' + encodeURIComponent('라인'));
+    assert.equal(compSearchRes.status, 200);
+    assert.equal(compSearchRes.body.companies.length, 1);
+    assert.equal(compSearchRes.body.companies[0].name, '라인플러스');
+    assert.match(compSearchRes.body.companies[0].href, /^\/companies\/\d+$/);
+
+    const leakCompRes = await userA.agent.get('/api/search/companies?q=' + encodeURIComponent('비밀기업B'));
+    assert.equal(leakCompRes.status, 200);
+    assert.equal(leakCompRes.body.companies.length, 0);
+
+    assert.match(htmlRes.text, /id="quick-launch-search-input"/);
+    assert.match(htmlRes.text, /id="global-search-results"/);
   });
 
   it('provides exact shell contract, companyAvatar helper, and dashboard home object', () => {

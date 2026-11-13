@@ -231,7 +231,7 @@ function attachUiHelpers(req, res, next) {
   } catch (_err) {
     res.locals.aiEnabled = false;
     res.locals.aiConfig = { enabled: false, features: [] };
-    res.locals.AI_DISABLED_MESSAGE = 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)';
+    res.locals.AI_DISABLED_MESSAGE = 'AI 기능을 지금은 사용할 수 없습니다';
   }
   next();
 }

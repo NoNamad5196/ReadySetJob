@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   name TEXT NOT NULL,
   season_label TEXT NULL,
+  avatar_data TEXT NULL,
   created_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 

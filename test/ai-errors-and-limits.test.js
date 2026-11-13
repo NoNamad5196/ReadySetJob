@@ -76,11 +76,30 @@ describe('OpenAI error mapping, model override, settings, and shared rate limit'
     assert.equal(cfg.extract, 'gpt-global-override');
     assert.equal(JSON.stringify(cfg).includes('sk-SuperSecretNeverExpose123'), false);
 
+    const settingsPage = await userA.agent.get('/settings');
+    assert.equal(settingsPage.status, 200);
+    assert.match(settingsPage.text, /AI 기능: 사용 가능/);
+    assert.match(settingsPage.text, /OpenAI 사용/);
+    assert.doesNotMatch(settingsPage.text, /OPENAI_API_KEY/);
+    assert.doesNotMatch(settingsPage.text, /OPENAI_MODEL/);
+    assert.doesNotMatch(settingsPage.text, /gpt-6-luna|gpt-6\.1-terra|gpt-global-override/);
+    assert.doesNotMatch(settingsPage.text, /href="\/settings\/ai"/);
+    assert.equal(settingsPage.text.includes('sk-SuperSecretNeverExpose123'), false);
+
     const page = await userA.agent.get('/settings/ai');
     assert.equal(page.status, 200);
-    assert.match(page.text, /\/home\/box\/projects\/ReadySetJob\/\.env 의 OPENAI_API_KEY/);
-    assert.match(page.text, /gpt-global-override/);
+    assert.match(page.text, /AI 기능: 사용 가능/);
+    assert.match(page.text, /OpenAI 사용/);
+    assert.doesNotMatch(page.text, /OPENAI_API_KEY/);
+    assert.doesNotMatch(page.text, /gpt-6-luna|gpt-6\.1-terra|gpt-global-override/);
     assert.equal(page.text.includes('sk-SuperSecretNeverExpose123'), false);
+
+    delete process.env.OPENAI_API_KEY;
+    const disabledSettingsPage = await userA.agent.get('/settings');
+    assert.equal(disabledSettingsPage.status, 200);
+    assert.match(disabledSettingsPage.text, /AI 기능: 사용 불가/);
+    assert.doesNotMatch(disabledSettingsPage.text, /OPENAI_API_KEY/);
+    assert.doesNotMatch(disabledSettingsPage.text, /href="\/settings\/ai"/);
   });
 
   it('rejects incomplete, refusal, 401, 429, and 5xx without storing feedback', async () => {

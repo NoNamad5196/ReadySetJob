@@ -122,7 +122,7 @@ describe('AI job search (C): service + /jobs/discover + /api/jobs/search', () =>
     }
     assert.match(res.text, /AI로 찾기/);
     assert.match(res.text, /AI 웹 검색 결과는 오래되었거나 부정확할 수 있으니 출처에서 확인 후 등록하세요\./);
-    assert.match(res.text, /OPENAI_API_KEY 미설정/);
+    assert.match(res.text, /지금은 사용할 수 없습니다/);
     const anon = await require('supertest')(ctx.app).get('/jobs/discover');
     assert.equal(anon.status, 302);
     const listRes = await user.agent.get('/jobs');
@@ -133,7 +133,7 @@ describe('AI job search (C): service + /jobs/discover + /api/jobs/search', () =>
     const calls = installStub('{}');
     const disabled = await user.agent.post('/api/jobs/search').set('X-CSRF-Token', user.csrfToken).send(VALID_PAYLOAD);
     assert.equal(disabled.status, 503);
-    assert.match(disabled.body.error, /OPENAI_API_KEY 미설정/);
+    assert.match(disabled.body.error, /지금은 사용할 수 없습니다/);
 
     process.env.OPENAI_API_KEY = 'sk-test';
     assert.equal((await user.agent.post('/api/jobs/search').send(VALID_PAYLOAD)).status, 403);

@@ -15,9 +15,15 @@ function listJobPosts(
     params.push(likeParam, likeParam, likeParam);
   }
 
-  if (employment_type) {
+  const empTypes = (Array.isArray(employment_type) ? employment_type : String(employment_type || '').split(','))
+    .map((v) => String(v || '').trim())
+    .filter(Boolean);
+  if (empTypes.length === 1) {
     conditions.push('jp.employment_type = ?');
-    params.push(employment_type);
+    params.push(empTypes[0]);
+  } else if (empTypes.length > 1) {
+    conditions.push(`jp.employment_type IN (${empTypes.map(() => '?').join(', ')})`);
+    params.push(...empTypes);
   }
 
   if (String(bookmarked) === '1') {

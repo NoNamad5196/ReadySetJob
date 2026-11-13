@@ -9,6 +9,8 @@ const PURPOSES = [
 const PURPOSE_MAP = Object.fromEntries(PURPOSES.map((p) => [p.value, p]));
 const PURPOSE_VALUES = PURPOSES.map((p) => p.value);
 const PURPOSE_LABELS = Object.fromEntries(PURPOSES.map((p) => [p.value, p.label]));
+const EMPLOYMENT_TYPES = ['intern', 'new_grad', 'experienced', 'other'];
+const ALLOWED_EMPLOYMENT_TYPES = Array.from(new Set([...EMPLOYMENT_TYPES, ...PURPOSE_VALUES]));
 
 const FIELD_GROUPS = [
   {
@@ -59,7 +61,54 @@ const PURPOSE_SOURCES = {
 };
 
 function defaultDiscoverForm() {
-  return { purpose: 'new_grad', fields: [], region: '서울', degree: '', schedule: '', keyword: '' };
+  return {
+    purpose: 'new_grad',
+    purposes: ['new_grad'],
+    employment_type: ['new_grad'],
+    employment_types: ['new_grad'],
+    fields: [],
+    region: '서울',
+    degree: '',
+    schedule: '',
+    keyword: '',
+  };
+}
+
+function normalizeMultiValueInput(rawInput) {
+  if (rawInput === undefined || rawInput === null) {
+    return { provided: false, ok: true, values: [] };
+  }
+  if (typeof rawInput === 'string') {
+    const parts = rawInput
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const unique = Array.from(new Set(parts));
+    return { provided: true, ok: unique.length > 0, values: unique };
+  }
+  if (Array.isArray(rawInput)) {
+    if (rawInput.length === 0) {
+      return { provided: true, ok: false, values: [] };
+    }
+    const values = [];
+    for (const item of rawInput) {
+      if (typeof item !== 'string') {
+        return { provided: true, ok: false, values: [] };
+      }
+      const parts = item
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (parts.length === 0) {
+        return { provided: true, ok: false, values: [] };
+      }
+      for (const p of parts) {
+        if (!values.includes(p)) values.push(p);
+      }
+    }
+    return { provided: true, ok: values.length > 0, values };
+  }
+  return { provided: true, ok: false, values: [] };
 }
 
 function normalizeFieldsInput(rawFields) {
@@ -85,7 +134,25 @@ function normalizeFieldsInput(rawFields) {
 
 function validateDiscoverInput(body = {}) {
   const raw = body && typeof body === 'object' ? body : {};
-  const purpose = typeof raw.purpose === 'string' ? raw.purpose.trim() : '';
+  const rawPurposeInput =
+    raw.purpose !== undefined
+      ? raw.purpose
+      : raw['purpose[]'] !== undefined
+        ? raw['purpose[]']
+        : raw.purposes;
+  const rawEmpInput =
+    raw.employment_type !== undefined
+      ? raw.employment_type
+      : raw['employment_type[]'] !== undefined
+        ? raw['employment_type[]']
+        : raw.employment_types !== undefined
+          ? raw.employment_types
+          : raw.employmentType !== undefined
+            ? raw.employmentType
+            : raw.employmentTypes;
+
+  const purposeParsed = normalizeMultiValueInput(rawPurposeInput);
+  const empParsed = normalizeMultiValueInput(rawEmpInput);
   const fieldsResult = normalizeFieldsInput(raw.fields !== undefined ? raw.fields : raw['fields[]']);
   const rawFields = fieldsResult.values;
   const region = typeof raw.region === 'string' ? raw.region.trim() : '';
@@ -93,8 +160,20 @@ function validateDiscoverInput(body = {}) {
   const schedule = typeof raw.schedule === 'string' ? raw.schedule.trim() : '';
   const keyword = typeof raw.keyword === 'string' ? raw.keyword.trim() : '';
 
+  const validPurposesFromInput = purposeParsed.values.filter((p) => PURPOSE_VALUES.includes(p));
+  const validEmpFromInput = empParsed.values.filter((e) => ALLOWED_EMPLOYMENT_TYPES.includes(e));
+  const fallbackPurposes =
+    validPurposesFromInput.length > 0
+      ? validPurposesFromInput
+      : validEmpFromInput.length > 0
+        ? validEmpFromInput.map((e) => (PURPOSE_VALUES.includes(e) ? e : 'new_grad'))
+        : ['new_grad'];
+
   const form = {
-    purpose: PURPOSE_VALUES.includes(purpose) ? purpose : 'new_grad',
+    purpose: fallbackPurposes[0] || 'new_grad',
+    purposes: fallbackPurposes,
+    employment_type: validEmpFromInput.length > 0 ? validEmpFromInput : fallbackPurposes,
+    employment_types: validEmpFromInput.length > 0 ? validEmpFromInput : fallbackPurposes,
     fields: rawFields.slice(0, MAX_FIELDS_COUNT),
     region: REGIONS.includes(region) ? region : '서울',
     degree: DEGREES.includes(degree) ? degree : '',
@@ -102,11 +181,51 @@ function validateDiscoverInput(body = {}) {
     keyword: keyword.slice(0, MAX_KEYWORD_LENGTH),
   };
 
-  if (!purpose || !PURPOSE_VALUES.includes(purpose)) {
+  if (empParsed.provided) {
+    if (!empParsed.ok || empParsed.values.some((v) => !ALLOWED_EMPLOYMENT_TYPES.includes(v))) {
+      return { ok: false, error: '채용 형태를 1개 이상 올바르게 선택해 주세요.', form };
+    }
+  }
+
+  if (purposeParsed.provided) {
+    if (!purposeParsed.ok || purposeParsed.values.some((v) => !PURPOSE_VALUES.includes(v))) {
+      return { ok: false, error: '찾으시는 목적(무엇을 찾나요?)을 올바르게 선택해 주세요.', form };
+    }
+  }
+
+  if (!purposeParsed.provided && !empParsed.provided) {
     return { ok: false, error: '찾으시는 목적(무엇을 찾나요?)을 올바르게 선택해 주세요.', form };
   }
 
-  const allowedFields = FIELDS_BY_PURPOSE[purpose] || [];
+  const purposes = [];
+  for (const p of purposeParsed.values) {
+    if (PURPOSE_VALUES.includes(p) && !purposes.includes(p)) purposes.push(p);
+  }
+  for (const e of empParsed.values) {
+    const mappedPurpose = PURPOSE_VALUES.includes(e) ? e : 'new_grad';
+    if (!purposes.includes(mappedPurpose)) purposes.push(mappedPurpose);
+  }
+
+  const employmentTypes = [];
+  if (empParsed.provided) {
+    for (const e of empParsed.values) {
+      const mappedEmp = PURPOSE_MAP[e] ? PURPOSE_MAP[e].employmentType : e;
+      if (!employmentTypes.includes(mappedEmp)) employmentTypes.push(mappedEmp);
+    }
+  }
+  for (const p of purposes) {
+    const mappedEmp = PURPOSE_MAP[p] ? PURPOSE_MAP[p].employmentType : 'other';
+    if (!employmentTypes.includes(mappedEmp)) employmentTypes.push(mappedEmp);
+  }
+
+  const allowedFieldsSet = new Set();
+  for (const p of purposes) {
+    for (const f of FIELDS_BY_PURPOSE[p] || []) {
+      allowedFieldsSet.add(f);
+    }
+  }
+  const allowedFields = Array.from(allowedFieldsSet);
+
   if (!fieldsResult.ok || rawFields.length < 1) {
     return { ok: false, error: '분야를 1개 이상 선택해 주세요 (최대 3개).', form };
   }
@@ -138,12 +257,16 @@ function validateDiscoverInput(body = {}) {
     return { ok: false, error: `추가 키워드는 ${MAX_KEYWORD_LENGTH}자 이하로 입력해 주세요.`, form };
   }
 
+  const primaryPurpose = purposes[0];
   const normalized = {
-    purpose,
+    purpose: primaryPurpose,
+    purposes,
+    employment_type: employmentTypes,
+    employment_types: employmentTypes,
     fields: uniqueFields,
     region,
-    degree: purpose === 'grad_school' ? degree : '',
-    schedule: purpose === 'parttime' ? schedule : '',
+    degree: purposes.includes('grad_school') ? degree : '',
+    schedule: purposes.includes('parttime') ? schedule : '',
     keyword,
   };
   return { ok: true, value: normalized, form: normalized };
@@ -154,6 +277,8 @@ module.exports = {
   PURPOSE_MAP,
   PURPOSE_VALUES,
   PURPOSE_LABELS,
+  EMPLOYMENT_TYPES,
+  ALLOWED_EMPLOYMENT_TYPES,
   FIELD_GROUPS,
   FIELDS_BY_GROUP,
   FIELDS_BY_PURPOSE,
@@ -164,5 +289,6 @@ module.exports = {
   MAX_KEYWORD_LENGTH,
   PURPOSE_SOURCES,
   defaultDiscoverForm,
+  normalizeMultiValueInput,
   validateDiscoverInput,
 };

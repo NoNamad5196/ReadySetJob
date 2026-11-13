@@ -5,6 +5,8 @@ const {
   getCurrentYearMonth,
   getMonthlyGoalProgress,
   updateUserSettings,
+  updateUserAvatar,
+  removeUserAvatar,
 } = require('../services/usersService');
 const { isAiEnabled, getAiConfig } = require('../services/aiService');
 
@@ -140,17 +142,85 @@ function createSettingsRouter(db) {
     }
   });
 
-  router.get('/ai', (req, res) => {
-    const aiConfig = getAiConfig();
-    return res.render('settings/ai', {
-      title: 'AI 설정',
-      aiEnabled: aiConfig.enabled,
-      aiConfig,
-      envFilePath: '/home/box/projects/ReadySetJob/.env',
+  function renderSettingsWithError(res, user, goal, errorMessage) {
+    return res.status(422).render('settings/index', {
+      title: '설정',
+      user,
+      goal,
+      aiEnabled: isAiEnabled(),
+      aiConfig: getAiConfig(),
+      error: errorMessage,
+      values: {
+        name: user.name || '',
+        season_label: user.season_label || '',
+        target: goal.target !== null ? String(goal.target) : '',
+        auto_feedback: Number(user.auto_feedback) === 1,
+      },
     });
+  }
+
+  function handleRemoveAvatar(req, res, next) {
+    try {
+      const userId = req.session.user.id;
+      removeUserAvatar(db, userId);
+      if (req.session && req.session.user) {
+        delete req.session.user.avatar_data;
+      }
+      req.setFlash('success', '프로필 사진이 삭제되었습니다.');
+      return res.redirect('/settings');
+    } catch (err) {
+      return next(err);
+    }
+  }
+
+  router.post('/avatar', (req, res, next) => {
+    const userId = req.session.user.id;
+    const body = req.body || {};
+    if (
+      body.action === 'remove' ||
+      body.remove === '1' ||
+      body.remove === 'true' ||
+      body.remove === true
+    ) {
+      return handleRemoveAvatar(req, res, next);
+    }
+
+    const user = findById(db, userId) || req.session.user;
+    const currentGoal = getMonthlyGoalProgress(db, userId);
+    const rawAvatar =
+      body.avatar_data !== undefined
+        ? body.avatar_data
+        : body.avatar !== undefined
+          ? body.avatar
+          : body.dataUrl;
+
+    if (typeof rawAvatar !== 'string' || !rawAvatar.trim()) {
+      return renderSettingsWithError(
+        res,
+        user,
+        currentGoal,
+        '업로드할 프로필 사진을 선택해 주세요.'
+      );
+    }
+
+    try {
+      updateUserAvatar(db, userId, rawAvatar);
+      req.setFlash('success', '프로필 사진이 변경되었습니다.');
+      return res.redirect('/settings');
+    } catch (err) {
+      if (err.status === 422) {
+        return renderSettingsWithError(res, user, currentGoal, err.message);
+      }
+      return next(err);
+    }
   });
+
+  router.delete('/avatar', handleRemoveAvatar);
+  router.post('/avatar/delete', handleRemoveAvatar);
+  router.post('/avatar/remove', handleRemoveAvatar);
 
   return router;
 }
+
 
 module.exports = { createSettingsRouter };
