@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/css/essay.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="stylesheet" href="/css/ai.css">
+  <link rel="stylesheet" href="/css/specs.css">
 </head>
 <body>
   <% if (currentUser) { %>
@@ -133,6 +134,19 @@
                         </svg>
                       </span>
                       <span>AI 공고 찾기</span>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a href="/specs" class="sidebar__link <%= currentPath === '/specs' || currentPath.startsWith('/specs/') ? 'sidebar__link--active' : '' %>">
+                    <div class="sidebar__link-left">
+                      <span class="sidebar__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="8" r="5"></circle>
+                          <path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5"></path>
+                        </svg>
+                      </span>
+                      <span>스펙 관리</span>
                     </div>
                   </a>
                 </li>

@@ -392,6 +392,33 @@
       </form>
     </section>
 
+    <% const specList = typeof specUpcoming !== 'undefined' && Array.isArray(specUpcoming) ? specUpcoming : []; %>
+    <section class="card spec-upcoming" aria-labelledby="spec-upcoming-title">
+      <div class="card__header section-header--compact">
+        <h2 class="section-title-sm" id="spec-upcoming-title">다가오는 시험·접수 마감</h2>
+        <a href="/specs" class="btn btn-sm">스펙 관리</a>
+      </div>
+      <% if (specList.length === 0) { %>
+        <div class="empty-state empty-state--compact">
+          <p>14일 이내 예정된 접수·시험 일정이 없습니다.</p>
+        </div>
+      <% } else { %>
+        <ul class="spec-upcoming__list">
+          <% for (const sp of specList) { %>
+            <li>
+              <a href="<%= sp.href %>" class="spec-upcoming__item <%= sp.isUrgent ? 'spec-upcoming__item--urgent' : '' %>">
+                <span class="spec-upcoming__info">
+                  <span class="spec-upcoming__title" title="<%= sp.title %>"><%= sp.title %></span>
+                  <span class="spec-upcoming__meta num"><%= sp.kind_label %> · <%= sp.label %> <%= sp.date.slice(5).replace('-', '.') %></span>
+                </span>
+                <span class="badge badge--dday-<%= sp.dday.state %>"><%= sp.dday.label %></span>
+              </a>
+            </li>
+          <% } %>
+        </ul>
+      <% } %>
+    </section>
+
     <section class="interview-callout">
       <div class="card__header section-header--compact">
         <h2 class="section-title-sm">다음 면접 준비</h2>

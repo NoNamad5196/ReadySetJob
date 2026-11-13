@@ -17,7 +17,7 @@
 
 ### 1.2 프로젝트 한 문단 개요
 
-**ReadySetJob(레디셋잡)**은 대학생 인턴 준비생과 신입 구직자가 겪는 채용 지원 일정 파편화 및 자기소개서 개정 이력 유실 문제를 해결하기 위해 설계된 통합 웹 애플리케이션이다. 본 서비스는 국내 IT 및 일반 기업의 전형 절차를 반영한 6단계 고정 파이프라인(`서류` → `코딩테스트` → `과제` → `1차 면접` → `2차 면접` → `최종`) 칸반 보드를 제공하며, 전형 단계(`stage`)와 합불 결과(`result`: `진행중`, `합격`, `불합격`, `지원취소`)를 독립된 컬럼으로 분리해 어느 전형에서 합격 또는 탈락했는지 맥락을 온전히 보존한다. 또한 문항별 실시간 글자수 계산기를 갖춘 자기소개서 편집기와 불변(Immutable) 버전 스냅샷(`essay_versions`) 아키텍처를 결합하여, 수정 시마다 이전 문항을 덮어쓰지 않고 보존하며 서버 사이드 단어 단위 비교(`jsdiff`)와 이력 보존형 복원을 지원한다. 여기에 채용 공고 북마크, 개인 프로젝트 및 대외활동 경험을 정리해 에디터에서 바로 인용하는 경험 자료함(Materials), Chart.js 기반 지원 현황 대시보드, 그리고 제출 자기소개서와 직무 맥락을 기반으로 서버 측에서 동작하는 Gemini API 예상 면접 질문 생성(API 키 미설정 시 우아한 비활성화) 기능을 하나의 일관된 워크플로로 통합한다.
+**ReadySetJob(레디셋잡)**은 대학생 인턴 준비생과 신입 구직자가 겪는 채용 지원 일정 파편화 및 자기소개서 개정 이력 유실 문제를 해결하기 위해 설계된 통합 웹 애플리케이션이다. 본 서비스는 국내 IT 및 일반 기업의 전형 절차를 반영한 6단계 고정 파이프라인(`서류` → `코딩테스트` → `과제` → `1차 면접` → `2차 면접` → `최종`) 칸반 보드를 제공하며, 전형 단계(`stage`)와 합불 결과(`result`: `진행중`, `합격`, `불합격`, `지원취소`)를 독립된 컬럼으로 분리해 어느 전형에서 합격 또는 탈락했는지 맥락을 온전히 보존한다. 또한 문항별 실시간 글자수 계산기를 갖춘 자기소개서 편집기와 불변(Immutable) 버전 스냅샷(`essay_versions`) 아키텍처를 결합하여, 수정 시마다 이전 문항을 덮어쓰지 않고 보존하며 서버 사이드 단어 단위 비교(`jsdiff`)와 이력 보존형 복원을 지원한다. 여기에 채용 공고 북마크, 개인 프로젝트 및 대외활동 경험을 정리해 에디터에서 바로 인용하는 경험 자료함(Materials), Chart.js 기반 지원 현황 대시보드, 자격증·부트캠프·공모전 등 외부 공공데이터 탐색 및 일정 멱등 연계 기반 스펙 관리(SPEC), 그리고 OpenAI Responses API(Structured Outputs: `gpt-6.1-terra` / `gpt-6-luna`) 기반의 4대 핵심 AI 기능(직무·자소서 연계 면접 질문 생성, 문항별 첨삭 피드백, 경험 소재 STAR 구조화 초안, 공고 텍스트 파싱)과 OpenAI 내장 `web_search` 연동 채용 공고 탐색(Job Discover), 대시보드 AI 주간 브리핑(일일 캐시), API 키 미설정 시 우아한 비활성화(HTTP 503 및 가짜 응답 배제) 및 10분당 20회 통합 속도 제한을 하나의 일관된 워크플로로 통합한다.
 
 ### 1.3 핵심 기능 모듈 요약
 
@@ -28,7 +28,8 @@
 | **자기소개서 및 버전 관리** | `ESSAY` | 문항별 분리 작성 및 실시간 글자수/제한 표시, 초안(Draft) 저장, 불변 버전 스냅샷 생성, 버전 간 단어 단위 Diff 비교(`jsdiff`), 자동 백업 기반 이전 버전 복원, 과거 문항 키워드 검색 | `FR-ESSAY-01` ~ `FR-ESSAY-07` | P1 |
 | **대시보드 및 통계** | `DASH` | 7개 핵심 지표 요약 카드, Chart.js(로컬 `/vendor` 서빙) 기반 단계별·결과별 분포 차트, 마감 임박 공고(D-7 이내) 위젯, 다가오는 전형 일정 타임라인 위젯 | `FR-DASH-01` ~ `FR-DASH-04` | P0, P2 |
 | **공고 북마크 및 경험 자료함** | `MAT` | 채용 공고 북마크 토글 및 필터링, 경험 자료(`experience`, `project`, `award`, `activity`, `other`) CRUD 및 태그 필터, 자기소개서와 경험 자료 간 N:M 연결(`essay_materials`) | `FR-MAT-01` ~ `FR-MAT-04` | P0 ~ P2 |
-| **AI 면접 예상 질문** | `AI` | 지원 기업·공고·직무와 연결된 자기소개서 본문을 결합한 서버 사이드 Gemini 면접 질문 생성, 수동 면접 질문 등록/삭제, `GEMINI_API_KEY` 미설정 시 버튼 비활성화 및 안내 표시 | `FR-AI-01` ~ `FR-AI-03` | P4 |
+| **스펙 관리 및 공공·검증 데이터 탐색** | `SPEC` | 자격증·부트캠프·공모전·대외활동·대학원 5열 칸반/목록 관리, 접수·시험·발표 일정(`events`) 및 접수 할 일(`todos`) 멱등 자동 연계, 완료·합격 시 경험 자료함(`materials`) STAR 초안 연동, 14일 임박 대시보드 위젯, 관심 자격증 구독(`spec_watch`), Q-Net·DataQ·잡알리오·고용24·AI검증 소스 탐색 및 24자리 세션 토큰 안전 등록 | `FR-SPEC-01` ~ `FR-SPEC-06` | P1 ~ P2 |
+| **OpenAI 기반 AI 4종 기능 및 탐색·브리핑** | `AI` | OpenAI Responses API(Structured Outputs: `gpt-6.1-terra`, `gpt-6-luna`) 기반 4대 핵심 AI 기능(지원·자소서 연계 면접 질문 생성, 문항별 첨삭 피드백, 경험 소재 STAR 초안 생성 및 반영, 공고 원문 텍스트 자동 파싱) 및 OpenAI `web_search` 기반 공고 탐색·추천, 대시보드 AI 주간 브리핑(일일 캐시), 면접 전환 시 백그라운드 질문 자동 생성, `OPENAI_API_KEY` 미설정 시 우아한 비활성화(HTTP 503, 가짜 응답 없음) 및 10분 20회 통합 슬라이딩 윈도우 속도 제한 | `FR-AI-01` ~ `FR-AI-12` | P4 |
 
 ---
 
@@ -62,9 +63,9 @@
 * **사용자 고충**: 구직자는 학부 캡스톤 프로젝트, 인턴십, 해커톤 수상, 동아리 활동 등 제한된 개수의 핵심 경험 소재를 여러 기업의 자기소개서 문항에 맞게 재가공하여 활용한다. 그러나 스프레드시트나 일반 채용 사이트에서는 경험 정리 노트와 자기소개서 입력창, 지원 공고 화면이 서로 분리되어 있어 여러 창을 띄워 놓고 복사 및 붙여넣기를 반복해야 한다(출처: https://www.tealhq.com/post/job-search-tracking-spreadsheet , https://www.jobkorea.co.kr/service/user/tool/textcount).
 * **개발자 관찰**: 특정 기업의 자기소개서를 작성할 때 우측에 본인의 경험 자료 카드를 바로 띄워 참조하고, 해당 자기소개서에 어떤 경험 소재(`materials`)가 인용되었는지 구조적으로 연결(`essay_materials`)해 두지 않으면, 추후 면접 준비 시 당시 어떤 프로젝트 사례를 중심으로 서류를 작성했는지 빠르게 파악하기 어렵다.
 
-### P5. 서류 제출 이후 면접 준비로의 맥락 단절 및 사후 복기 어려움
-* **사용자 고충**: 사람인의 경우 입사지원 후 제출 이력서 및 첨부파일을 확인할 수 있는 기간이 지원 후 2개월로 제한되어 있어, 공채 시즌이 길어지거나 다음 시즌을 준비할 때 본인이 제출했던 원문을 복기하기 어렵다(출처: https://www.saramin.co.kr/zf_user/help/help-word/help-search?keyword=%EC%9E%85%EC%82%AC%EC%A7%80%EC%9B%90). 또한 기존 서비스에서는 서류 작성 도구와 면접 예상 질문 정리 도구가 별개로 흩어져 있다.
-* **개발자 관찰**: 실무 면접 질문의 상당수는 지원자가 채용 공고의 직무 요건에 맞춰 제출한 자기소개서 문항 답변에서 파생된다. 따라서 지원 내역 상세 화면에서 해당 기업·직무 정보와 실제로 제출한 자기소개서 버전 스냅샷을 결합하여 맞춤형 예상 면접 질문을 도출하고 수동 복기 질문과 함께 관리하는 통합 흐름이 필요하다.
+### P5. 서류 제출 이후 면접 준비로의 맥락 단절 및 지능형 구직 지원(AI) 부재
+* **사용자 고충**: 사람인의 경우 입사지원 후 제출 이력서 및 첨부파일을 확인할 수 있는 기간이 지원 후 2개월로 제한되어 있어, 공채 시즌이 길어지거나 다음 시즌을 준비할 때 본인이 제출했던 원문을 복기하기 어렵다(출처: https://www.saramin.co.kr/zf_user/help/help-word/help-search?keyword=%EC%9E%85%EC%82%AC%EC%A7%80%EC%9B%90). 또한 기존 채용 플랫폼 및 범용 문서 도구는 채용 공고 텍스트 수기 입력, 경험 소재의 STAR 기법 구조화, 자기소개서 문항별 실시간 첨삭 피드백, 실시간 웹 검색 기반 공고 발굴, 대시보드 맞춤형 주간 일정 브리핑 등 구직 전 과정에 걸친 체계적이고 신뢰성 높은 AI 보조 기능을 제공하지 못하며, 서류 작성 도구와 면접 예상 질문 정리 도구가 별개로 파편화되어 있다.
+* **개발자 관찰**: 실무 면접 질문의 상당수는 지원자가 채용 공고의 직무 요건에 맞춰 제출한 자기소개서 문항 답변에서 파생되며, 공고 분석부터 서류 퇴고, 면접 대비까지 단절 없는 맥락 유지가 필수적이다. 따라서 지원 상세 화면에서 기업·직무 정보와 실제 제출 자기소개서 버전 스냅샷을 결합한 맞춤형 면접 예상 질문 도출뿐만 아니라, 자기소개서 문항별 첨삭 피드백, 경험 소재의 STAR 초안 변환, 공고 텍스트 파싱, OpenAI 내장 웹 검색 기반 실시간 공고 탐색, 대시보드 주간 브리핑에 이르는 통합 AI 스위트가 요구된다. 이때 외부 API 장애나 키 미설정 시 가짜 데이터(mock) 생성을 배제하고 정직하게 안내하며 HTTP 503을 반환하는 우아한 비활성화(Graceful Degradation) 및 사용자당 10분 내 20회 공유 속도 제한(Shared Rate Limiting) 메커니즘이 안정적으로 수반되어야 한다.
 
 ---
 
@@ -79,6 +80,7 @@
 2. **데이터 유실 없는 불변(Immutable) 자기소개서 버전 관리 시스템 구현**: 문항별 글자수 계산기를 갖춘 편집기에서 초안(Draft) 저장과 버전 스냅샷 생성을 분리하고, 저장된 버전(`essay_versions`)은 절대 수정하지 않는 불변 구조로 설계하여 단어 단위 Diff 비교(`jsdiff`)와 자동 백업 기반 복원을 보장한다.
 3. **경험 자료함 연동 및 데이터 기반 구직 통계 제공**: 개인의 프로젝트·수상·대외활동 경험을 구조화해 자기소개서와 N:M으로 연결하고, Chart.js를 활용해 단계별·결과별 지원 현황과 마감 임박 공고(D-7 이내)를 시각화한다.
 4. **보안성과 경량성을 갖춘 서버 사이드 렌더링(SSR) 아키텍처 실증**: 외부 클라우드 DB나 무거운 SPA 프레임워크 없이 Node.js 22, Express 4, EJS, `better-sqlite3`(WAL 모드)만으로 소유권 격리(`user_id = ?`), Prepared Statement, CSRF 방어, 세션 고정 방지, CSP 보안 헤더를 완벽히 갖춘 실용적 웹 애플리케이션을 구현한다.
+5. **OpenAI Responses API 기반 신뢰성 높은 서버 사이드 통합 AI 스위트 구축**: 순수 Node.js 백엔드에서 OpenAI Responses API(Structured Outputs: `gpt-6.1-terra`, `gpt-6-luna`)를 연동하여 4대 핵심 AI 기능(면접 예상 질문 생성, 자소서 문항별 첨삭 피드백, 경험 소재 STAR 구조화 초안, 공고 텍스트 파싱)과 OpenAI 내장 `web_search` 연동 공고 탐색(Job Discover), 대시보드 AI 주간 브리핑(일일 캐시)을 제공한다. `OPENAI_API_KEY` 미설정 시 HTTP 503 반환 및 가짜 응답을 배제하는 우아한 비활성화(Graceful Degradation)와 10분 내 20회 통합 슬라이딩 윈도우 속도 제한으로 운영 신뢰성을 보장한다.
 
 ### 4.2 프로젝트의 필요성
 
@@ -156,10 +158,10 @@ ReadySetJob은 앞서 3절에서 정의한 5가지 핵심 문제(P1~P5)와 6절�
 | **P2. 전형 단계와 합불 결과 혼재로 인한 맥락 소실** | **한국형 6단계 고정 칸반 보드와 4종 합불 결과의 2차원 분리 설계** | 전형 단계(`stage`: `document`, `coding_test`, `assignment`, `interview1`, `interview2`, `final`)와 결과(`result`: `in_progress`, `passed`, `failed`, `withdrawn`)를 별도 DB 컬럼으로 분리한다. 불합격 시에도 카드를 별도 열로 치우지 않고 해당 단계 열 안에 유지하며, 모든 변경 내역을 `stage_logs` 테이블에 자동 기록하고 Chart.js 통계에 반영한다 (`FR-APP-03`, `FR-APP-04`, `FR-APP-06`, `FR-APP-07`, `FR-DASH-02`). |
 | **P3. 자기소개서 덮어쓰기 저장 및 버전 유실·비교 불가** | **초안(Draft)과 분리된 불변(Immutable) 버전 스냅샷 및 서버 사이드 단어 단위 Diff·복원** | 작성 중인 초안 저장(`PUT /api/essays/:id/draft`)과 불변 스냅샷 생성(`POST /essays/:id/versions`)을 이원화한다. `essay_versions` 레코드는 생성 후 절대 수정(`UPDATE`)하지 않으며, `jsdiff`(`diffWords`) 기반 문항별 추가(`<ins>`)·삭제(`<del>`) 비교와 자동 백업 생성 후 복원(`restored_from_version_id` 기록)을 지원한다 (`FR-ESSAY-02` ~ `FR-ESSAY-06`). |
 | **P4. 경험 소재와 문항별 에디터의 단절** | **문항별 글자수 계산 에디터와 경험 자료함(Materials) 우측 참조 패널의 결합** | 프로젝트·인턴·수상·대외활동 경험을 분류(`kind`)와 태그로 정리해 두고, 자기소개서 편집기 우측 패널에서 즉시 열람하며 `essay_materials` 복합키 테이블로 N:M 연결한다. 또한 과거 작성한 모든 자기소개서 문항·답변 키워드 검색(`GET /api/essays/search`)을 지원한다 (`FR-ESSAY-01`, `FR-ESSAY-07`, `FR-MAT-02` ~ `FR-MAT-04`). |
-| **P5. 서류 제출 이후 면접 준비로의 맥락 단절** | **제출 자기소개서·직무 맥락 기반 서버 사이드 AI 면접 예상 질문 생성 및 수동 복기** | 지원 상세 화면에서 기업·공고·직무 정보와 연결된 자기소개서 문항/답변을 조합하여 서버 측에서 Gemini API로 맞춤 면접 질문(`source = 'ai'`)을 생성하고, 사용자 직접 등록 질문(`source = 'manual'`)과 함께 관리한다. API 키 미설정 시에도 오류 없이 비활성 상태를 안내한다 (`FR-AI-01` ~ `FR-AI-03`). |
+| **P5. 서류 제출 이후 면접 준비로의 맥락 단절 및 지능형 구직 지원 부재** | **OpenAI Responses API 기반 통합 AI 스위트(면접 질문·자소서 피드백·STAR 초안·공고 파싱·공고 탐색·주간 브리핑) 및 우아한 비활성화** | 지원 상세 화면에서 기업·공고·직무 정보와 연결된 자기소개서 문항/답변을 조합하여 서버 측에서 OpenAI Responses API(Structured Outputs: `gpt-6.1-terra`, `gpt-6-luna`)로 맞춤 면접 질문(`source = 'ai'`)을 생성하고 수동 질문(`source = 'manual'`)과 함께 관리한다. 나아가 자소서 문항별 첨삭 피드백, 경험 소재 STAR 구조화 초안, 공고 텍스트 자동 파싱, 내장 `web_search` 도구 연동 공고 탐색·추천, 대시보드 맞춤형 주간 브리핑(일일 캐시)을 유기적으로 연계한다. `OPENAI_API_KEY` 미설정 시 가짜 데이터(Mock) 생성 없이 명확한 안내와 함께 HTTP `503`을 반환하는 우아한 비활성화(Graceful Degradation) 및 10분 내 최대 20회 공유 속도 제한(429)을 적용한다 (`FR-AI-01` ~ `FR-AI-12`). |
 
 ### 7.2 UI/UX 및 기술적 차별성
-UI/UX 측면에서는 `docs/DESIGN_REFERENCES.md`와 `design/mockups/README.md`에서 검증한 세 가지 레퍼런스(Linear의 미니멀 역 L자 크롬 및 슬라이드오버 드로어, Huntr의 6단계 전폭 칸반 및 퍼널 배너, Craft의 문서 중심 타이포그래피와 인라인 Diff 시트)의 장점을 결합하였다. 모든 스타일은 하드코딩 색상 없이 `public/css/tokens.css`의 CSS 변수 체계로만 구성하여 기본 라이트 모드와 `[data-theme="dark"]` 다크 모드를 모두 지원하며, 숫자가 실시간으로 변하는 D-Day 배지와 글자수 카운터에는 `Pretendard Variable` 서체의 `tabular-nums` 속성을 적용해 레이아웃 흔들림을 방지한다(`NFR-UI-01`).
+UI/UX 측면에서는 `docs/DESIGN_REFERENCES.md`와 `design/mockups/README.md`에서 검증한 세 가지 레퍼런스(Linear의 미니멀 역 L자 크롬 및 슬라이드오버 드로어, Huntr의 6단계 전폭 칸반 및 퍼널 배너, Craft의 문서 중심 타이포그래피와 인라인 Diff 시트)의 장점을 결합하였다. 모든 스타일은 하드코딩 색상 없이 `public/css/tokens.css`의 CSS 변수 체계로만 구성하여 기본 라이트 모드와 `[data-theme="dark"]` 다크 모드를 모두 지원하며, 숫자가 실시간으로 변하는 D-Day 배지와 글자수 카운터에는 `Pretendard Variable` 서체의 `tabular-nums` 속성을 적용해 레이아웃 흔들림을 방지한다(`NFR-UI-01`). 기술적으로도 OpenAI Responses API의 Structured Outputs 체계를 통해 JSON 스키마를 엄격히 강제하여 할루시네이션과 파싱 오류를 원천 차단하고, `OPENAI_API_KEY` 미설정 시 HTTP 503과 가짜 응답 배제(Graceful Degradation), 사용자당 10분 20회 통합 속도 제한을 서버 사이드에서 보장한다.
 
 ---
 
@@ -178,7 +180,7 @@ ReadySetJob의 핵심 목표 사용자는 국내 채용 시장에서 다수의 �
 3. **지원 내역 생성 및 자기소개서 초안 작성 (`FR-APP-03`, `FR-ESSAY-01`, `FR-ESSAY-02`, `FR-MAT-04`)**: 해당 공고에 대한 지원 내역(`stage: 'document'`, `result: 'in_progress'`)을 생성하고, 지원 건과 연결된 자기소개서를 만든다. 편집기(`GET /essays/:id`) 우측 패널에서 미리 등록한 캡스톤 프로젝트 경험 자료를 연결(`essay_materials`)해 띄워 놓고, 실시간 글자수 카운터(`char_limit: 800`)를 보며 초안(`PUT /api/essays/:id/draft`)을 저장한다.
 4. **불변 버전 스냅샷 생성 및 Diff 비교·복원 (`FR-ESSAY-03` ~ `FR-ESSAY-06`)**: 초안 완성과 함께 `v1 (초안 800자)` 스냅샷(`POST /essays/:id/versions`)을 생성한다. 이후 문장을 압축해 `v2 (제출본)`를 만든 뒤, `GET /essays/:id/compare?from=1&to=2` 화면에서 단어 단위 Diff(`<ins>`, `<del>`)로 빠진 기술 키워드가 없는지 대조한다. 만약 `v1`의 표현이 더 낫다고 판단되면 `POST /essays/:id/versions/1/restore`를 실행해 현재 초안을 자동 백업하면서 안전하게 복원한다.
 5. **칸반 보드 단계 이동 및 코딩테스트·과제 일정 관리 (`FR-APP-04` ~ `FR-APP-07`)**: 서류 합격 통보를 받은 뒤 칸반 보드(`GET /applications/board`)에서 카드를 `서류(document)` 열에서 `코딩테스트(coding_test)` 열로 드래그앤드롭(`PATCH /api/applications/:id/stage`)한다. 이때 `stage_logs`에 상태 전이가 자동 기록되며, `/events`에 주말 코딩테스트 일시(`type: 'test'`)를 등록한다.
-6. **AI 예상 면접 질문 생성 (`FR-AI-01`, `FR-AI-02`)**: 과제 전형까지 통과해 `1차 면접(interview1)` 단계에 진입한 후, 지원 상세 화면에서 `POST /applications/:id/interview-questions/generate`를 호출한다. 서버는 공고의 직무 설명과 연결된 자기소개서 답변을 바탕으로 Gemini API를 호출해 캡스톤 프로젝트 아키텍처에 관한 심층 예상 질문을 생성해 주며, 학생은 본인이 예상한 추가 질문(`source: 'manual'`)도 함께 등록해 면접에 대비한다.
+6. **OpenAI 기반 AI 예상 면접 질문 생성 및 피드백 (`FR-AI-01`, `FR-AI-02`, `FR-AI-04`)**: 과제 전형까지 통과해 `1차 면접(interview1)` 단계에 진입한 후, 지원 상세 화면에서 `POST /applications/:id/interview-questions/generate`를 호출한다. 서버는 공고의 직무 설명과 연결된 자기소개서 답변을 바탕으로 OpenAI Responses API(`gpt-6.1-terra`, Structured Outputs)를 호출해 캡스톤 프로젝트 아키텍처에 관한 심층 예상 질문을 생성해 주며, 학생은 본인이 예상한 추가 질문(`source: 'manual'`)도 함께 등록해 면접에 대비한다. 또한 필요 시 자소서 에디터에서 문항별 실시간 AI 첨삭 피드백(`FR-AI-04`)을 받아 면접 답변 논리를 가다듬는다.
 
 ### 8.2 페르소나 2: 하반기 신입 공채 준비생 (이취준, 26세)
 
@@ -202,7 +204,7 @@ ReadySetJob의 모든 기능 요구사항(`FR-*`)과 비기능 요구사항(`NFR
 * **`P1` (핵심 차별화 기능)**: 6단계 칸반 보드 뷰 및 드래그앤드롭 순서 재정렬, 자기소개서 문항별 에디터·초안 저장·불변 버전 스냅샷·단어 단위 Diff 비교·복원·키워드 검색, 자소서와 경험 자료 연결 (`개발 중`, 계획된 명세 기준)
 * **`P2` (통계 및 자료함 확장)**: Chart.js 기반 단계별·결과별 분포 차트, 마감 임박 공고(D-7) 및 일정 타임라인 위젯, 경험 자료함(Materials) CRUD 및 분류/태그 필터 (`계획`)
 * **`P3` (UI/UX 폴리싱)**: 승인된 디자인 시스템 토큰(`tokens.css`) 고도화, 다크 모드 완성, 반응형 및 접근성 폴리싱 (`계획`)
-* **`P4` (선택적 AI 확장)**: 서버 사이드 Gemini API 기반 맞춤형 면접 예상 질문 생성, 수동 면접 질문 관리, API 키 미설정 시 우아한 비활성화 (`계획`)
+* **`P4` (OpenAI Responses API 기반 통합 AI 스위트)**: OpenAI Responses API(Structured Outputs: `gpt-6.1-terra`, `gpt-6-luna`) 기반 4대 핵심 AI 기능(면접 예상 질문, 자소서 첨삭 피드백, 경험 소재 STAR 초안, 채용 공고 파싱), `web_search` 연동 공고 탐색·추천, 대시보드 AI 주간 브리핑(일일 캐시), 면접 전환 시 질문 자동 생성 등 일정 연계 자동화, `OPENAI_API_KEY` 미설정 시 우아한 비활성화(HTTP 503, 가짜 응답 없음) 및 10분당 20회 통합 슬라이딩 윈도우 속도 제한 (`검증 완료`)
 
 ### 9.2 모듈별 기능 요구사항(Functional Requirements) 요약표
 
@@ -258,13 +260,33 @@ ReadySetJob의 모든 기능 요구사항(`FR-*`)과 비기능 요구사항(`NFR
 | `FR-MAT-03` | 자료함 분류(`kind`) 및 태그(`tags`) 필터 | 경험 자료 목록에서 분류별 필터링 및 키워드/태그 검색 제공 | P2 | 계획 |
 | `FR-MAT-04` | 자기소개서-경험 자료 N:M 연결 및 해제 | `essay_materials` 복합 PK 테이블을 통해 특정 자기소개서에 활용된 경험 소재를 연결·해제하고 편집기 우측 패널에서 참조 | P1 | 구현 완료 (2026-11-10 자동 테스트·브라우저 확인) |
 
-#### (6) 모듈 F: AI 면접 예상 질문 생성 (`AI`)
+#### (6) 모듈 F: OpenAI Responses API 연동 AI 4종 기능 및 탐색·브리핑 (`AI`)
 
 | 요구사항 ID | 기능명 | 핵심 동작 및 라우트 명세 요약 | 우선순위 | 현재 상태 (`docs/SPEC.md`) |
 | :--- | :--- | :--- | :---: | :--- |
-| `FR-AI-01` | Gemini 기반 면접 질문 서버 사이드 생성 | `POST /applications/:id/interview-questions/generate`: 기업·공고·직무 정보와 연결 자소서 문항/답변을 조합해 서버 측에서 Gemini API 호출 후 `interview_questions`(`source = 'ai'`) 저장 | P4 | 계획 |
-| `FR-AI-02` | 수동 면접 질문 관리 | 사용자가 직접 면접 질문(`source = 'manual'`)을 등록·삭제하며 AI 생성 질문과 함께 지원 상세 화면에서 통합 관리 | P4 | 계획 |
-| `FR-AI-03` | `GEMINI_API_KEY` 미설정 시 우아한 비활성화 | 환경 변수 `GEMINI_API_KEY` 미설정 시 가짜 응답을 만들지 않고 AI 생성 버튼을 비활성(`disabled`) 상태로 표시 및 안내 문구 제공 | P4 | 계획 |
+| `FR-AI-01` | OpenAI 기반 면접 질문 서버 사이드 생성 | `POST /applications/:id/interview-questions/generate`: 해당 지원 건의 기업·공고·직무 정보와 연결 자소서 문항/답변을 조합해 서버 측에서 OpenAI Responses API(Structured Outputs, `OPENAI_MODEL_INTERVIEW` 기본: `'gpt-6.1-terra'`, effort `low`) 호출 후 `interview_questions`(`source = 'ai'`) 저장 (API 키 미노출) | P4 | 검증 완료 (`test/interview-questions.test.js`) |
+| `FR-AI-02` | 수동 면접 질문 관리 | 사용자가 직접 면접 질문(`source = 'manual'`)을 추가·삭제하며 AI 생성 질문과 함께 지원 상세 및 면접 준비 화면에서 통합 관리 | P4 | 검증 완료 (`test/interview-questions.test.js`) |
+| `FR-AI-03` | `OPENAI_API_KEY` 미설정 시 우아한 비활성화 | 환경 변수 `OPENAI_API_KEY` 미설정 시 가짜 응답(Mock)을 배제하고 AI 버튼 비활성화(`disabled`) 및 안내 문구 표시, API 요청 시 HTTP `503` 반환 | P4 | 검증 완료 (`test/ai-features.test.js`, `test/ai-errors-and-limits.test.js`) |
+| `FR-AI-04` | 자기소개서 문항별 AI 피드백 생성 및 조회 | `POST/GET /api/essays/:id/questions/:qid/feedback`: 질문, 답변, 글자수, 공고 직무 맥락을 바탕으로 구조화된 첨삭 피드백(총평, 강점, 개선점, 수정 제안, 예시 문장) 생성 및 `essay_feedback` 테이블 저장 (`OPENAI_MODEL_FEEDBACK` 기본: `'gpt-6.1-terra'`, effort `medium`) | P4 | 검증 완료 (`test/ai-features.test.js`, `test/ai-errors-and-limits.test.js`) |
+| `FR-AI-05` | 경험 소재 기반 STAR 구조화 초안 생성 및 반영 | `POST /api/materials/:id/star-draft`: 경험 자료를 Situation, Task, Action, Result 및 한 줄 요약으로 구조화해 `material_star_drafts` 저장 (`OPENAI_MODEL_DRAFT` 기본: `'gpt-6.1-terra'`, effort `low`). `POST /materials/:id/star-draft/:draftId/apply`로 본문 반영 | P4 | 검증 완료 (`test/ai-features.test.js`, `test/ai-errors-and-limits.test.js`) |
+| `FR-AI-06` | 채용 공고 텍스트 자동 파싱 및 폼 채우기 | `POST /api/jobs/parse`: 복사한 공고 원문 텍스트에서 기업명, 공고명, 직무, 고용 형태, 마감일, URL, 메모, 자소서 문항 목록을 JSON Schema로 추출해 반환 (`OPENAI_MODEL_EXTRACT` 기본: `'gpt-6-luna'`, effort `none`, DB 미저장 폼 자동 채움) | P4 | 검증 완료 (`test/ai-features.test.js`, `test/ai-errors-and-limits.test.js`) |
+| `FR-AI-07` | 공통 모델 오버라이드 및 통합 속도 제한 | 전역 `OPENAI_MODEL` 또는 기능별 `OPENAI_MODEL_*` 환경 변수 지원, 키 원문 미노출, 사용자당 10분 내 최대 20회 통합 슬라이딩 윈도우 속도 제한(429) 적용 | P4 | 검증 완료 (`test/ai-errors-and-limits.test.js`) |
+| `FR-AI-08` | 공고·지원·면접 연동 일정 및 할 일 자동 정리 | 공고 등록 시 서류 마감 일정(18:00) 자동 생성, 지원 등록 시 마감 일정 연결 및 자소서 작성 할 일 생성, 면접 전환 시 면접 준비 할 일 자동 생성 (`src/services/automationService.js`) | P4 | 검증 완료 (`test/automation.test.js`) |
+| `FR-AI-09` | 면접 단계 전환 시 백그라운드 AI 면접 질문 자동 생성 | 1차/2차 면접 단계 전환 시 기존 AI 질문이 3개 미만이면 백그라운드로 AI 면접 질문 자동 생성 및 저장 (공유 속도 제한 준수, 단계 전환 응답 무영향) | P4 | 검증 완료 (`test/automation.test.js`) |
+| `FR-AI-10` | 자기소개서 버전 저장 시 자동 AI 피드백 생성 | 설정(`users.auto_feedback`) 활성화 시 자소서 버전 저장(`POST /essays/:id/versions`)마다 답변 문항별 백그라운드 AI 피드백 자동 생성 및 저장 | P4 | 검증 완료 (`test/auto-feedback.test.js`) |
+| `FR-AI-11` | OpenAI `web_search` 기반 AI 공고 검색·추천 | `GET /jobs/discover`, `POST /api/jobs/search`: OpenAI Responses API 내장 `web_search` 도구(`OPENAI_MODEL_SEARCH` 기본: `'gpt-6.1-terra'`)로 최대 8건 공고 탐색·추천, 출처 URL 검증 및 DB 미저장 카드 등록 연동 | P4 | 검증 완료 (`test/ai-search.test.js`) |
+| `FR-AI-12` | 대시보드 AI 주간 브리핑 및 일일 캐시 | `GET/POST /api/briefing`: 본인 데이터(7일 내 마감·일정, 미완료 할 일, 진행 지원, 월 목표) 기반 맞춤 주간 브리핑 생성(`OPENAI_MODEL_BRIEFING` 기본: `'gpt-6-luna'`), `ai_briefings` 테이블 하루 1회 캐시 및 내부 링크 allow-list 적용 | P4 | 검증 완료 (`test/ai-briefing.test.js`) |
+
+#### (7) 모듈 G: 스펙 관리 및 발견 (`SPEC`)
+
+| 요구사항 ID | 기능명 | 핵심 동작 및 라우트 명세 요약 | 우선순위 | 현재 상태 (`docs/SPEC.md`) |
+| :--- | :--- | :--- | :---: | :--- |
+| `FR-SPEC-01` | 스펙 항목(Spec Items) CRUD 및 다중 뷰·기간 필터링 | `GET /specs` 5개 컬럼 칸반 및 목록(`?view=list`) 뷰, 스펙 종류·상태·검색어·기간 필터링, `GET/POST /specs` 등록, `GET /specs/:id` 상세 타임라인, `PUT /specs/:id` 부분 수정, `DELETE /specs/:id` 연계 일정/할 일 일괄 삭제 | P1 | 검증 완료 (`test/specs.test.js`, `test/specs-service.test.js`) |
+| `FR-SPEC-02` | 스펙 진행 상태 변경 및 멱등적 자동화 라이프사이클 | `POST /specs/:id/status` 및 `PATCH /api/specs/:id/status`: 7종 상태 전이, `interested` 이탈 시 접수 할 일 자동 완료, `completed`/`passed` 시 경험 자료함(`materials`) STAR 초안 자동 생성·연계, `dropped` 시 미래 일정/할 일 삭제 | P1 | 검증 완료 (`test/specs.test.js`, `test/specs-automation.test.js`) |
+| `FR-SPEC-03` | 스펙 연동 일정 및 할 일 자동 생성·동기화 | 스펙 등록 및 활성 상태 시 4개 슬롯(접수 시작, 접수 마감, 시험/시작, 결과 발표) 전형 일정(`events`) 및 접수 할 일(`todos`) 멱등 자동 생성 및 수정 시 날짜 동기화 | P1 | 검증 완료 (`test/specs-automation.test.js`, `test/specs-service.test.js`) |
+| `FR-SPEC-04` | 관심 자격증 구독(Watch) 및 대시보드 위젯 연동 | `POST/DELETE /specs/watch`: 종목 코드 기반 관심 자격증 구독 관리(`spec_watch`), 대시보드 14일 이내 접수/시험 일정 최대 5개 시간순 노출 및 D-3 긴급 배지 강조 | P2 | 검증 완료 (`test/specs-dashboard.test.js`, `test/specs-service.test.js`) |
+| `FR-SPEC-05` | 멀티 소스 스펙 탐색 및 세션 토큰 기반 안전 등록 | `GET/POST /specs/discover`, `POST /api/specs/discover`: 5개 소스(Q-Net, DataQ, 잡알리오, 고용24, OpenAI `web_search` 기반 `ai_verified`) 통합 탐색, 24자리 hex 세션 토큰 안전 등록(`POST /specs/discover/register`), 자격증 카탈로그 폴백 | P2 | 검증 완료 (`test/spec-discover.test.js`, `test/spec-sources.test.js`) |
+| `FR-SPEC-06` | 외부 데이터 소스 보안 통신 및 SSRF 방어 자동 검증 | 8초 타임아웃, 1MiB 크기 제한, MIME 검증, 12~24시간 공유 캐시(`external_cache`), AI 검색 결과 SSRF 방어(허용 도메인 화이트리스트, 사설 IP 차단, DNS 핀닝, 리다이렉트 추적, 원문 키워드/일정 증거 교차 검증) | P2 | 검증 완료 (`test/spec-verifier.test.js`, `test/spec-sources.test.js`) |
 
 ### 9.3 비기능 요구사항(Non-Functional Requirements) 요약표
 
@@ -274,11 +296,11 @@ ReadySetJob의 모든 기능 요구사항(`FR-*`)과 비기능 요구사항(`NFR
 | `NFR-SEC-02` | SQL 인젝션 방지 | `better-sqlite3`의 `db.prepare(...).get/all/run(...)` 파라미터 바인딩만 사용, 문자열 연결 SQL 금지 | 구현 완료 |
 | `NFR-SEC-03` | 세션 및 쿠키 보안 | `readysetjob.sid` 쿠키 `httpOnly: true`, `sameSite: 'lax'`, 유효기간 7일, SQLite 세션 스토어 영속화 및 인증 직후 `req.session.regenerate()` 호출 | 검증 완료 |
 | `NFR-SEC-04` | 보안 헤더 및 CSP | `helmet` 기반 엄격한 CSP(`default-src 'self'`, `script-src 'self'`, `frame-ancestors 'none'` 등) 적용으로 XSS 및 클릭재킹 차단 | 구현 완료 |
-| `NFR-SEC-05` | 비밀값 관리 | `SESSION_SECRET`, `GEMINI_API_KEY` 등은 `.env`로 분리(커밋 금지)하고 저장소에는 `.env.example`만 유지 | 구현 완료 |
+| `NFR-SEC-05` | 비밀값 관리 | `SESSION_SECRET`, `OPENAI_API_KEY` 등은 `.env`로 분리(커밋 금지)하고 저장소에는 `.env.example`만 유지 | 검증 완료 |
 | `NFR-PERF-01` | 경량 실행 및 트랜잭션 | 무거운 번들러나 상주 워커 배제, `better-sqlite3` WAL 모드(`PRAGMA journal_mode = WAL`) 및 `db.transaction`으로 정합성·성능 확보 | 구현 완료 |
 | `NFR-PERF-02` | 세션 만료 타이머 정리 | `SqliteSessionStore` 만료 정리 타이머에 `timer.unref()`를 적용해 테스트 종료 시 이벤트 루프 블로킹 방지 | 구현 완료 |
 | `NFR-A11Y-01` | 시맨틱 마크업 및 접근성 | 모든 입력 필드에 `<label for="...">` 연결, 주 메뉴 `aria-label`, 비활성 항목 `aria-disabled="true"`, 플래시 메시지 `role="status"` 부여 | 구현 완료 |
-| `NFR-UI-01` | 디자인 토큰 및 다크 모드 | 하드코딩 색상을 금지하고 `public/css/tokens.css` 변수만 사용, `<html data-theme="light\|dark">` 및 `localStorage('rsj_theme')` 테마 전환 지원 | 구현 완료 |
+| `NFR-UI-01` | 디자인 토큰 및 다크 모드 | 하드코딩 색상을 금지하고 `public/css/tokens.css` 변수만 사용, `<html data-theme="light/dark">` 및 `localStorage('rsj_theme')` 테마 전환 지원 | 구현 완료 |
 | `NFR-COMPAT-01` | 외부 CDN 무의존 호환성 | 최신 데스크톱·모바일 브라우저 지원 및 외부 CDN 없이 로컬 정적 자산(`/css`, `/js`, `/vendor`)만으로 독립 실행 보장 | 구현 완료 |
 
 ---
@@ -311,7 +333,7 @@ flowchart TD
             AppBoard["지원 현황 6단계 칸반 보드\n(GET /applications/board)\n드래그앤드롭: PATCH /api/applications/:id/stage"]
             AppList["지원 현황 목록 및 필터 뷰\n(GET /applications, POST /applications)"]
             AppDetail["지원 상세 화면\n(GET /applications/:id, PUT/DELETE)\n- 전형 변경 이력 (stage_logs)\n- 연결 전형 일정 및 연결 자기소개서"]
-            AIQuestions["면접 예상 질문 관리 패널\n- Gemini 서버 생성 (POST /applications/:id/interview-questions/generate)\n- 수동 질문 추가·삭제 (FR-AI-01 ~ 03)"]
+            AIQuestions["AI 면접 예상 질문 관리 패널\n- OpenAI Responses API 서버 생성 (POST /applications/:id/interview-questions/generate)\n- 수동 질문 추가·삭제 및 503 안전 비활성화 (FR-AI-01 ~ 03)"]
             AppBoard <--> AppList
             AppBoard --> AppDetail
             AppList --> AppDetail
@@ -377,7 +399,7 @@ flowchart TD
 | **채용 공고 및 기업 관리** | `/jobs`, `/jobs/:id`, `/companies`, `/companies/:id` | 채용 공고 목록은 키워드 검색, 채용 형태 필터, 북마크 전용 필터(`?bookmarked=1`), 마감 임박순/최신순 정렬을 한 줄의 상단 필터 바에 집약한다. 공고 등록 시 별도 화면 이탈 없이 신규 기업명을 함께 입력해 생성할 수 있으며, 기업 상세 화면에서는 해당 기업의 전체 공고와 지원 현황을 연결해 보여준다. |
 | **자기소개서 (목록 / 에디터 / 버전 기록 / 비교)** | `/essays`, `/essays/:id`, `/essays/:id/versions/:no`, `/essays/:id/compare` | 중앙에는 장문 한국어 집필에 최적화된 문항별 편집 카드(본문 `15px`, 행간 `1.7`, `word-break: keep-all`)와 실시간 글자수 카운터(`tabular-nums`)를 배치하고, 우측 보조 패널에는 불변 버전 히스토리 목록과 연결된 경험 자료함(`essay_materials`) 카드를 배치한다. 버전 비교 화면에서는 `jsdiff`가 계산한 추가(`<ins>`)·삭제(`<del>`) 어절을 시맨틱 컬러로 대조하고 원클릭 이력 보존형 복원을 제공한다. |
 | **경험 자료함 및 전형 일정** | `/materials`, `/events` | 경험 자료함은 프로젝트, 인턴, 수상, 대외활동 소재를 분류(`kind`)와 태그별로 카드화하여 관리한다. 전형 일정 화면은 서류 마감, 코딩테스트, 면접, 합격 발표 일정을 시작 일시 순으로 정렬해 지원 상세 화면과 양방향으로 연동한다. |
-| **AI 면접 예상 질문** | `/applications/:id` 내 섹션 | 지원 상세 화면 하단에서 해당 공고 직무와 제출 자기소개서 내용을 기반으로 Gemini API 예상 질문을 서버 사이드에서 생성한다. 환경 변수에 `GEMINI_API_KEY`가 설정되지 않은 환경에서는 가짜 응답 없이 버튼을 비활성화(`disabled`)하고 설정 안내 문구를 표시한다. |
+| **OpenAI 기반 통합 AI 스위트** | `/applications/:id`, `/essays/:id`, `/materials/:id`, `/jobs/new`, `/jobs/discover`, `/dashboard` | 지원 상세 하단 면접 질문 생성(`FR-AI-01`), 자소서 문항별 첨삭 피드백(`FR-AI-04`), 경험 소재 STAR 초안 생성(`FR-AI-05`), 공고 원문 텍스트 파싱(`FR-AI-06`), `web_search` 연동 공고 탐색(`/jobs/discover`, `FR-AI-11`), 대시보드 맞춤형 주간 브리핑(`FR-AI-12`)을 제공한다. 서버 환경 변수에 `OPENAI_API_KEY`가 설정되지 않은 경우 가짜(mock) 데이터 없이 명확한 비활성화 안내 및 HTTP `503`을 반환하며, 10분 내 20회 통합 속도 제한을 적용한다. |
 
 ### 10.3 디자인 시안(A/B/C안) 검토 및 화면 설계 방향 (`docs/DESIGN_REFERENCES.md`, `design/mockups/README.md`)
 
@@ -559,13 +581,13 @@ flowchart TB
 
         subgraph RouteLayer["라우터 계층 (src/routes/*.js)"]
             R_P0["P0 검증 완료 라우터<br/>auth, dashboard, companies, jobs, applications, events"]
-            R_P1["P1 개발 중 라우터<br/>applications(/board, PATCH stage), essays(버전/Diff/복원/검색)"]
-            R_P2_P4["P2/P4 계획 라우터<br/>materials(경험 자료함), ai(Gemini 면접 질문)"]
+            R_P1["P1 구현 완료 라우터<br/>applications(/board, PATCH stage), essays(버전/Diff/복원/검색)"]
+            R_P2_P4["P2/P4 라우터<br/>materials(자료함), specs(스펙·탐색), ai(OpenAI Responses API 4종 기능·공고 검색·브리핑)"]
         end
 
         subgraph ServiceLayer["서비스 계층 (src/services/*.js)"]
             SVC_P0["usersService, companiesService,<br/>jobsService, applicationsService, eventsService"]
-            SVC_P1["essaysService (P1 개발 중),<br/>materialsService (P2), aiService (P4)"]
+            SVC_P1["essaysService, materialsService, specsService,<br/>aiService / aiFeaturesService (OpenAI Responses API)"]
         end
 
         ERR_MW["공통 에러 핸들러 (src/middleware/error.js)<br/>notFoundHandler(404) & errorHandler(401/403/404/422/500 분기)"]
@@ -797,6 +819,7 @@ erDiagram
 | **보안 미들웨어** | **`helmet`** (`^8.0.0`) + 자체 **CSRF 미들웨어** (`crypto.timingSafeEqual`) | CSP 보안 헤더 강제 및 상태 변경 요청 CSRF 동기화 토큰 검증 | 폐기(deprecated)된 `csurf` 패키지 대신 Node 내장 `crypto` 모듈로 폼(`_csrf`)과 헤더(`X-CSRF-Token`)를 모두 검증하는 경량 미들웨어를 직접 구현해 의존성 취약점을 제거함 | **`csurf` 패키지**: 공식 지원 종료(deprecated)로 보안 유지보수가 중단됨 |
 | **버전 비교 (Diff)** | **`jsdiff`** (npm `diff` `^9.0.0`) | 자기소개서 두 버전(`snapshot_json`) 간 문항별 어절/단어 단위 비교 | 서버 사이드에서 `diffWords`를 수행해 클라이언트 연산 부담을 줄이고, 이스케이프된 `<ins>`/`<del>` 조각으로 정확한 문구 변경점을 시각화함 | **클라이언트 직접 문자열 비교**: 한국어 어절 경계 처리 및 긴 텍스트 비교 시 구현 복잡도와 브라우저 부하 증가 |
 | **데이터 시각화** | **Chart.js** (P2, 로컬 `/vendor` 정적 서빙) | 대시보드 전형 단계별 막대 차트 및 합불 비율 도넛 차트 렌더링 | Canvas 기반으로 가볍고 반응형 차트 구성이 쉬우며, npm 설치 후 로컬 정적 경로로 서빙해 외부 CDN 장애나 오프라인 환경에서도 동작함 | **D3.js / 외부 CDN 스크립트**: D3는 기본 차트 대비 구현 공수가 크고, 외부 CDN은 `helmet` CSP(`script-src 'self'`) 정책 및 오프라인 실행 원칙에 위배됨 |
+| **AI 모델 및 API** | **OpenAI Responses API**<br>(Structured Outputs: `gpt-6.1-terra` / `gpt-6-luna`) | 4대 핵심 AI 기능(면접 질문, 자소서 피드백, STAR 초안, 공고 파싱), `web_search` 공고 탐색, 대시보드 주간 브리핑 | 엄격한 JSON Schema 준수(Strict Mode)로 파싱 에러 없는 결정론적 데이터 반환, 내장 `web_search` 도구를 통한 실시간 채용 정보 검색, 작업 복잡도별 모델 분리(`gpt-6.1-terra` 심층 생성·추론, `gpt-6-luna` 저지연 추출·요약) 가능 | **Google Gemini API**: 초기 검토 대상이었으나 복잡한 한국어 자소서 다중 문항 및 공고 파싱 시 JSON 스키마 강제력과 실시간 웹 검색 도구 연동 안정성 검증 결과 OpenAI Responses API의 완성도가 월등하여 전환함.<br>**Anthropic Claude API**: 프롬프트 캐싱에 강점이 있으나 네이티브 웹 검색 통합 도구 부재 및 스키마 검증 파이프라인 복잡도로 배제함. |
 | **테스트 도구** | **`node:test`** + **`supertest`** (`^7.0.0`) | 인증, CSRF, CRUD, 소유권 격리(404), 버전 관리 자동화 통합 테스트 | 실제 포트 바인딩 없이 Express 앱 인스턴스에 HTTP 요청과 쿠키/세션 에이전트를 전송하여 실제 운영과 동일한 미들웨어 체인을 초 단위로 검증함 | **Jest / Mocha**: 무거운 트랜스파일러 및 추가 러너 의존성이 필요함 |
 
 ---
@@ -927,13 +950,20 @@ sequenceDiagram
 
 ### 15.7 AI 기능 서버 사이드 격리 및 우아한 비활성화 (Graceful Degradation)
 
-1. **서버 사이드 API 호출 격리**:
-   - AI 면접 예상 질문 생성은 브라우저가 아닌 Node.js 백엔드 서비스(`src/services/aiService.js`)에서만 Google Gemini API를 호출한다.
-   - API 키는 서버 환경 변수(`GEMINI_API_KEY`)로만 관리하며 클라이언트 JavaScript나 뷰 코드에 절대 노출하지 않는다.
-2. **키 미설정 시 정직한 비활성화**:
-   - 서버 시작 시 또는 라우터 처리 시 `process.env.GEMINI_API_KEY` 존재 여부를 검사한다.
-   - 키가 등록되지 않은 환경에서는 지원 상세 화면의 AI 질문 생성 버튼을 `disabled` 속성으로 비활성화하고, "GEMINI_API_KEY가 설정되지 않아 AI 기능을 사용할 수 없습니다"라는 안내 문구를 명확히 표기한다.
-   - 가짜(Mock) 질문을 무단 생성하여 사용자에게 실제 AI 응답인 것처럼 속이지 않는다.
+1. **OpenAI Responses API 서버 사이드 격리 및 Structured Outputs**:
+   - AI 4종 기능(면접 질문 생성, 자소서 첨삭 피드백, 경험 소재 STAR 초안, 공고 원문 텍스트 파싱)과 `web_search` 기반 공고 탐색, 대시보드 주간 브리핑은 브라우저가 아닌 Node.js 백엔드 서비스(`src/services/aiService.js`, `aiFeaturesService.js`, `aiBriefingService.js`)에서만 OpenAI Responses API를 호출한다.
+   - 모든 AI 호출은 `src/services/aiSchemas.js`에 정의된 엄격한 JSON Schema(`response_format: { type: 'json_schema', json_schema: { strict: true, ... } }`)를 강제하여 클라이언트 렌더링에 적합한 신뢰성 높은 정형 데이터를 보장한다.
+   - 도메인 특성에 맞춰 심층 추론 및 생성 작업(면접 질문, 자소서 피드백, STAR 초안, 공고 검색)에는 `gpt-6.1-terra`를, 빠른 텍스트 추출 및 요약(공고 파싱, 주간 브리핑)에는 `gpt-6-luna`를 매핑하며, `OPENAI_MODEL` 및 `OPENAI_MODEL_*` 환경 변수를 통한 세부 오버라이드를 지원한다.
+2. **API 키 은닉 및 안전한 설정 안내**:
+   - API 키는 서버 환경 변수(`OPENAI_API_KEY`)로만 주입하며 클라이언트 브라우저나 HTTP 응답 본문, 로그에 절대 노출하지 않는다.
+   - 설정 화면(`GET /settings/ai`)에서도 키 원문은 은닉하고 활성화 여부(설정됨/미설정) 및 기능별 모델 매핑 상태만 표시한다.
+3. **키 미설정 시 정직한 비활성화(Graceful Degradation) 및 가짜 응답 배제**:
+   - `OPENAI_API_KEY` 환경 변수가 누락되었거나 비어 있는 경우, UI 상의 AI 버튼을 비활성화(`disabled`)하고 `AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)` 안내를 명확히 표기한다.
+   - API 엔드포인트 직접 호출 시 HTTP `503 Service Unavailable` 상태 코드와 정형 에러 JSON(`{ error: 'AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)' }`)을 반환한다.
+   - **정직성 원칙 (`AGENTS.md`)**: 키가 없는 환경에서 가짜(Mock) 데이터를 무단 생성하여 실제 AI 응답인 것처럼 사용자를 기만하지 않는다.
+4. **통합 슬라이딩 윈도우 속도 제한(Shared Rate Limiter) 및 타임아웃**:
+   - 무분별한 토큰 소모 및 외부 API 과금을 방지하기 위해, 모든 AI 기능을 통틀어 사용자 ID 기준 **10분 내 최대 20회**의 슬라이딩 윈도우 인메모리 속도 제한(`src/services/aiRateLimiter.js`)을 적용한다. 초과 시 HTTP `429 Too Many Requests`를 반환한다.
+   - 외부 API 네트워크 지연에 대비해 `AbortController` 기반의 15초(또는 웹 검색 20초) 타임아웃을 적용하고, 실패 시 적절한 에러 캐치 미들웨어를 통해 시스템 크래시를 방지한다.
 
 ### 15.8 테스트 전략 (`node:test` + `supertest`)
 
@@ -961,7 +991,7 @@ sequenceDiagram
 | **2주차** | 11/17 ~ 11/23 | **P1** | - 6개 전형 단계 칸반 보드 뷰(`/applications/board`) 구현<br>- HTML5 드래그앤드롭 및 `PATCH /api/applications/:id/stage` 연동<br>- 자기소개서 멀티 문항 에디터 및 글자수 계산기 구현<br>- 초안 저장, 불변 버전 스냅샷 생성 및 `jsdiff` 비교 화면 구현<br>- 이력 보존형 복원 알고리즘 구현 및 P1 통합 테스트 검증 | - 칸반 카드 이동 및 순서 재정렬 동작<br>- 자소서 버전 생성, 단어 단위 Diff, 복원 기능 검증 통과 |
 | **3주차** | 11/24 ~ 11/30 | **P2** | - Chart.js npm 설치 및 `/vendor` 로컬 정적 서빙 라우트 구성<br>- 대시보드 전형 단계별 막대 차트 및 결과별 도넛 차트 연동<br>- 마감 임박 공고(D-7) 및 전형 일정 타임라인 위젯 연동<br>- 경험 자료함(`/materials`) CRUD 및 태그 필터 구현<br>- 자기소개서와 경험 자료 간 N:M 연결(`essay_materials`) 연동 | - 대시보드 차트 정상 렌더링 확인<br>- 경험 자료함 등록 및 자소서 에디터 인용 동작 확인 |
 | **4주차** | 12/01 ~ 12/07 | **P3** | - 사용자 승인된 디자인 시안 기반 `docs/DESIGN_SYSTEM.md` 확정<br>- 전체 EJS 뷰에 최종 CSS 토큰 및 UI 스타일 일괄 적용<br>- 라이트/다크 테마(`[data-theme="dark"]`) 색상 대비 점검<br>- 모바일 및 태블릿 반응형 레이아웃, 키보드 접근성 점검<br>- 빈 상태(Empty State) 안내 및 오류 화면 UX 개선 | - 전체 화면 디자인 일관성 확보<br>- 테마 토글 및 모바일 화면 정상 동작 |
-| **5주차** | 12/08 ~ 12/16 | **P4** | - 서버 사이드 Gemini API 면접 예상 질문 생성 모듈 연동<br>- API 키 미설정 시 버튼 비활성화 및 안내 처리<br>- 수동 면접 질문 등록 및 삭제 기능 구현<br>- 전체 시스템 기능 회귀 테스트 및 성능 점검<br>- 최종 보고서(`docs/FINAL_REPORT.md`) 작성 및 발표 준비 | - 최종 보고서 및 시연 영상 준비 완료<br>- 12/16 최종 발표 및 제출 |
+| **5주차** | 12/08 ~ 12/16 | **P4** | - OpenAI Responses API(Structured Outputs: `gpt-6.1-terra` / `gpt-6-luna`) 기반 AI 4종 기능(면접 질문, 자소서 피드백, STAR 초안, 공고 파싱) 연동<br>- OpenAI 내장 `web_search` 도구 연동 공고 탐색 및 대시보드 AI 주간 브리핑(일일 캐시) 구현<br>- `OPENAI_API_KEY` 미설정 시 우아한 비활성화(503, 가짜 응답 없음) 및 10분 20회 공유 속도 제한 적용<br>- 면접 단계 전환 연동 백그라운드 AI 질문 자동 생성 및 수동 면접 질문 관리 완성<br>- 전체 시스템 기능 회귀 테스트 및 성능 점검<br>- 최종 보고서(`docs/FINAL_REPORT.md`) 작성 및 발표 준비 | - 최종 보고서 및 시연 영상 준비 완료<br>- 12/16 최종 발표 및 제출 |
 
 ### 16.2 프로젝트 간트 차트 (Gantt Chart)
 
@@ -994,7 +1024,7 @@ gantt
     다크 모드, 반응형, 빈 상태 UX 폴리싱 : p3_2, 2026-12-04, 2026-12-07
 
     section P4 AI 기능 및 최종 보고서
-    Gemini API 면접 예상 질문 생성 연동   : p4_1, 2026-12-08, 2026-12-11
+    OpenAI Responses API 통합 AI 스위트 연동 : p4_1, 2026-12-08, 2026-12-11
     전체 기능 회귀 테스트 및 QA          : p4_2, 2026-12-11, 2026-12-13
     최종 보고서 작성 및 발표 (마감: 12/16): p4_3, 2026-12-12, 2026-12-16
 ```
@@ -1008,7 +1038,8 @@ gantt
 | **화면 디자인** | **디자인 트랙** | **개발 중**<br>(승인 대기) | Linear형(A안), Huntr형(B안), Craft형(C안) 3종 시각 시안 및 스크린샷 제작 완료. 사용자 최종 승인 대기 중이며, 승인 완료 후 디자인 시스템(`docs/DESIGN_SYSTEM.md`) 확정 예정. |
 | **칸반 및 자소서** | **P1** | **구현 완료** | 6단계 칸반 보드(HTML5 드래그앤드롭·키보드 이동·순서 재정렬), 문항별 자기소개서 에디터, 초안 저장, 불변 버전 스냅샷, 서버 측 `jsdiff` 비교, 이력 보존형 복원 구현. 자동 테스트 25개 통과 및 브라우저 조작(드래그 후 새로고침 유지, Ctrl+S 저장) 확인. 승인된 디자인 적용은 P3. |
 | **통계 및 자료함** | **P2** | **계획** | 데이터베이스 스키마(`materials`, `essay_materials`) 구축 완료. Chart.js 로컬 서빙 및 통계 대시보드, 경험 자료함 CRUD 및 검색 라우터는 3주차 구현 예정. |
-| **AI 기능** | **P4** | **계획** | 데이터베이스 스키마(`interview_questions`) 구축 완료. Gemini API 서버 사이드 연동 및 키 미설정 시 안전 비활성화 처리는 5주차 구현 예정. |
+| **AI 기능** | **P4** | **검증 완료** | OpenAI Responses API(Structured Outputs: `gpt-6.1-terra`, `gpt-6-luna`) 기반 4대 핵심 AI 기능(면접 질문, 자소서 피드백, STAR 초안, 공고 파싱) 및 `web_search` 기반 공고 탐색(`/jobs/discover`), 대시보드 AI 주간 브리핑(`ai_briefings` 일일 캐시) 구현 완료. `OPENAI_API_KEY` 미설정 시 우아한 비활성화(HTTP 503, 가짜 응답 없음) 및 10분 20회 공유 속도 제한 검증 완료 (`test/ai-features.test.js`, `test/ai-errors-and-limits.test.js`, `test/ai-search.test.js`, `test/ai-briefing.test.js` 전원 통과). |
+| **스펙 관리 (SPEC)** | **P1 ~ P2** | **검증 완료** | 자격증·부트캠프·공모전·대외활동·대학원 5열 칸반/목록 뷰, 일정(`events`)·할 일(`todos`) 멱등 자동 연계, 완료·합격 시 경험 자료함 STAR 초안 연계, 관심 자격증 구독(`spec_watch`), 14일 임박 대시보드 위젯, 공공데이터(Q-Net, DataQ, 잡알리오, 고용24) 및 AI 검증 소스 탐색, 24자리 세션 토큰 안전 등록, SSRF 방어 가드 구현 완료 (`test/specs.test.js`, `test/spec-discover.test.js` 등 통과). |
 
 ---
 
@@ -1016,32 +1047,47 @@ gantt
 
 ReadySetJob은 **(a) 제품 내 AI 기반 면접 예상 질문 생성 기능**과 **(b) 개발 과정에서의 멀티 에이전트 협업 체계**라는 두 축으로 인공지능을 체계적으로 활용한다.
 
-### 17.1 제품 내 AI 기능: 맞춤형 면접 예상 질문 생성 (P4)
-서류 전형을 통과하고 면접 단계(1차 면접, 2차 면접, 과제 인터뷰 등)에 진입한 구직자가 실전 면접에 효과적으로 대비할 수 있도록, 지원 건별 컨텍스트를 종합 분석하여 서버 사이드에서 면접 예상 질문을 생성한다.
+### 17.1 제품 내 AI 기능: OpenAI Responses API 기반 통합 AI 스위트 (P4)
+서류 전형 준비부터 면접 단계에 이르는 전 과정에서 구직자가 실질적인 도움을 받을 수 있도록, OpenAI Responses API(Structured Outputs: `gpt-6.1-terra` / `gpt-6-luna`) 기반의 통합 AI 스위트를 구축하였다.
 
-1. **입력 데이터 구성**:
-   - **기업 및 공고 정보**: 기업명, 업종, 공고 제목, 모집 직무/포지션, 채용 형태, 자격 요건 메모.
-   - **제출 자기소개서**: 해당 지원 건에 연결된 자기소개서(`essays`)의 문항 질문(`essay_questions.question`)과 본문 답변(`essay_questions.answer`).
-2. **출력 데이터 형식**:
-   - 질문 텍스트만 나열하는 대신, 클라이언트 렌더링과 저장이 용이한 구조화된 JSON 배열 형태로 응답을 생성하여 `interview_questions` 테이블(`source = 'ai'`)에 영속화한다.
-   ```json
-   [
-     {
-       "question": "캡스톤 프로젝트에서 메시지 큐를 도입하여 응답 지연을 85ms로 단축했다고 기술하셨는데, Redis Pub/Sub이나 Kafka 등 다양한 대안 중 해당 기술을 선택한 기술적 트레이드오프 기준은 무엇이었습니까?",
-       "intent": "기술 스택 선정의 타당성 및 시스템 아키텍처 이해도 평가",
-       "category": "직무역량/아키텍처"
-     }
-   ]
-   ```
-3. **프롬프트 엔지니어링 전략**:
-   - **페르소나 부여**: 시스템 프롬프트에 "지원 대상 기업의 도메인 특성과 지원 직무의 기술 요구사항을 깊이 이해하는 10년 차 기술 면접관" 역할을 부여한다.
-   - **할루시네이션(환각) 억제 앵커링**: "반드시 제공된 공고 내용과 자기소개서 본문에 명시된 기술 및 경험에만 근거하여 질문하라. 지원자가 언급하지 않은 프레임워크나 경력을 자의적으로 추정하여 사실인 양 질문하지 마라."는 엄격한 네거티브 제약을 설정한다.
-   - **심층 꼬리 질문 유도**: 자기소개서에 작성된 성과 수치의 신빙성 검증, 협업 갈등 발생 시 본인의 구체적인 조율 기여도, 실패 경험에 대한 기술적 회고를 묻는 꼬리 질문을 유도한다.
-4. **호출 제한 및 예외 처리**:
-   - 서버 사이드 호출 시 타임아웃(10초)을 적용하며, 무분별한 API 과금을 방지하기 위해 사용자당 1일 생성 횟수 제한(Rate Limit)을 둔다. API 장애 발생 시 사용자에게 명확한 에러를 전달하고 수동 질문 등록(`source = 'manual'`)을 유도한다.
-5. **API 키 미설정 시 우아한 비활성화(Graceful Degradation) 및 가짜 응답 금지**:
-   - `GEMINI_API_KEY` 환경 변수가 누락되었거나 유효하지 않은 경우, UI 상의 AI 질문 생성 버튼은 비활성화(`disabled`) 처리되고 `API 키가 설정되지 않아 AI 기능을 사용할 수 없습니다.` 안내 문구가 노출된다.
-   - **정직성 원칙 (`AGENTS.md`)**: 키가 없는 환경에서 가짜(mock) 텍스트를 생성하여 마치 AI가 응답한 것처럼 사용자를 속이지 않으며, 시스템 준비 상태를 투명하게 공개한다.
+1. **4대 핵심 AI 기능 및 연계 입력·출력 데이터 구조**:
+   - **(1) 지원·자소서 연계 면접 예상 질문 생성 (`POST /applications/:id/interview-questions/generate`)**:
+     - *입력*: 기업명, 업종, 공고 직무/자격 요건, 연결 자기소개서 문항 및 답변.
+     - *동작*: `OPENAI_MODEL_INTERVIEW || 'gpt-6.1-terra'`(effort `low`)를 호출하여 질문, 의도, 카테고리를 포함한 정형 JSON 배열을 생성하고 `interview_questions`(`source = 'ai'`) 테이블에 영속화.
+     ```json
+     [
+       {
+         "question": "캡스톤 프로젝트에서 메시지 큐를 도입하여 응답 지연을 85ms로 단축했다고 기술하셨는데, Redis Pub/Sub이나 Kafka 등 다양한 대안 중 해당 기술을 선택한 기술적 트레이드오프 기준은 무엇이었습니까?",
+         "intent": "기술 스택 선정의 타당성 및 시스템 아키텍처 이해도 평가",
+         "category": "직무역량/아키텍처"
+       }
+     ]
+     ```
+   - **(2) 자기소개서 문항별 실시간 첨삭 피드백 (`POST/GET /api/essays/:id/questions/:qid/feedback`)**:
+     - *입력*: 문항 질문, 현재 작성 답변 본문, 글자수/제한, 공고 직무 맥락.
+     - *동작*: `OPENAI_MODEL_FEEDBACK || 'gpt-6.1-terra'`(effort `medium`)를 호출하여 총평, 강점, 개선점, 구체적 수정 제안, 예시 문장을 구조화 추출하고 `essay_feedback` 테이블에 영속화.
+   - **(3) 경험 소재 기반 STAR 구조화 초안 생성 및 반영 (`POST /api/materials/:id/star-draft`)**:
+     - *입력*: 경험 자료 제목, 분류, 기간, 본문 내용, 태그.
+     - *동작*: `OPENAI_MODEL_DRAFT || 'gpt-6.1-terra'`(effort `low`)를 호출하여 Situation(상황), Task(과제), Action(행동), Result(성과) 및 한 줄 요약으로 재구성해 `material_star_drafts`에 저장하며, `POST /materials/:id/star-draft/:draftId/apply`로 원문 본문에 즉시 서식화 반영.
+   - **(4) 채용 공고 원문 텍스트 자동 파싱 및 폼 채우기 (`POST /api/jobs/parse`)**:
+     - *입력*: 사용자가 외부 채용 페이지에서 복사한 임의의 공고 원문 텍스트.
+     - *동작*: `OPENAI_MODEL_EXTRACT || 'gpt-6-luna'`(effort `none`)를 호출하여 기업명, 공고 제목, 직무, 고용 형태, 마감일, URL, 요약 메모, 자소서 문항 목록을 정형 JSON으로 추출하여 브라우저 입력 폼을 자동으로 완성(DB 자동 저장 없음).
+
+2. **실시간 웹 검색 공고 탐색 및 대시보드 맞춤형 주간 브리핑**:
+   - **OpenAI `web_search` 기반 공고 탐색 (`GET /jobs/discover`, `POST /api/jobs/search`)**: Responses API 내장 `web_search` 도구(`tools: [{ type: "web_search" }]`, `OPENAI_MODEL_SEARCH || 'gpt-6.1-terra'`)를 활용하여 구직 목적별 실시간 채용 공고를 최대 8건 검색·추천하며, HTTP/HTTPS 출처 검증 후 원클릭 공고 등록(`POST /jobs`) 지원.
+   - **대시보드 AI 주간 브리핑 (`GET/POST /api/briefing`)**: 본인 소유의 7일 내 마감·일정, 미완료 할 일, 진행 중인 지원 데이터를 종합하여 `OPENAI_MODEL_BRIEFING || 'gpt-6-luna'` 기반 주간 브리핑을 생성하며, `ai_briefings` 테이블(`UNIQUE(user_id, briefing_date)`)을 통해 하루 1회 캐시(강제 새로고침 `force=1` 지원).
+
+3. **Structured Outputs 및 프롬프트 엔지니어링 전략**:
+   - **엄격한 JSON Schema 강제 (Strict Mode)**: OpenAI Responses API의 `json_schema` strict 모드를 강제하여 파싱 실패가 발생하지 않는 결정론적 출력을 보장.
+   - **페르소나 부여 및 할루시네이션(환각) 억제 앵커링**: "지원 대상 기업 도메인과 직무 요구사항을 깊이 이해하는 10년 차 기술 면접관/채용 전문가" 역할을 부여하고, "반드시 제공된 공고와 본문 텍스트에만 근거하라"는 네거티브 제약을 설정하여 사실 추정을 원천 차단.
+
+4. **호출 제한, 공유 속도 제한(Rate Limiting) 및 타임아웃**:
+   - 무분별한 API 과금 및 토큰 남용을 방지하기 위해 사용자 ID 기준 **10분 내 최대 20회**의 통합 슬라이딩 윈도우 속도 제한(`src/services/aiRateLimiter.js`)을 적용(초과 시 HTTP `429 Too Many Requests` 반환).
+   - `AbortController` 기반 15초(웹 검색 20초) 타임아웃 및 에러 캐치 미들웨어를 통해 업스트림 지연에 따른 스레드 블로킹을 방지.
+
+5. **`OPENAI_API_KEY` 미설정 시 우아한 비활성화(Graceful Degradation) 및 가짜 응답 금지**:
+   - 서버 환경 변수 `OPENAI_API_KEY`가 미설정된 환경에서는 UI의 AI 기능 버튼을 `disabled` 처리하고 `AI 기능이 비활성화되어 있습니다 (OPENAI_API_KEY 미설정)` 안내를 표시하며, API 직접 요청 시 HTTP `503 Service Unavailable`을 반환.
+   - **정직성 원칙 (`AGENTS.md`)**: 키가 없는 환경에서 가짜(mock) 텍스트를 임의 생성하여 마치 AI가 응답한 것처럼 사용자를 속이지 않으며, 수동 질문 등록(`source = 'manual'`) 등 기본 워크플로는 100% 정상 제공.
 
 ### 17.2 개발 과정에서의 AI 활용: 멀티 에이전트 오케스트레이션
 본 프로젝트는 1인 개발의 리소스 한계를 극복하고 상용 수준의 아키텍처 완결성을 확보하기 위해 **OpenCode + oh-my-opencode** 하네스 기반의 멀티 에이전트 협업 파이프라인을 구축하여 진행한다.
@@ -1049,7 +1095,7 @@ ReadySetJob은 **(a) 제품 내 AI 기반 면접 예상 질문 생성 기능**�
 | 에이전트/도구 | 담당 역할 및 구체적 작업 범위 | 품질 통제 및 검증 방식 |
 |---|---|---|
 | **Claude Opus**<br>(지휘 에이전트) | - 상위 기획 분석, 요구사항 명세서(`SPEC.md`) 및 아키텍처(`ARCHITECTURE.md`) 설계<br>- 데이터베이스 정규화 및 트랜잭션 설계 검토, 코드 리뷰 총괄 | 산출물 구조 검토 및 Git Conventional Commits 준수 관리 |
-| **Gemini**<br>(작업자 에이전트) | - 도메인 라우터(`src/routes/*.js`), 서비스(`src/services/*.js`), 뷰 템플릿 마크업 작성<br>- 디자인 토큰 바인딩(`tokens.css`) 및 문서화 작업 보조 | 단위 구현 완료 즉시 `node:test` 스위트 실행 및 무에러 검증 |
+| **Sisyphus / Gemini**<br>(작업자 서브에이전트) | - 도메인 라우터(`src/routes/*.js`), 서비스(`src/services/*.js`), 뷰 템플릿 마크업 작성<br>- 디자인 토큰 바인딩(`tokens.css`) 및 문서화 작업 보조<br>*(※ 개발 환경의 작업자 서브에이전트 역할이며, 런타임 제품 AI 서비스는 OpenAI Responses API를 전용 호출함)* | 단위 구현 완료 즉시 `node:test` 스위트 실행 및 무에러 검증 |
 | **Perplexity MCP**<br>(기술 리서처) | - 최신 보안 표준(OWASP CSRF/Password Storage), Express 4 미들웨어 공식 동작 조사<br>- `better-sqlite3` WAL 튜닝 및 `jsdiff` 한글 형태소 대응 API 조사 | 공식 문서 URL 및 최신 릴리스 노트 직접 확인(`docs/RESEARCH_NOTES.md`) |
 | **Notion MCP**<br>(지식 관리) | - 개발 세션별 의사결정 기록, 트러블슈팅 일지 및 회고 동기화 (`docs/IDEA_LOG.md`) | 작업 완료 후 마일스톤별 누적 백업 유지 |
 
@@ -1071,7 +1117,7 @@ ReadySetJob은 **(a) 제품 내 AI 기반 면접 예상 질문 생성 기능**�
 | **데이터 무결성 및 보존** | 특정 채용 공고나 지원 내역 삭제 시, 심혈을 기울여 작성한 자기소개서가 함께 삭제되는 사고 위험 | 구직자의 핵심 자산인 자소서 본문 및 버전 히스토리 유실 | `essays.application_id` 외래키에 `ON DELETE SET NULL`을 적용하여, 연결된 공고나 지원 건이 삭제되더라도 자기소개서 레코드와 하위 버전(`essay_versions`)은 영구 보존되도록 DB 수준에서 방어함. |
 | **칸반 인터랙션** | 드래그앤드롭 과정에서 네트워크 순서 역전이나 중복 호출로 인한 컬럼 내 카드 순서(`board_order`) 꼬임 | 보드 카드 정렬 순서 불일치 및 사용자 혼란 | `PATCH /api/applications/:id/stage` API가 대상 컬럼 내 전체 카드 ID의 정렬 순서를 트랜잭션 내에서 일괄 재계산(`UPDATE ... board_order = ?`)하고, 갱신된 순서 결과를 클라이언트에 반환해 UI를 동기화함. |
 | **웹 보안 (XSS 방어)** | 버전 비교 화면에서 변경된 텍스트 조각을 `<ins>`, `<del>` 태그로 렌더링할 때 악성 스크립트 주입 위험 | XSS(Cross-Site Scripting)를 통한 세션 탈취 위험 | 서버에서 완성된 HTML 문자열을 클라이언트에 넘겨 무검증 렌더링(`<%- %>`)하지 않고, 각 단어 조각의 `value`를 먼저 HTML 이스케이프(`&`, `<`, `>`, `"`, `'`) 처리한 후 안전한 태그로 감싸서 EJS에 바인딩함. |
-| **외부 API 의존성** | Gemini API 네트워크 지연, 호출 한도(Quota) 초과 또는 API 키 미설정 환경 | 면접 질문 생성 실패 및 애플리케이션 크래시 | 1. 서버 측 타임아웃(10초) 및 에러 캐치 미들웨어를 적용함.<br>2. 키 미설정 시 UI 버튼을 비활성화하고 정직하게 안내 문구를 표시하는 우아한 비활성화(Graceful Degradation)를 적용하며, 수동 등록 기능을 항시 제공함. |
+| **외부 AI API 의존성** | OpenAI API 네트워크 지연, 호출 한도(Quota) 초과 또는 API 키 미설정 환경 | AI 기능 요청 실패, 서버 스레드 블로킹 또는 애플리케이션 크래시 | 1. **서버 측 타임아웃 및 격리**: 15초(웹 검색 20초) `AbortController` 타임아웃과 에러 캐치 미들웨어를 적용해 지연 누적을 방지함.<br>2. **공유 속도 제한(Rate Limiting)**: 사용자당 10분 내 최대 20회의 통합 슬라이딩 윈도우 속도 제한(HTTP 429)을 두어 API 쿼터 고갈 및 비용 폭증을 방어함.<br>3. **우아한 비활성화(Graceful Degradation)**: `OPENAI_API_KEY` 미설정 시 UI 버튼을 `disabled` 처리하고 HTTP 503과 명확한 안내를 반환하며, 가짜(Mock) 데이터를 일절 생성하지 않고 수동 작성·등록 워크플로를 항시 보장함. |
 
 ---
 

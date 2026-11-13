@@ -18,3 +18,7 @@ services:
         generateValue: true
       - key: OPENAI_API_KEY
         sync: false
+      - key: DATA_GO_KR_SERVICE_KEY
+        sync: false
+      - key: WORK24_AUTH_KEY
+        sync: false

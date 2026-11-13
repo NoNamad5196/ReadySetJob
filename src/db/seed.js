@@ -9,6 +9,7 @@ const {
   linkMaterialToEssay,
 } = require('../services/essaysService');
 const { getCurrentYearMonth, upsertMonthlyGoal } = require('../services/usersService');
+const { createSpecItem, updateSpecStatus } = require('../services/specsService');
 
 function formatDateOffset(daysOffset, base = new Date()) {
   const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + daysOffset);
@@ -189,6 +190,30 @@ function seed(db) {
     });
     createEssayVersion(db, userId, { essayId: naverEssay.id, label: 'v1 최종 제출본' });
     linkMaterialToEssay(db, userId, { essayId: naverEssay.id, materialId: mat1.id });
+
+    createSpecItem(db, userId, {
+      kind: 'certificate', title: '정보처리기사 필기', organizer: '한국산업인력공단', source: 'qnet', source_ref: 'demo-1320-4',
+      source_url: 'https://www.q-net.or.kr', status: 'applied',
+      apply_start: formatDateOffset(-12), apply_end: formatDateOffset(-5), event_date: formatDateOffset(2), result_date: formatDateOffset(26),
+      memo: '기출 3회독 완료, 시험 전날 수험표·신분증 확인',
+    });
+    createSpecItem(db, userId, {
+      kind: 'certificate', title: 'SQL 개발자(SQLD)', organizer: '한국데이터산업진흥원', source: 'dataq', source_ref: 'demo-sqld',
+      apply_start: formatDateOffset(4), apply_end: formatDateOffset(9), event_date: formatDateOffset(24), result_date: formatDateOffset(45),
+    });
+    createSpecItem(db, userId, {
+      kind: 'bootcamp', title: 'K-디지털 트레이닝 웹 풀스택 과정', organizer: '고용노동부 · 훈련기관', source: 'work24', source_ref: 'demo-kdt',
+      status: 'in_progress', event_date: formatDateOffset(-21), end_date: formatDateOffset(98),
+    });
+    createSpecItem(db, userId, {
+      kind: 'contest', title: '공공데이터 활용 아이디어 공모전', organizer: '행정안전부', source: 'ai_verified', source_ref: 'demo-contest',
+      source_url: 'https://www.data.go.kr', apply_end: formatDateOffset(6), result_date: formatDateOffset(31),
+    });
+    const adsp = createSpecItem(db, userId, {
+      kind: 'certificate', title: '데이터분석 준전문가(ADsP)', organizer: '한국데이터산업진흥원', source: 'manual',
+      event_date: formatDateOffset(-40), result_date: formatDateOffset(-20),
+    });
+    updateSpecStatus(db, userId, adsp.id, 'passed');
 
     return { userId, demoEmail };
   })();

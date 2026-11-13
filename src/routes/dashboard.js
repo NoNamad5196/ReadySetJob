@@ -6,6 +6,7 @@ const {
   serializeDashboardData,
 } = require('../services/dashboardService');
 const { toIsoDate, getBriefingForDate } = require('../services/aiBriefingService');
+const { listUpcomingSpecDates } = require('../services/specsService');
 
 function createDashboardRouter(db) {
   const router = express.Router();
@@ -18,6 +19,7 @@ function createDashboardRouter(db) {
     const aiBriefing = getBriefingForDate(db, userId, toIsoDate(new Date()));
     return res.render('dashboard/index', {
       aiBriefing,
+      specUpcoming: listUpcomingSpecDates(db, userId, { days: 14, limit: 5 }),
       title: '대시보드',
       stats,
       counts: stats.totals,

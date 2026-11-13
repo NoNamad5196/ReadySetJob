@@ -1,0 +1,146 @@
+<%
+  const material = links.material;
+  const openTodos = links.todos.filter((t) => !t.is_done);
+%>
+<% if (error) { %>
+  <div class="flash flash--error" role="alert"><%= error %></div>
+<% } %>
+<div class="page-header">
+  <div class="page-header__meta">
+    <div class="meta-inline">
+      <span class="spec-kind spec-kind--<%= spec.kind %>"><%= spec.kind_label %></span>
+      <span class="spec-status spec-status--<%= spec.status %>"><%= spec.status_label %></span>
+      <span class="spec-source spec-source--<%= spec.source_badge.tier %>" title="출처: <%= spec.source_badge.origin %>"><%= spec.source_badge.label %><% if (spec.source_badge.tier === 'official') { %> · <%= spec.source_badge.origin %><% } %></span>
+    </div>
+    <h1 class="page-header__title"><%= spec.title %></h1>
+    <div class="page-header__summary"><%= spec.organizer || '주최·시행 기관 미입력' %></div>
+  </div>
+  <div class="page-header__actions">
+    <% if (spec.source_url) { %>
+      <a href="<%= spec.source_url %>" class="btn" target="_blank" rel="noopener noreferrer">공고 원문</a>
+    <% } %>
+    <a href="/specs/<%= spec.id %>/edit" class="btn">수정</a>
+    <form action="/specs/<%= spec.id %>?_method=DELETE" method="POST" data-confirm="이 스펙과 자동 등록된 일정·할 일을 삭제하시겠습니까?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="_method" value="DELETE">
+      <button type="submit" class="btn btn-danger">삭제</button>
+    </form>
+    <a href="/specs" class="btn">목록으로</a>
+  </div>
+</div>
+
+<div class="detail-grid spec-detail">
+  <div class="detail-main">
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">진행 상태</h2>
+        <% if (spec.next) { %>
+          <span class="badge badge--dday-<%= spec.next.dday.state %>"><%= spec.next.label %> <%= spec.next.dday.label %></span>
+        <% } %>
+      </div>
+      <form action="/specs/<%= spec.id %>/status" method="POST" class="spec-status-picker">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <% for (const st of SPEC_STATUSES) { %>
+          <button
+            type="submit"
+            name="status"
+            value="<%= st %>"
+            class="spec-status-picker__btn <%= spec.status === st ? 'spec-status-picker__btn--active' : '' %>"
+            aria-pressed="<%= spec.status === st ? 'true' : 'false' %>"
+          ><%= STATUS_LABELS[st] %></button>
+        <% } %>
+      </form>
+      <p class="spec-hint">완료·합격으로 바꾸면 경험 자료함에 초안이 만들어지고, 중단하면 남은 일정과 할 일이 정리됩니다.</p>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <h2 class="card__title">일정 타임라인</h2>
+        <a href="/specs/<%= spec.id %>/edit" class="btn btn-sm">날짜 수정</a>
+      </div>
+      <% if (timeline.length === 0) { %>
+        <div class="empty-state empty-state--compact">
+          <p>등록된 날짜가 없습니다.</p>
+          <span class="text-muted">접수 마감일이나 시험일을 입력하면 일정이 자동으로 등록됩니다.</span>
+        </div>
+      <% } else { %>
+        <ol class="spec-timeline">
+          <% for (const point of timeline) { %>
+            <li class="spec-timeline__item <%= point.isPast ? 'spec-timeline__item--past' : '' %>">
+              <span class="spec-timeline__dot" aria-hidden="true"></span>
+              <div class="spec-timeline__body">
+                <span class="spec-timeline__label"><%= point.label %></span>
+                <span class="spec-timeline__date num"><%= point.date %> <span class="text-muted"><%= formatSpecDate(point.date).slice(6) %></span></span>
+              </div>
+              <% if (!point.isPast) { %>
+                <span class="badge badge--dday-<%= point.dday.state %>"><%= point.dday.label %></span>
+              <% } else { %>
+                <span class="spec-timeline__done">지남</span>
+              <% } %>
+            </li>
+          <% } %>
+        </ol>
+      <% } %>
+    </section>
+
+    <% if (spec.memo) { %>
+      <section class="card">
+        <h2 class="card__title">메모</h2>
+        <div class="prose-pre spec-memo"><%= spec.memo %></div>
+      </section>
+    <% } %>
+  </div>
+
+  <aside class="detail-side">
+    <section class="card">
+      <div class="card__header">
+        <h2 class="section-title-sm">경험 자료함</h2>
+      </div>
+      <% if (material) { %>
+        <p class="spec-material__title"><%= material.title %></p>
+        <p class="spec-hint">자동 생성된 초안을 STAR 형식으로 다듬어 자기소개서에 연결해 보세요.</p>
+        <a href="/materials/<%= material.id %>" class="btn btn-primary btn-sm">경험 자료함에서 보기</a>
+      <% } else { %>
+        <p class="spec-hint">완료·합격 시 경험 자료함에 초안을 만듭니다.</p>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <h2 class="section-title-sm">자동 등록된 일정</h2>
+        <a href="/events" class="btn btn-sm">일정</a>
+      </div>
+      <% if (links.events.length === 0) { %>
+        <p class="spec-hint">연결된 일정이 없습니다.</p>
+      <% } else { %>
+        <ul class="spec-link-list">
+          <% for (const ev of links.events) { %>
+            <li class="spec-link-list__item">
+              <span class="spec-link-list__title"><%= ev.title %></span>
+              <span class="spec-link-list__meta num"><%= ev.starts_at.slice(0, 10) %> <%= ev.starts_at.slice(11, 16) %></span>
+            </li>
+          <% } %>
+        </ul>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <div class="card__header">
+        <h2 class="section-title-sm">할 일 <span class="badge num"><%= openTodos.length %></span></h2>
+        <a href="/todos" class="btn btn-sm">할 일</a>
+      </div>
+      <% if (links.todos.length === 0) { %>
+        <p class="spec-hint">연결된 할 일이 없습니다.</p>
+      <% } else { %>
+        <ul class="spec-link-list">
+          <% for (const t of links.todos) { %>
+            <li class="spec-link-list__item <%= t.is_done ? 'spec-link-list__item--done' : '' %>">
+              <span class="spec-link-list__title"><%= t.title %></span>
+              <span class="spec-link-list__meta num"><%= t.due_date ? `마감 ${t.due_date}` : '기한 없음' %><%= t.is_done ? ' · 완료' : '' %></span>
+            </li>
+          <% } %>
+        </ul>
+      <% } %>
+    </section>
+  </aside>
+</div>

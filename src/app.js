@@ -1,3 +1,4 @@
+const fs = require('node:fs');
 const path = require('node:path');
 const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
@@ -31,6 +32,20 @@ const { createInterviewPrepRouter } = require('./routes/interviewPrep');
 const { createSearchRouter } = require('./routes/search');
 const { createAiRouter, createJobDiscoverRouter } = require('./routes/ai');
 const { createLogosRouter } = require('./routes/logos');
+const { createSpecsRouter, createSpecsApiRouter } = require('./routes/specs');
+
+const SPEC_DISCOVER_ROUTE = path.join(__dirname, 'routes', 'specDiscover.js');
+
+// /specs/discover is owned by an optional module; it must mount before
+// createSpecsRouter so the literal path is not captured by /specs/:id.
+function mountSpecDiscover(app, db) {
+  if (!fs.existsSync(SPEC_DISCOVER_ROUTE)) return;
+  const { createSpecDiscoverRouter } = require(SPEC_DISCOVER_ROUTE);
+  if (typeof createSpecDiscoverRouter === 'function') {
+    app.use('/specs', createSpecDiscoverRouter(db));
+    app.locals.specDiscoverEnabled = true;
+  }
+}
 const { isAiEnabled } = require('./services/aiService');
 
 const BaseSqliteStore = createSqliteStore(session);
@@ -167,6 +182,9 @@ function createApp({ dbPath } = {}) {
   app.use('/companies', createCompaniesRouter(db));
   app.use('/', createJobDiscoverRouter());
   app.use('/jobs', createJobsRouter(db));
+  mountSpecDiscover(app, db);
+  app.use('/specs', createSpecsRouter(db));
+  app.use('/api/specs', createSpecsApiRouter(db));
   app.use('/applications', createApplicationsRouter(db));
   app.use('/api/applications', createApplicationsApiRouter(db));
   app.use('/events', createEventsRouter(db));

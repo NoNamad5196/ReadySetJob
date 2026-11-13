@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   application_id INTEGER REFERENCES applications(id) ON DELETE CASCADE,
+  spec_item_id INTEGER REFERENCES spec_items(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   type TEXT NOT NULL DEFAULT 'other' CHECK (type IN ('deadline', 'test', 'interview', 'announcement', 'other')),
   starts_at DATETIME NOT NULL,
@@ -132,6 +133,7 @@ CREATE TABLE IF NOT EXISTS todos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   application_id INTEGER NULL REFERENCES applications(id) ON DELETE SET NULL,
+  spec_item_id INTEGER NULL REFERENCES spec_items(id) ON DELETE CASCADE,
   title TEXT NOT NULL CHECK (length(title) <= 120),
   category TEXT NOT NULL DEFAULT 'other' CHECK (category IN ('essay', 'interview', 'coding_test', 'assignment', 'other')),
   due_date DATE NULL,
@@ -186,6 +188,48 @@ CREATE TABLE IF NOT EXISTS company_logos (
   fetched_at INTEGER NOT NULL
 );
 
+-- source_ref NULL(직접 입력)은 UNIQUE 비교에서 서로 다른 값으로 취급되어 중복 허용.
+CREATE TABLE IF NOT EXISTS spec_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL DEFAULT 'other' CHECK (kind IN ('certificate', 'bootcamp', 'contest', 'activity', 'grad_school', 'other')),
+  title TEXT NOT NULL CHECK (length(title) <= 200),
+  organizer TEXT,
+  source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('qnet', 'dataq', 'alio', 'work24', 'ai_verified', 'manual')),
+  source_ref TEXT,
+  source_url TEXT,
+  status TEXT NOT NULL DEFAULT 'interested' CHECK (status IN ('interested', 'applied', 'in_progress', 'completed', 'passed', 'failed', 'dropped')),
+  apply_start TEXT,
+  apply_end TEXT,
+  event_date TEXT,
+  end_date TEXT,
+  result_date TEXT,
+  memo TEXT,
+  material_id INTEGER REFERENCES materials(id) ON DELETE SET NULL,
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  updated_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(user_id, source, source_ref)
+);
+
+CREATE TABLE IF NOT EXISTS spec_watch (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  cert_code TEXT NOT NULL,
+  cert_name TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (user_id, cert_code)
+);
+
+-- Shared cache of external API responses (no user data). TTL enforced by readers.
+CREATE TABLE IF NOT EXISTS external_cache (
+  source TEXT NOT NULL,
+  query_hash TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  fetched_at INTEGER NOT NULL,
+  PRIMARY KEY (source, query_hash)
+);
+
+CREATE INDEX IF NOT EXISTS idx_spec_items_user_id ON spec_items(user_id);
+CREATE INDEX IF NOT EXISTS idx_spec_items_user_status ON spec_items(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_user_id ON job_posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_company_id ON job_posts(company_id);

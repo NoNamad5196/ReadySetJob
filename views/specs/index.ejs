@@ -1,0 +1,168 @@
+<%
+  const specUrl = (over) => {
+    const merged = { view: filters.view, kind: filters.kind, status: filters.status, q: filters.q, from: filters.from, to: filters.to, ...over };
+    const params = Object.entries(merged).filter(([k, v]) => v && !(k === 'view' && v === 'board'));
+    return params.length ? '/specs?' + params.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&') : '/specs';
+  };
+  const activeCount = items.filter((it) => ['interested', 'applied', 'in_progress'].includes(it.status)).length;
+  const hasFilters = Boolean(filters.kind || filters.status || filters.q || filters.from || filters.to);
+%>
+<div class="page-header">
+  <div class="page-header__meta">
+    <h1 class="page-header__title">스펙 관리</h1>
+    <div class="page-header__summary num">
+      자격증·부트캠프·공모전 <strong><%= items.length %></strong>개 · 진행 중 <%= activeCount %>개
+    </div>
+  </div>
+  <div class="page-header__actions">
+    <div class="view-toggle" role="group" aria-label="보기 방식 전환">
+      <a href="<%= specUrl({ view: 'board' }) %>" class="segmented-tab <%= filters.view === 'board' ? 'segmented-tab--active' : '' %>" <%- filters.view === 'board' ? 'aria-current="page"' : '' %>>보드</a>
+      <span class="view-toggle__sep" aria-hidden="true">|</span>
+      <a href="<%= specUrl({ view: 'list' }) %>" class="segmented-tab <%= filters.view === 'list' ? 'segmented-tab--active' : '' %>" <%- filters.view === 'list' ? 'aria-current="page"' : '' %>>목록</a>
+    </div>
+    <% if (typeof specDiscoverEnabled !== 'undefined' && specDiscoverEnabled) { %>
+      <a href="/specs/discover" class="btn">스펙 찾기</a>
+    <% } %>
+    <a href="/specs/new" class="btn btn-primary">+ 스펙 등록</a>
+  </div>
+</div>
+
+<nav class="chip-group" aria-label="종류 필터">
+  <a href="<%= specUrl({ kind: '' }) %>" class="chip <%= !filters.kind ? 'chip--active' : '' %>">전체</a>
+  <% for (const k of SPEC_KINDS) { %>
+    <a href="<%= specUrl({ kind: k }) %>" class="chip <%= filters.kind === k ? 'chip--active' : '' %>"><%= SPEC_KIND_LABELS[k] %></a>
+  <% } %>
+</nav>
+
+<form action="/specs" method="GET" class="filter-bar spec-filter-bar">
+  <% if (filters.view === 'list') { %><input type="hidden" name="view" value="list"><% } %>
+  <% if (filters.kind) { %><input type="hidden" name="kind" value="<%= filters.kind %>"><% } %>
+  <input type="search" name="q" class="input" placeholder="스펙 이름, 주최 기관, 메모 검색..." value="<%= filters.q %>" aria-label="검색어">
+  <select name="status" class="input" aria-label="진행 상태 필터">
+    <option value="">전체 상태</option>
+    <% for (const st of SPEC_STATUSES) { %>
+      <option value="<%= st %>" <%= filters.status === st ? 'selected' : '' %>><%= STATUS_LABELS[st] %></option>
+    <% } %>
+  </select>
+  <label for="spec-from" class="inline-actions text-sm spec-filter-date">
+    <span>기간 시작</span>
+    <input type="date" id="spec-from" name="from" class="input" value="<%= filters.from %>">
+  </label>
+  <label for="spec-to" class="inline-actions text-sm spec-filter-date">
+    <span>기간 종료</span>
+    <input type="date" id="spec-to" name="to" class="input" value="<%= filters.to %>">
+  </label>
+  <button type="submit" class="btn">필터 적용</button>
+  <% if (hasFilters) { %><a href="<%= specUrl({ kind: '', status: '', q: '', from: '', to: '' }) %>" class="btn btn-ghost">초기화</a><% } %>
+</form>
+
+<div id="spec-toast" class="spec-toast" role="alert" aria-live="polite" hidden></div>
+
+<% if (items.length === 0 && !hasFilters) { %>
+  <section class="card">
+    <div class="empty-state">
+      <p>아직 등록된 스펙이 없습니다.</p>
+      <span class="text-muted">자격증 시험, 부트캠프, 공모전 일정을 등록하면 접수·시험 일정과 할 일이 자동으로 정리됩니다.</span>
+      <a href="/specs/new" class="btn btn-primary">+ 첫 스펙 등록하기</a>
+    </div>
+  </section>
+<% } else if (filters.view === 'list') { %>
+  <% if (items.length === 0) { %>
+    <section class="card"><div class="empty-state empty-state--compact"><p>조건에 맞는 스펙이 없습니다.</p></div></section>
+  <% } else { %>
+    <div class="table-wrap spec-table-wrap">
+      <table class="table spec-table">
+        <thead>
+          <tr>
+            <th>스펙</th>
+            <th>종류</th>
+            <th>상태</th>
+            <th>다음 일정</th>
+            <th>D-Day</th>
+            <th>출처</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const item of items) { %>
+            <tr>
+              <td>
+                <a href="/specs/<%= item.id %>" class="cell-two-line__content">
+                  <span class="cell-two-line__title"><%= item.title %></span>
+                  <span class="cell-two-line__sub"><%= item.organizer || '주최 기관 미입력' %></span>
+                </a>
+              </td>
+              <td><span class="spec-kind spec-kind--<%= item.kind %>"><%= item.kind_label %></span></td>
+              <td><span class="spec-status spec-status--<%= item.status %>"><%= item.status_label %></span></td>
+              <td class="num text-sm"><%= item.next ? `${item.next.label} · ${formatSpecDate(item.next.date)}` : '—' %></td>
+              <td><% if (item.next) { %><span class="badge badge--dday-<%= item.next.dday.state %>"><%= item.next.dday.label %></span><% } else { %><span class="text-subtle">—</span><% } %></td>
+              <td><span class="spec-source spec-source--<%= item.source_badge.tier %>"><%= item.source_badge.label %></span></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+<% } else { %>
+  <div class="spec-board" id="spec-board">
+    <% for (const column of columns) { %>
+      <section class="spec-column" data-column="<%= column.key %>" data-statuses="<%= column.statuses.join(',') %>" aria-label="<%= column.label %> 컬럼">
+        <header class="spec-column__header">
+          <div class="spec-column__title-wrap">
+            <span class="spec-column__dot spec-column__dot--<%= column.key %>" aria-hidden="true"></span>
+            <h2 class="spec-column__title"><%= column.label %></h2>
+          </div>
+          <span class="spec-column__count num"><%= column.items.length %></span>
+        </header>
+        <div class="spec-column__body">
+          <% if (column.items.length === 0) { %>
+            <p class="spec-column__empty">비어 있음</p>
+          <% } %>
+          <% for (const item of column.items) { %>
+            <%- include('../partials/specs/card', { item, redirectTo }) %>
+          <% } %>
+        </div>
+      </section>
+    <% } %>
+  </div>
+<% } %>
+
+<section class="card spec-watch" id="spec-watch">
+  <div class="card__header">
+    <div>
+      <h2 class="card__title">관심 자격증 구독</h2>
+      <p class="spec-watch__desc">다음 회차를 확인할 관심 자격증을 저장하세요.</p>
+    </div>
+    <span class="badge num"><%= watches.length %>개</span>
+  </div>
+
+  <% if (watchError) { %>
+    <div class="flash flash--error" role="alert"><%= watchError %></div>
+  <% } %>
+
+  <% if (watches.length > 0) { %>
+    <ul class="spec-watch__list">
+      <% for (const w of watches) { %>
+        <li class="spec-watch__item">
+          <span class="spec-watch__name"><%= w.cert_name %></span>
+          <span class="spec-watch__code num"><%= w.cert_code %></span>
+          <form action="/specs/watch/<%= encodeURIComponent(w.cert_code) %>?_method=DELETE" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="_method" value="DELETE">
+            <button type="submit" class="spec-watch__remove" aria-label="<%= w.cert_name %> 구독 해제">해제</button>
+          </form>
+        </li>
+      <% } %>
+    </ul>
+  <% } %>
+
+  <form action="/specs/watch" method="POST" class="spec-watch__form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label class="sr-only" for="watch-code">자격증 코드</label>
+    <input type="text" id="watch-code" name="cert_code" class="input" placeholder="종목 코드 (예: 1320)" value="<%= watchForm.cert_code || '' %>" maxlength="40" required>
+    <label class="sr-only" for="watch-name">자격증명</label>
+    <input type="text" id="watch-name" name="cert_name" class="input" placeholder="자격증명 (예: 정보처리기사)" value="<%= watchForm.cert_name || '' %>" maxlength="100" required>
+    <button type="submit" class="btn">구독 추가</button>
+  </form>
+</section>
+
+<script src="/js/specs.js"></script>

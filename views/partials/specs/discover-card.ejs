@@ -1,0 +1,60 @@
+<%
+  const it = typeof item !== 'undefined' && item ? item : null;
+  const range = (a, b) => (a && b && a !== b ? `${a} ~ ${b}` : a || b || '');
+%>
+<li class="sd-card <%= it && it.dday.state === 'urgent' ? 'sd-card--urgent' : '' %>" data-sd-item>
+  <div class="sd-card__head">
+    <span class="avatar avatar--md <%= it ? it.avatar.className : '' %>" data-field="avatar"><%= it ? it.avatar.initial : '' %><% if (it && it.avatar.logoSrc) { %><img class="avatar__logo" src="<%= it.avatar.logoSrc %>" alt="" loading="lazy" decoding="async"><% } %></span>
+    <div class="sd-card__titles">
+      <strong class="sd-card__title" data-field="title"><%= it ? it.title : '' %></strong>
+      <span class="sd-card__organizer" data-field="organizer"><%= it ? it.organizer : '' %></span>
+    </div>
+    <span class="badge num <%= it ? 'badge--dday-' + it.dday.state : '' %>" data-field="dday"><%= it ? it.dday.label : '' %></span>
+  </div>
+
+  <div class="sd-card__badges">
+    <span class="sd-kind" data-field="kind"><%= it ? it.kind_label : '' %></span>
+    <span class="sd-source <%= it ? 'sd-source--' + it.source_tier : '' %>" data-field="source">
+      <svg class="sd-source__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+      <span data-field="source-label"><%= it ? it.source_label : '' %></span>
+    </span>
+  </div>
+
+  <dl class="sd-card__dates">
+    <div class="sd-card__date <%= it && (it.apply_start || it.apply_end) ? '' : 'sd-hidden' %>" data-row="apply">
+      <dt>접수</dt><dd class="num" data-field="apply"><%= it ? range(it.apply_start, it.apply_end) : '' %></dd>
+    </div>
+    <div class="sd-card__date <%= it && (it.event_date || it.end_date) ? '' : 'sd-hidden' %>" data-row="event">
+      <dt data-field="event-label"><%= it && it.kind === 'bootcamp' ? '교육 기간' : '시험·행사' %></dt><dd class="num" data-field="event"><%= it ? range(it.event_date, it.end_date) : '' %></dd>
+    </div>
+    <div class="sd-card__date <%= it && it.result_date ? '' : 'sd-hidden' %>" data-row="result">
+      <dt>발표</dt><dd class="num" data-field="result"><%= it ? it.result_date || '' : '' %></dd>
+    </div>
+  </dl>
+
+  <p class="sd-card__memo" data-field="memo"><%= it ? it.memo : '' %></p>
+
+  <div class="sd-card__actions">
+    <a class="btn btn-sm" href="<%= it ? it.source_url : '#' %>" target="_blank" rel="noopener noreferrer" data-field="url">원문 보기</a>
+    <form action="/specs/discover/watch" method="POST" class="<%= it && it.can_watch ? '' : 'sd-hidden' %>" data-action="watch">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="cert_code" value="<%= it && it.cert_code ? it.cert_code : '' %>" data-field="f-cert">
+      <button type="submit" class="btn btn-sm">관심 자격증 구독</button>
+    </form>
+    <form action="/jobs" method="POST" class="<%= it && it.is_job ? '' : 'sd-hidden' %>" data-action="job">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="new_company_name" value="<%= it ? it.organizer : '' %>" data-field="f-company">
+      <input type="hidden" name="title" value="<%= it ? it.title : '' %>" data-field="f-title">
+      <input type="hidden" name="employment_type" value="other">
+      <input type="hidden" name="deadline" value="<%= it && it.apply_end ? it.apply_end : '' %>" data-field="f-deadline">
+      <input type="hidden" name="url" value="<%= it ? it.source_url : '' %>" data-field="f-url">
+      <input type="hidden" name="memo" value="<%= it ? it.memo : '' %>" data-field="f-memo">
+      <button type="submit" class="btn btn-sm btn-primary">채용 공고로 등록</button>
+    </form>
+    <form action="/specs/discover/register" method="POST" class="<%= it && !it.is_job ? '' : 'sd-hidden' %>" data-action="register">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="token" value="<%= it ? it.token : '' %>" data-field="f-token">
+      <button type="submit" class="btn btn-sm btn-primary">스펙에 등록</button>
+    </form>
+  </div>
+</li>

@@ -1,0 +1,44 @@
+<% const nx = item.next; %>
+<article
+  class="spec-card <%= nx && nx.dday.days !== null && nx.dday.days <= 3 ? 'spec-card--urgent' : '' %>"
+  draggable="true"
+  tabindex="0"
+  data-spec-id="<%= item.id %>"
+  data-status="<%= item.status %>"
+  data-kind="<%= item.kind %>"
+  aria-label="<%= item.title %>"
+>
+  <div class="spec-card__badges">
+    <span class="spec-kind spec-kind--<%= item.kind %>"><%= item.kind_label %></span>
+    <span class="spec-source spec-source--<%= item.source_badge.tier %>" title="출처: <%= item.source_badge.origin %>"><%= item.source_badge.label %></span>
+    <% if (item.status === 'passed' || item.status === 'failed' || item.status === 'dropped' || item.status === 'completed') { %>
+      <span class="spec-status spec-status--<%= item.status %>"><%= item.status_label %></span>
+    <% } %>
+  </div>
+
+  <a href="/specs/<%= item.id %>" class="spec-card__title"><%= item.title %></a>
+  <% if (item.organizer) { %>
+    <span class="spec-card__organizer"><%= item.organizer %></span>
+  <% } %>
+
+  <div class="spec-card__next">
+    <% if (nx) { %>
+      <span class="spec-card__next-label num"><%= nx.label %> · <%= formatSpecDate(nx.date) %></span>
+      <span class="badge badge--dday-<%= nx.dday.state %>"><%= nx.dday.label %></span>
+    <% } else { %>
+      <span class="spec-card__next-label">예정된 일정 없음</span>
+    <% } %>
+  </div>
+
+  <form action="/specs/<%= item.id %>/status" method="POST" class="spec-card__status-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="redirect_to" value="<%= redirectTo %>">
+    <label class="sr-only" for="spec-status-<%= item.id %>">진행 상태 변경</label>
+    <select id="spec-status-<%= item.id %>" name="status" class="input input-sm">
+      <% for (const st of SPEC_STATUSES) { %>
+        <option value="<%= st %>" <%= item.status === st ? 'selected' : '' %>><%= STATUS_LABELS[st] %></option>
+      <% } %>
+    </select>
+    <button type="submit" class="btn btn-sm">변경</button>
+  </form>
+</article>

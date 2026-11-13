@@ -19,8 +19,8 @@
 
 | 마감일 | 산출물 | 상태 |
 |---|---|---|
-| **2026-11-16** | 프로젝트 계획서 제출 (`docs/PROJECT_PROPOSAL.md`) | `개발 중` (초안 작성 및 검토 중) |
-| **2026-12-16** | 기말 최종 발표 및 최종 보고서 제출 (`docs/FINAL_REPORT.md`) | `계획` |
+| **2026-11-16** | 프로젝트 계획서 제출 (`docs/PROJECT_PROPOSAL.md`) | `구현 완료` (제출용 최종안 작성 및 P4 AI·P2-SPEC 전 모듈 동기화 완료) |
+| **2026-12-16** | 기말 최종 발표 및 최종 보고서 제출 (`docs/FINAL_REPORT.md`) | `개발 중` (실측 데이터 기반 Living Report 지속 동기화) |
 
 ---
 
@@ -39,12 +39,12 @@
 |---|---|---|---|
 | P0-01 | Git 저장소 초기화 및 GitHub 원격 저장소 연결 | `.git/config`, `main` 브랜치 | `검증 완료` |
 | P0-02 | Express 4 앱 팩토리(`createApp`), `helmet` CSP, SQLite 세션 스토어 초기화 | `package.json`, `src/app.js`, `src/server.js` | `검증 완료` |
-| P0-03 | SQLite 연결(`WAL`, `foreign_keys = ON`), 12개 테이블 스키마 및 마이그레이션 구현 | `src/db/connection.js`, `src/db/schema.sql`, `src/db/migrate.js` | `구현 완료` |
-| P0-04 | 기술 설계 문서 4종 (`SPEC.md`, `ARCHITECTURE.md`, `DB_DESIGN.md`, `TASKS.md`) 작성 | `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DB_DESIGN.md`, `docs/TASKS.md` | `구현 완료` |
+| P0-03 | SQLite 연결(`WAL`, `foreign_keys = ON`), 12개 테이블 스키마 및 마이그레이션 구현 | `src/db/connection.js`, `src/db/schema.sql`, `src/db/migrate.js` | `검증 완료` |
+| P0-04 | 기술 설계 문서 4종 (`SPEC.md`, `ARCHITECTURE.md`, `DB_DESIGN.md`, `TASKS.md`) 작성 | `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DB_DESIGN.md`, `docs/TASKS.md` | `검증 완료` |
 | P0-05 | 한국어 데모 데이터 시드 스크립트 (`네이버`, `카카오`, `토스` 등 6개 기업·공고·지원·일정) | `src/db/seed.js`, `test/ownership-and-seed.test.js` | `검증 완료` |
 | P0-06 | 회원가입·로그인·로그아웃, `bcryptjs` 해싱, 세션 재생성, `requireAuth`, CSRF 미들웨어 | `src/middleware/auth.js`, `src/middleware/csrf.js`, `src/routes/auth.js`, `test/auth-and-security.test.js` | `검증 완료` |
 | P0-07 | 기업 관리 CRUD, 채용 공고 CRUD(인라인 기업 생성·북마크 토글·D-Day), 지원 현황 CRUD(`stage_logs`), 일정 CRUD 및 소유권 격리(`404`) | `src/routes/{companies,jobs,applications,events,dashboard}.js`, `src/services/*.js`, `test/crud-and-ownership.test.js`, `test/ownership-and-seed.test.js` | `검증 완료` |
-| P0-08 | 프로젝트 계획서 (`docs/PROJECT_PROPOSAL.md`, 2026-11-16 제출용) 작성 | `docs/PROJECT_PROPOSAL.md` | `구현 완료` (초안 완성, 사용자 검토 대기) |
+| P0-08 | 프로젝트 계획서 (`docs/PROJECT_PROPOSAL.md`, 2026-11-16 제출용) 작성 | `docs/PROJECT_PROPOSAL.md` | `검증 완료` (P4 AI 스위트 및 P2-SPEC 전 모듈 반영 완료) |
 
 ---
 
@@ -57,11 +57,11 @@
 
 | 구분 | 작업 항목 | 관련 파일 / 근거 | 상태 |
 |---|---|---|---|
-| DSN-01 | UI/UX 레퍼런스 조사 및 분석 문서화 | `docs/DESIGN_REFERENCES.md`, `docs/RESEARCH_NOTES.md` | `구현 완료` |
-| DSN-02 | 기본 디자인 토큰(`tokens.css`) 및 라이트/다크 모드 변수 스캐폴딩 | `public/css/tokens.css`, `public/css/app.css`, `public/js/app.js` | `구현 완료` |
-| DSN-03 | 정적 HTML 디자인 시안 A/B/C (대시보드, 칸반 보드, 자소서 에디터) 제작 및 스크린샷 캡처 | `design/mockups/`, `design/mockups/screenshot.mjs` | `구현 완료` |
-| DSN-04 | 사용자 시안 검토 및 최종 디자인 승인 | 사용자 피드백 대기 | `개발 중` (사용자 승인 대기) |
-| DSN-05 | 승인된 시안 기반 디자인 시스템 문서(`docs/DESIGN_SYSTEM.md`) 확정 | `docs/DESIGN_SYSTEM.md` | `계획` |
+| DSN-01 | UI/UX 레퍼런스 조사 및 분석 문서화 | `docs/DESIGN_REFERENCES.md`, `docs/RESEARCH_NOTES.md` | `검증 완료` |
+| DSN-02 | 기본 디자인 토큰(`tokens.css`) 및 라이트/다크 모드 변수 스캐폴딩 | `public/css/tokens.css`, `public/css/app.css`, `public/js/app.js` | `검증 완료` |
+| DSN-03 | 정적 HTML 디자인 시안 A/B/C (대시보드, 칸반 보드, 자소서 에디터) 제작 및 스크린샷 캡처 | `design/mockups/`, `design/mockups/screenshot.mjs` | `검증 완료` |
+| DSN-04 | 사용자 시안 검토 및 최종 디자인 승인 | Figma v3 미니멀 워크스페이스 기반 시안 승인 완료 | `검증 완료` |
+| DSN-05 | 승인된 시안 기반 디자인 시스템 문서(`docs/DESIGN_SYSTEM.md`) 확정 | `docs/DESIGN_SYSTEM.md`, 전 화면 반영 완료 | `검증 완료` |
 
 ---
 
@@ -101,6 +101,29 @@
 | P2-02 | 대시보드 D-7 마감 임박 공고 및 다가오는 일정 요약 위젯 | `src/services/usersService.js`, `views/dashboard/index.ejs` | `검증 완료` |
 | P2-03 | 경험 자료함(`materials`) CRUD 라우터·서비스·뷰 및 태그 필터링 | `src/routes/materials.js`, `src/services/materialsService.js`, `views/materials/*` | `검증 완료` |
 | P2-04 | P2 대시보드 및 자료함 통합 테스트 작성 및 검증 | `test/crud-and-ownership.test.js` | `검증 완료` |
+
+---
+
+### Phase P2-SPEC. 스펙 관리 및 공공·검증 데이터 연동 (SPEC)
+
+**P2-SPEC 완료 기준 (Completion Criteria):**
+1. 자격증, 어학, 부트캠프, 공모전, 대외활동, 대학원 등 취업 스펙을 관리하는 `spec_items`, `spec_watch`, `external_cache` 스키마 및 마이그레이션을 구현한다.
+2. 5개 상태 컬럼 칸반 보드와 목록 표 뷰, 다중 조건(종류·상태·검색어·기간) 필터링, 상세 타임라인을 제공한다.
+3. 스펙 등록 및 상태 변경 시 전형 일정(`events`, 4개 슬롯)과 접수 할 일(`todos`)을 멱등하게 자동 동기화하고, 완료·합격 시 경험 자료함(`materials`) 초안을 자동 생성한다.
+4. `/specs/discover`를 통해 공공데이터(Q-Net, DataQ, 잡알리오, 고용24)와 AI 검증 소스를 통합 검색하고, 24자리 hex 세션 토큰으로 안전하게 스펙에 등록한다.
+5. 외부 소스 통신 시 타임아웃(8초), 본문 제한(1MiB), 캐싱 및 엄격한 SSRF 방어(호스트 Allow-list, 사설 IP 차단, DNS 핀닝, 원문 증거 교차 검증)를 적용한다.
+6. 스펙 관리 단위·통합 테스트 8개 스위트 63개 테스트를 통과하여 전체 29개 스위트 172개 테스트 통과(`npm test`)를 달성한다.
+
+| 구분 | 작업 항목 | 관련 파일 / 경로 | 상태 |
+|---|---|---|---|
+| SPEC-01 | 스펙 관리 코어 스키마, `specs_items`/`spec_watch`/`external_cache` DDL 및 듀얼 마이그레이션 | `src/db/schema.sql`, `src/db/migrate.js` | `검증 완료` |
+| SPEC-02 | 스펙 항목 CRUD, 5개 컬럼 칸반 보드/목록 뷰 및 다중 조건 필터링 | `src/routes/specs.js`, `src/services/specsService.js`, `views/specs/*` | `검증 완료` |
+| SPEC-03 | 일정(4슬롯)·접수 할 일 자동 동기화 및 상태 전이(자료함 초안 생성, 중단 정리) 멱등 자동화 | `src/services/specAutomationService.js` | `검증 완료` |
+| SPEC-04 | 대시보드 14일 이내 스펙 일정 위젯(D-3 긴급 배지) 및 관심 자격증 알림 구독(`spec_watch`) | `src/services/specsService.js`, `src/services/specWatchService.js`, `views/dashboard/index.ejs` | `검증 완료` |
+| SPEC-05 | 공공·외부 데이터 소스 어댑터(Q-Net, DataQ, ALIO, Work24, AI) 및 자격증 카탈로그 폴백 | `src/services/specSources/*` | `검증 완료` |
+| SPEC-06 | `/specs/discover` 탐색 화면, 칩 필터, 세션 격리 토큰 기반 안전 등록 및 잡알리오 공고 분기 | `src/routes/specDiscover.js`, `views/specs/discover.ejs` | `검증 완료` |
+| SPEC-07 | 외부 API 통신 공통 가드(타임아웃, 본문 크기, 공유 캐시) 및 SSRF 방어 원문 검증기 | `src/services/specSources/common.js`, `src/services/specSources/verifier.js` | `검증 완료` |
+| SPEC-08 | 스펙 관리 8개 테스트 스위트 63개 테스트 작성 및 전체 172개 테스트 통과 | `test/specs*.test.js`, `test/spec-*.test.js` | `검증 완료` |
 
 ---
 
@@ -150,6 +173,9 @@
 
 ## 4. 변경 이력 (Changelog)
 
+### 2026-11-13
+- **계획서 및 최종 보고서 동기화 (`검증 완료`)**: 11/16 제출 예정인 `docs/PROJECT_PROPOSAL.md` 내 구버전 Gemini 참조를 OpenAI Responses API(Structured Outputs: `gpt-6.1-terra` / `gpt-6-luna`), 4대 AI 기능, AI 공고 탐색(`web_search`), 주간 브리핑, P2-SPEC 모듈 전체 명세로 전면 개정하여 제출용 최종안 완성. `docs/FINAL_REPORT.md` 리빙 리포트에 최근 16개 커밋 이력, 15개 도메인 테이블 ERD 스키마, P2-SPEC 모듈, 실측 29개 스위트 172개 테스트 통과 수치 동기화. DSN-04/DSN-05 및 P0-03/04/08 항목 상태를 `검증 완료`로 정합성 일치.
+
 ### 2026-11-12
 - **일정·할 일·AI 질문 자동 정리 (`검증 완료`)**: `src/services/automationService.js`를 통해 공고 등록 시 `[회사명] 공고명 서류 마감` 일정(18:00) 자동 생성, 지원 등록 시 마감 일정 연결(없으면 생성) 및 `[회사명] 자기소개서 작성` 할 일 자동 생성, 1차/2차 면접 단계 전환 시(`PUT`, `PATCH` API, no-JS `POST` 3경로) 면접 준비 할 일 자동 생성 및 백그라운드 AI 면접 질문 자동 생성(기존 AI 질문 3개 미만 시, 공유 속도 제한 준수, 중복 생성 방지) 구현 (`test/automation.test.js` 6개 통과, 실호출 시 AI 질문 7개 자동 생성 확인).
 - **자동 AI 피드백 옵션 (`검증 완료`)**: 설정 화면 체크박스 `users.auto_feedback`(기본 off, 호출 비용 안내) 활성화 시 자소서 버전 저장마다 답변이 있는 문항별로 백그라운드 AI 피드백(`essay_feedback`) 자동 생성·저장, 속도 제한 도달 시 중단 및 응답 무영향 처리 (`test/auto-feedback.test.js` 6개 통과, 실호출 3문항 약 29초 검증).
@@ -159,6 +185,7 @@
 - **컨트롤 높이 통일 (`검증 완료`)**: `--control-height`(38px)/`-sm`(30px)/`-lg`(44px) 토큰으로 버튼·입력·선택 상자 높이를 통일하고 자소서 상단바·칸반 카드 정렬 수정 (27개 화면 데스크톱·모바일 자동 정렬 검사 0건).
 - **AI 공고 찾기 버튼식 개편 (`검증 완료`)**: 신입·경력·인턴·아르바이트·대학원 목적 선택 후 분야·지역·학위·근무 형태를 칩으로 고르는 방식으로 전환, 서버 화이트리스트(`src/services/discoverOptions.js`) 검증과 목적별 검색 출처 지정 (실호출: 알바 6건, 대학원 3건, 신입 2건).
 - **기업 로고 표시 (`검증 완료`)**: `GET /logos/company`가 기업 홈페이지 도메인으로 구글·DuckDuckGo 파비콘 서비스에서만 로고를 받아 `company_logos` 테이블에 캐시(성공 30일, 없음 7일), 로고가 없으면 투명 이미지로 기존 이니셜 아바타 유지. 채용 사이트 도메인 제외, 이미지 시그니처 검사, 사용자 소유권 검증 (`test/company-logos.test.js`, 전체 109개 테스트 통과).
+- **스펙 관리 코어 및 공공·검증 데이터 탐색 모듈 (`검증 완료`)**: 자격증·부트캠프·공모전·대외활동·대학원 준비 이력을 관리하는 스펙 관리 모듈(`spec_items`, `spec_watch`, `external_cache`) 구현 완료. 5개 상태 컬럼 칸반 보드 및 목록 뷰, 접수/시험/발표 일정 4슬롯(`events`) 및 원서 접수 할 일(`todos`) 자동 연계, 완료·합격 시 경험 자료함(`materials`) STAR 초안 자동 생성, 14일 이내 시험 일정 대시보드 위젯, 관심 자격증 구독 기능 제공. `/specs/discover`를 통해 Q-Net, DataQ, 잡알리오, 고용24 및 AI 검증 소스를 통합 검색하고 24자리 세션 토큰으로 안전 등록 지원. 외부 API 통신 시 8초 타임아웃, 1MiB 제한, 공유 캐시 적용 및 SSRF 방어(도메인 화이트리스트, 사설 IP 차단, DNS 핀닝, 본문 증거 교차 검증) 완료. 스펙 관리 테스트 63개 포함 전체 29개 스위트 172개 테스트 100% 통과 (`npm test`).
 
 ### 2026-11-11
 - **Figma 승인 디자인 시스템 전면 적용 (`검증 완료`)**: 승인된 Figma 대시보드 디자인을 기반으로 `docs/DESIGN_SYSTEM.md`, `tokens.css`, `app.css`, `pages.css`, `board.css`, `essay.css`, `ai.css` 확정. 전체 EJS 뷰에 일관된 헤더, 사이드바, 통계 카드, 퍼널 테이블, 필터 칩 적용.

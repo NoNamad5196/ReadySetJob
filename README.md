@@ -45,6 +45,14 @@
   * D-7 마감 임박 공고 및 다가오는 일정 요약 위젯
 * **경험 자료함**:
   * 프로젝트, 수상, 인턴, 대외활동 등 본인의 스펙을 카테고리 및 태그별로 정리
+* **스펙 관리 및 공공·검증 데이터 연동**:
+  * 자격증, 부트캠프, 공모전, 대외활동, 대학원 등 취업 스펙 5개 상태 컬럼 칸반 보드 및 목록 뷰
+  * 스펙 등록 시 접수/시험/발표 일정 4슬롯(`events`) 및 접수 할 일(`todos`) 멱등 자동 연계 및 수정 동기화
+  * 스펙 취득·완료 시 경험 자료함(`materials`)에 STAR 기법 작성 유도 초안 자동 연계 (`material_id`)
+  * 대시보드 14일 이내 스펙 일정 위젯 (D-3 이하 긴급 배지) 및 관심 자격증 알림 구독(`spec_watch`)
+  * `/specs/discover` 탐색: Q-Net(자격증 일정·카탈로그 폴백), DataQ(데이터자격), 잡알리오(공공기관 채용), 고용24(직업훈련), AI 검증 소스 통합 검색
+  * 24자리 hex 세션 격리 토큰 기반 안전 등록 및 클라이언트 데이터 변조 차단
+  * 외부 API 통신 보호(8초 타임아웃, 1MiB 제한, 공유 캐시 `external_cache`) 및 SSRF 방어(도메인 Allow-list, 사설 IP 차단, DNS 핀닝, 원문 증거 교차 검증)
 * **AI 취업 도우미 및 자동 정리 (OpenAI Responses API)**:
   * 지원 공고(기업명, 직무, 메모)와 자기소개서 답변을 기반으로 OpenAI Responses API 맞춤 면접 질문 도출, 자기소개서 문항 피드백, 경험 자료 STAR 초안 생성, 채용 공고 텍스트 자동 추출 지원
   * **일정·할 일·AI 질문 자동 정리 (`automationService`)**: 공고 등록 시 마감 일정(`deadline`, 18:00) 자동 생성, 지원 등록 시 일정 연결 및 `[회사명] 자기소개서 작성` 할 일 자동 생성, 1차/2차 면접 단계 전환 시(`[회사명] 1차면접 준비` 등) 할 일 자동 생성 및 백그라운드 AI 면접 질문 자동 생성(기존 AI 질문 3개 미만 시, 중복 방지)
@@ -122,7 +130,7 @@ ReadySetJob은 사용자 경험 설계를 위해 3가지 콘셉트의 정적 HTM
    ```bash
    npm test
    ```
-    * Node.js 22 내장 테스트 러너를 통해 18개 스위트, 89개 테스트 케이스를 순차 실행합니다.
+    * Node.js 22 내장 테스트 러너를 통해 29개 스위트, 172개 테스트 케이스를 순차 실행합니다.
 
 ### 5.3 Render 무료 배포 (시연용: https://readysetjob.onrender.com)
 
@@ -130,7 +138,7 @@ Vercel 같은 서버리스 환경은 파일시스템이 휘발성이라 SQLite �
 
 1. Render 대시보드 → **New → Web Service** → 이 GitHub 저장소 선택
 2. Build Command `npm ci`, Start Command `npm start`, Instance Type **Free**
-3. 환경 변수: `NODE_ENV=production`, `AUTO_SEED=1`, `SESSION_SECRET`(임의의 긴 문자열), `OPENAI_API_KEY`
+3. 환경 변수: `NODE_ENV=production`, `AUTO_SEED=1`, `SESSION_SECRET`(임의의 긴 문자열), `OPENAI_API_KEY`, `DATA_GO_KR_SERVICE_KEY`, `WORK24_AUTH_KEY`
 
 > 무료 플랜은 디스크가 휘발성이라 재시작·재배포 시 데이터가 초기화됩니다. `AUTO_SEED=1`이면 DB가 비어 있을 때 데모 데이터(`demo@readysetjob.dev` / `demo1234!`)가 자동으로 채워집니다. 15분간 접속이 없으면 서버가 잠들어 다음 첫 접속이 약 30초 지연됩니다. 데이터를 영구 보존하려면 유료 플랜에 영구 디스크를 붙이고 `DB_PATH`를 디스크 경로로 지정합니다.
 
@@ -153,6 +161,9 @@ Vercel 같은 서버리스 환경은 파일시스템이 휘발성이라 SQLite �
 | `OPENAI_MODEL_EXTRACT` | 선택 | `gpt-6-luna` | 채용 공고 텍스트 추출에 사용할 OpenAI 모델 식별자 |
 | `OPENAI_MODEL_SEARCH` | 선택 | `gpt-6.1-terra` | AI 채용 공고 웹 검색·추천(`web_search`)에 사용할 OpenAI 모델 식별자 |
 | `OPENAI_MODEL_BRIEFING` | 선택 | `gpt-6-luna` | 대시보드 AI 주간 브리핑 생성에 사용할 OpenAI 모델 식별자 |
+| `DATA_GO_KR_SERVICE_KEY` | 선택 | `(빈 값)` | 공공데이터포털 일반 인증키 (Decoding 키 권장). Q-Net 자격증 일정/종목, DataQ, 잡알리오 공공기관 채용 연동용. |
+| `WORK24_AUTH_KEY` | 선택 | `(빈 값)` | 고용24 OpenAPI 인증키. 부트캠프/직업훈련 정보 연동용 (미설정 시 고용24 소스 안전 비활성화). |
+| `DATAQ_API_URL` | 선택 | `(빈 값)` | DataQ 데이터자격시험 OpenAPI 변환 URL (미설정 시 dataq 소스 비활성화). |
 | `AUTO_SEED` | 선택 | `(빈 값)` | `1`로 설정 시 서버 시작 시점에 DB가 비어 있으면 한국어 데모 데이터를 자동 시드합니다 (Render 무료 플랜 등 휘발성 디스크 환경용). |
 
 ---
@@ -166,22 +177,23 @@ ReadySetJob/
 │   ├── server.js            # 서버 진입점 (HTTP listen)
 │   ├── db/                  # 데이터베이스 계층 (connection, schema.sql, migrate, seed)
 │   ├── middleware/          # 공통 미들웨어 (auth, csrf, validation, error)
-│   ├── routes/              # 기능별 라우터 (auth, companies, jobs, applications, events, essays, materials, dashboard, ai)
-│   └── services/            # 비즈니스 로직 및 better-sqlite3 트랜잭션 쿼리 서비스
+│   ├── routes/              # 기능별 라우터 (auth, companies, jobs, specs, specDiscover, applications, events, essays, materials, dashboard, ai)
+│   └── services/            # 비즈니스 로직, specsService, specSources 어댑터, better-sqlite3 트랜잭션 쿼리 서비스
 ├── views/                   # EJS 뷰 템플릿
 │   ├── layouts/             # 기본 레이아웃 (main.ejs)
-│   ├── partials/            # 공통 내비게이션 및 헤더/푸터
+│   ├── partials/            # 공통 내비게이션, 헤더/푸터 및 specs/ai 파셜
 │   ├── auth/                # 로그인, 회원가입 뷰
-│   ├── dashboard/           # 대시보드 통계 뷰
+│   ├── dashboard/           # 대시보드 통계 뷰 (스펙 임박 일정 위젯 포함)
 │   ├── companies/           # 기업 관리 뷰
 │   ├── jobs/                # 채용 공고 관리 뷰
+│   ├── specs/               # 스펙 관리 칸반/목록, 등록/수정, 상세, 스펙 탐색(discover) 뷰
 │   ├── applications/        # 지원 현황 및 6단계 칸반 보드 뷰
 │   ├── events/              # 전형 일정 뷰
 │   ├── essays/              # 자소서 에디터, 버전 목록, diff 비교 뷰
 │   └── materials/           # 경험 자료함 뷰
 ├── public/                  # 정적 리소스 (css, js, img)
-│   ├── css/                 # tokens.css, app.css, board.css, essay.css
-│   └── js/                  # app.js, kanban.js, essay-editor.js
+│   ├── css/                 # tokens.css, app.css, board.css, essay.css, specs.css, spec-discover.css
+│   └── js/                  # app.js, kanban.js, essay-editor.js, specs.js, spec-discover.js
 ├── design/
 │   └── mockups/             # 정적 HTML 디자인 시안 A/B/C 및 스크린샷 12장
 ├── docs/                    # 체계적 프로젝트 기술 문서
@@ -189,13 +201,13 @@ ReadySetJob/
 │   ├── PROJECT_PROPOSAL.md  # 프로젝트 계획서 (2026-11-16 제출용)
 │   ├── SPEC.md              # 기능 요구사항 명세서
 │   ├── ARCHITECTURE.md      # 시스템 아키텍처 및 라우터 정의서
-│   ├── DB_DESIGN.md         # 데이터베이스 설계서 (ERD 및 DDL)
+│   ├── DB_DESIGN.md         # 데이터베이스 설계서 (15개 도메인 테이블 ERD 및 DDL)
 │   ├── TASKS.md             # 단계별 작업 목록 및 진행 상태 추적표
 │   ├── RESEARCH_NOTES.md    # 국내외 9개 경쟁 서비스 비교 분석서
 │   ├── DESIGN_REFERENCES.md # UI/UX 레퍼런스 분석서
 │   ├── IDEA_LOG.md          # 개발 일지 및 아이디어 로그
 │   └── notion/              # 원격 Notion 동기화 백업 마크다운 문서들
-└── test/                    # 통합 테스트 스위트 (18개 스위트, 89개 테스트)
+└── test/                    # 통합 테스트 스위트 (29개 스위트, 172개 테스트)
 ```
 
 ---
@@ -208,7 +220,7 @@ ReadySetJob/
 * **프로젝트 계획서**: [`docs/PROJECT_PROPOSAL.md`](docs/PROJECT_PROPOSAL.md) (개발 배경, 목표, 상세 기능 요구사항)
 * **기능 요구사항 명세서**: [`docs/SPEC.md`](docs/SPEC.md) (입출력 명세, 에러 코드 및 유효성 검사 규칙)
 * **시스템 아키텍처 정의서**: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (계층별 책임 및 전체 HTTP 라우트 명세)
-* **데이터베이스 설계서**: [`docs/DB_DESIGN.md`](docs/DB_DESIGN.md) (12개 테이블 ERD, 외래키 캐스케이드 정책, 인덱스)
+* **데이터베이스 설계서**: [`docs/DB_DESIGN.md`](docs/DB_DESIGN.md) (15개 도메인 테이블 ERD, 외래키 캐스케이드 정책, 인덱스)
 * **작업 목록 및 상태 관리**: [`docs/TASKS.md`](docs/TASKS.md) (P0부터 P4까지의 완료 기준 및 실시간 진척도)
 * **경쟁사 조사 일지**: [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) (Huntr, Teal, 자소설닷컴 등 9개 서비스 요금제/기능 비교)
 * **UI/UX 레퍼런스 분석**: [`docs/DESIGN_REFERENCES.md`](docs/DESIGN_REFERENCES.md) (Linear, Craft, Huntr 디자인 토큰 분석)

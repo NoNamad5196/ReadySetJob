@@ -1,0 +1,93 @@
+<% const cancelHref = isEdit ? `/specs/${spec.id}` : '/specs'; %>
+<div class="page-header">
+  <div class="page-header__meta">
+    <h1 class="page-header__title"><%= isEdit ? '스펙 수정' : '스펙 등록' %></h1>
+    <div class="page-header__summary">
+      <%= isEdit ? '날짜를 바꾸면 자동 등록된 일정도 함께 갱신됩니다.' : '접수·시험 날짜를 입력하면 일정과 할 일이 자동으로 등록됩니다.' %>
+    </div>
+  </div>
+  <div class="page-header__actions">
+    <a href="<%= cancelHref %>" class="btn"><%= isEdit ? '상세로' : '목록으로' %></a>
+  </div>
+</div>
+
+<section class="card spec-form-card">
+  <% if (error) { %>
+    <div class="flash flash--error" role="alert"><%= error %></div>
+  <% } %>
+
+  <form action="<%= isEdit ? `/specs/${spec.id}?_method=PUT` : '/specs' %>" method="POST" class="spec-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (isEdit) { %><input type="hidden" name="_method" value="PUT"><% } %>
+
+    <div class="spec-form__grid">
+      <div class="form-field">
+        <label for="kind">종류 *</label>
+        <select id="kind" name="kind" class="input" required>
+          <% for (const k of SPEC_KINDS) { %>
+            <option value="<%= k %>" <%= spec.kind === k ? 'selected' : '' %>><%= SPEC_KIND_LABELS[k] %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="status">진행 상태</label>
+        <select id="status" name="status" class="input">
+          <% for (const st of SPEC_STATUSES) { %>
+            <option value="<%= st %>" <%= spec.status === st ? 'selected' : '' %>><%= STATUS_LABELS[st] %></option>
+          <% } %>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label for="title">제목 *</label>
+      <input type="text" id="title" name="title" class="input" maxlength="200" required placeholder="예: 정보처리기사 필기 2026년 4회" value="<%= spec.title || '' %>">
+    </div>
+
+    <div class="form-field">
+      <label for="organizer">주최·시행 기관</label>
+      <input type="text" id="organizer" name="organizer" class="input" maxlength="200" placeholder="예: 한국산업인력공단" value="<%= spec.organizer || '' %>">
+    </div>
+
+    <fieldset class="spec-form__dates">
+      <legend class="spec-form__legend">일정 <span class="text-muted">(YYYY-MM-DD, 모르면 비워 두세요)</span></legend>
+      <div class="spec-form__date-grid">
+        <div class="form-field">
+          <label for="apply_start">접수 시작일</label>
+          <input type="date" id="apply_start" name="apply_start" class="input" value="<%= spec.apply_start || '' %>">
+        </div>
+        <div class="form-field">
+          <label for="apply_end">접수 마감일</label>
+          <input type="date" id="apply_end" name="apply_end" class="input" value="<%= spec.apply_end || '' %>">
+        </div>
+        <div class="form-field">
+          <label for="event_date">시험일·시작일</label>
+          <input type="date" id="event_date" name="event_date" class="input" value="<%= spec.event_date || '' %>">
+        </div>
+        <div class="form-field">
+          <label for="end_date">종료일</label>
+          <input type="date" id="end_date" name="end_date" class="input" value="<%= spec.end_date || '' %>">
+        </div>
+        <div class="form-field">
+          <label for="result_date">결과 발표일</label>
+          <input type="date" id="result_date" name="result_date" class="input" value="<%= spec.result_date || '' %>">
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="form-field">
+      <label for="source_url">공고·안내 링크</label>
+      <input type="url" id="source_url" name="source_url" class="input" maxlength="2000" placeholder="https://..." value="<%= spec.source_url || '' %>">
+    </div>
+
+    <div class="form-field">
+      <label for="memo">메모</label>
+      <textarea id="memo" name="memo" class="input" maxlength="5000" placeholder="준비 계획, 응시료, 준비물 등"><%= spec.memo || '' %></textarea>
+    </div>
+
+    <div class="inline-actions">
+      <button type="submit" class="btn btn-primary"><%= isEdit ? '수정 저장' : '스펙 등록' %></button>
+      <a href="<%= cancelHref %>" class="btn">취소</a>
+    </div>
+  </form>
+</section>

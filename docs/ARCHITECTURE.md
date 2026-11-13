@@ -24,20 +24,28 @@ flowchart TB
             R_DASH["dashboard.js"]
             R_COMP["companies.js"]
             R_JOBS["jobs.js"]
+            R_SPECS["specs.js<br/>(/specs, /api/specs)"]
+            R_DISC["specDiscover.js<br/>(/specs/discover, /api/specs/discover)"]
             R_APPS["applications.js<br/>(/applications, /api/applications)"]
             R_EVTS["events.js"]
-            R_ESSAY["essays.js (P1 개발 중)"]
-            R_MAT["materials.js (P2 계획)"]
-            R_AI["ai.js (P4 계획)"]
+            R_ESSAY["essays.js (P1)"]
+            R_MAT["materials.js"]
+            R_AI["ai.js"]
         end
 
         subgraph Services["서비스 계층 (src/services/*.js)"]
             S_USER["usersService.js"]
             S_COMP["companiesService.js"]
             S_JOBS["jobsService.js"]
+            S_SPECS["specsService.js / specsModel.js"]
+            S_SPEC_AUTO["specAutomationService.js"]
+            S_SPEC_WATCH["specWatchService.js"]
+            S_SPEC_SRC["specSources/<br/>(qnet, dataq, alio, work24, aiVerified, verifier)"]
             S_APPS["applicationsService.js"]
             S_EVTS["eventsService.js"]
-            S_ESSAY["essaysService.js (P1 개발 중)"]
+            S_ESSAY["essaysService.js"]
+            S_MAT["materialsService.js"]
+            S_AI["aiService.js"]
         end
 
         ERR["에러 처리 미들웨어<br/>(notFoundHandler, errorHandler)"]
@@ -45,7 +53,7 @@ flowchart TB
 
     subgraph Storage["영속성 계층 (SQLite / better-sqlite3)"]
         DB_CONN["src/db/connection.js<br/>(WAL 모드, foreign_keys = ON)"]
-        DB_FILE[("data/readysetjob.db<br/>(10개 도메인 테이블 + sessions 테이블)")]
+        DB_FILE[("data/readysetjob.db<br/>(13개 도메인 테이블 + sessions / external_cache / company_logos)")]
     end
 
     Client <-->|"HTTP GET/POST/PUT/PATCH/DELETE<br/>Form Submit & Fetch JSON"| MW
@@ -61,6 +69,7 @@ flowchart TB
 1. **앱 팩토리 패턴 (`createApp({ dbPath })`)**: `src/app.js`는 데이터베이스 경로를 주입받아 독립된 Express 인스턴스를 반환한다. 운영 서버(`src/server.js`)는 기본 파일 DB(`data/readysetjob.db`)를 사용하고, 테스트(`test/helpers.js`)는 임시 디렉터리 내 격리된 SQLite 파일을 생성해 병렬·반복 실행 시 데이터 간섭을 원천 차단한다.
 2. **얇은 라우터(Thin Router)와 서비스 분리**: 라우터(`src/routes/*.js`)는 요청 파라미터 추출, 입력값 검증, HTTP 상태 코드 결정(`302`, `422`, `404`), 뷰 렌더링만 담당한다. 모든 SQL 실행과 트랜잭션(`db.transaction`)은 `src/services/*.js`에 캡슐화한다.
 3. **명시적 `user_id` 전달**: 모든 서비스 함수는 첫 번째 인자로 `db`, 두 번째 인자로 `userId`(`req.session.user.id`)를 받아 SQL `WHERE` 절에서 소유권을 강제한다.
+4. **스펙 관리 코어 및 발견 모듈의 파사드와 어댑터 분리**: `specsService.js`는 도메인 모델(`specsModel.js`), 자동화(`specAutomationService.js`), 구독·캐시(`specWatchService.js`)를 통합 노출하는 파사드(Facade) 역할을 수행한다. 외부 공공·검증 데이터 연동은 `specSources/` 어댑터 패키지로 캡슐화하여 독립적인 검색·캐싱·SSRF 검증 파이프라인을 구축한다.
 
 ---
 
@@ -161,6 +170,8 @@ ReadySetJob/
 │   │   ├── dashboard.js             # /dashboard
 │   │   ├── companies.js             # /companies CRUD
 │   │   ├── jobs.js                  # /jobs CRUD 및 /:id/bookmark 토글
+│   │   ├── specs.js                 # /specs CRUD, 상태 변경, 관심 자격증 구독, /api/specs 상태 API
+│   │   ├── specDiscover.js          # /specs/discover 탐색, 검색, 세션 토큰 등록, 카탈로그 API
 │   │   ├── applications.js          # /applications CRUD 및 /api/applications/:id/stage (+ P1 칸반 보드)
 │   │   ├── events.js                # /events 조회/등록/삭제
 │   │   ├── essays.js                # [P1 개발 중] /essays, /api/essays 버전/비교/복원/검색
@@ -170,6 +181,11 @@ ReadySetJob/
 │       ├── usersService.js          # 사용자 조회/생성/인증, 대시보드 카운트 집계
 │       ├── companiesService.js      # 기업 CRUD 및 공고/지원 수 집계
 │       ├── jobsService.js           # 채용 공고 CRUD, 인라인 기업 생성 트랜잭션, 북마크 토글
+│       ├── specsService.js          # 스펙 CRUD, 다중 조건 검색, 대시보드 일정 집계, 공개 계약 파사드
+│       ├── specsModel.js            # 스펙 도메인 모델, enums, 유효성 검증, 뷰 데코레이션 (Pure functions)
+│       ├── specAutomationService.js # 일정(events)·할 일(todos) 자동 동기화, 상태 전이 시 경험 자료함 초안 생성
+│       ├── specWatchService.js      # 관심 자격증 구독(spec_watch) 및 외부 응답 공유 캐시(external_cache)
+│       ├── specSources/             # 외부 데이터 소스 어댑터 패키지 (Q-Net, DataQ, ALIO, Work24, AI, SSRF Verifier)
 │       ├── applicationsService.js   # 지원 내역 CRUD, stage_logs 자동 기록 트랜잭션
 │       ├── eventsService.js         # 일정 조회/등록/삭제
 │       └── essaysService.js         # [P1 개발 중] 자소서 초안/버전 스냅샷/Diff/복원 트랜잭션
@@ -180,6 +196,7 @@ ReadySetJob/
 │   ├── dashboard/                   # index.ejs
 │   ├── companies/                   # index.ejs, form.ejs, detail.ejs
 │   ├── jobs/                        # index.ejs, form.ejs, detail.ejs
+│   ├── specs/                       # index.ejs (보드/목록), form.ejs, detail.ejs, discover.ejs
 │   ├── applications/                # index.ejs, form.ejs, detail.ejs (+ P1 board.ejs)
 │   ├── events/                      # index.ejs
 │   └── essays/                      # [P1 개발 중] index.ejs, form.ejs, editor.ejs, compare.ejs
@@ -195,7 +212,14 @@ ReadySetJob/
     ├── helpers.js                   # 임시 DB 컨텍스트, CSRF 추출, 회원가입/로그인 에이전트 헬퍼
     ├── auth-and-security.test.js    # 인증, 세션 재생성, requireAuth, CSRF 검증 테스트
     ├── crud-and-ownership.test.js   # 기업, 공고, 지원, 단계 변경 API, 일정 CRUD 테스트
-    └── ownership-and-seed.test.js   # 다중 사용자 소유권 격리(404) 및 한국어 시드 검증 테스트
+    ├── ownership-and-seed.test.js   # 다중 사용자 소유권 격리(404) 및 한국어 시드 검증 테스트
+    ├── specs.test.js                # 스펙 관리 라우터 CRUD, 뷰, CSRF, 소유권 테스트
+    ├── specs-service.test.js        # 스펙 서비스 함수, 유효성 검증, 캐시, 소유권 계약 테스트
+    ├── specs-automation.test.js     # 스펙 연동 일정/할 일/자료함 초안 멱등 자동화 테스트
+    ├── specs-dashboard.test.js      # 스펙 대시보드 위젯 및 관심 자격증 구독 테스트
+    ├── spec-discover.test.js        # 스펙 찾기 라우터, 카탈로그, 세션 토큰 등록 테스트
+    ├── spec-sources.test.js         # 외부 데이터 소스 어댑터 파싱, 정규화, 에러 처리 테스트
+    └── spec-verifier.test.js        # SSRF 방어, DNS 핀닝, 도메인 Allow-list, 페이지 증거 검증 테스트
 ```
 
 ---
@@ -234,7 +258,26 @@ ReadySetJob/
 3. **소유권 격리 (Ownership Isolation)**:
    - 모든 루트 도메인 테이블(`companies`, `job_posts`, `applications`, `events`, `essays`, `materials`, `interview_questions`)은 `user_id` 컬럼을 가진다.
    - 조인 쿼리에서도 `INNER JOIN companies c ON c.id = jp.company_id AND c.user_id = jp.user_id`와 같이 테이블 간 `user_id` 일치를 이중으로 검증한다.
-   - 타 사용자의 리소스 ID로 상세 조회, 수정, 삭제, 북마크, 단계 변경을 시도하면 쿼리 결과가 `null` 또는 `changes === 0`이 되어 즉시 `404`를 반환한다 (`403`을 반환해 리소스 존재 여부를 노출하지 않음).
+    - 타 사용자의 리소스 ID로 상세 조회, 수정, 삭제, 북마크, 단계 변경을 시도하면 쿼리 결과가 `null` 또는 `changes === 0`이 되어 즉시 `404`를 반환한다 (`403`을 반환해 리소스 존재 여부를 노출하지 않음).
+    - 스펙 관리 테이블(`spec_items`, `spec_watch`)도 `user_id`를 직접 보유하며, `specsService`의 조회·수정·삭제 함수는 소유하지 않은 항목에 `null`/`false`를 반환하고 라우터가 `404`로 변환한다. `external_cache`는 개인 데이터가 없는 공유 캐시다.
+4. **스펙 찾기 세션 토큰 등록 모델**:
+   - `POST /specs/discover` 및 `POST /api/specs/discover` 검색 결과는 최대 60건(`MAX_STORED_RESULTS`)까지 `crypto.randomBytes(12)`로 만든 24자리 hex 토큰을 키로 서버 세션(`req.session.specDiscover`)에 저장하고, 브라우저에는 토큰이 부여된 표시용 데이터만 전달한다.
+   - `POST /specs/discover/register`는 토큰 형식(`/^[a-f0-9]{24}$/`)을 검증한 뒤 세션에 저장된 어댑터 반환 항목으로만 `createSpecItem`을 호출한다. 브라우저가 보낸 제목·날짜·출처·검증 여부는 신뢰하지 않으며, 다른 사용자의 토큰이나 새 검색으로 만료된 토큰은 `422`로 거절한다.
+   - `category: 'job'`(ALIO 공공기관 채용) 결과는 스펙으로 등록할 수 없고 기존 `POST /jobs` 폼으로 안내한다.
+5. **외부 소스 SSRF 검증 모델 (`src/services/specSources/verifier.js`)**: AI 검색(`ai_verified`)이 반환한 후보 URL은 서버가 직접 접속해 원문 증거를 확인하며, 다음 방어선을 모두 통과해야 결과로 노출된다.
+
+   | 단계 | 방어 항목 | 구현 규칙 |
+   |---|---|---|
+   | 1 | URL 형식 | `http:`/`https:`만 허용하고 사용자 정보(`user:pass@`)와 명시적 포트를 금지한다. 해시(`#`)는 제거한다. |
+   | 2 | 호스트 Allow-list (`isHostAllowed`) | 대학원 `*.ac.kr`, 민간자격 `exam.toeic.co.kr`·`opic.or.kr`·`dataq.or.kr`, 공모전·대외활동·부트캠프 `*.go.kr`·`*.or.kr`·`*.ac.kr`·`*.re.kr`·`*.mil.kr`만 허용한다. IP 리터럴과 취업·공모전 중개 사이트(`BLOCKED_HOSTS`: `AGGREGATOR_DOMAINS`, `wevity.com`, `thinkcontest.com` 등)는 차단한다. |
+   | 3 | DNS 결과 검사 (`resolvePublic`) | A/AAAA 레코드 전체를 조회해 하나라도 사설(`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`)·루프백·링크 로컬(`169.254.0.0/16`, 클라우드 메타데이터 포함)·CGNAT(`100.64.0.0/10`)·예약 대역·IPv4-mapped IPv6이면 `blocked_address`로 거절한다. |
+   | 4 | DNS 리바인딩 방어 (`pinnedFetch`) | 기본 HTTP transport의 `lookup` 훅이 위 검사를 통과한 주소로만 소켓을 연결하므로 재조회 시 사설 주소로 바뀌어도 연결되지 않는다. |
+   | 5 | 리다이렉트 재검증 | `redirect: 'manual'`로 처리하며 최대 `MAX_REDIRECTS = 2`회까지만 따라가고, 각 홉에서 URL 형식·호스트 Allow-list·DNS 검사를 다시 수행한다. |
+   | 6 | 응답 제한 | 전체 검증 시간 `VERIFY_TIMEOUT_MS = 5000`ms, 본문 `MAX_VERIFY_BYTES = 1 MiB`, `Content-Type`은 `text/html` 또는 `text/plain`만 허용한다. |
+   | 7 | 원문 증거 교차 검증 | `script`·`style` 등을 제거한 가시 텍스트에서 제목 핵심어가 `min(2, 핵심어 수)`개 이상 일치하고(`titleKeywordsOverlap`), 접수 마감일(없으면 시험·시작일)이 `YYYY.MM.DD`·`YYYY년 M월 D일` 등 형식으로 실제 존재해야 한다(`dateAppearsInText`). 월·일만 있는 표기는 직전 문맥의 연도가 일치할 때만 인정한다. |
+
+   - 검증에 실패한 후보는 결과에서 제외되고 제외 건수만 응답의 `dropped`로 전달된다. AI 후보가 캐시에 적중하더라도 매 검색마다 페이지 증거를 다시 검증한다.
+   - 공식 API 어댑터(`qnet`, `dataq`, `alio`, `work24`)는 `specSources/common.js`의 공통 가드(8초 `TIMEOUT_MS`, 1 MiB `MAX_BYTES`, `redirect: 'error'`, 허용 `Content-Type` 검사)를 적용하고, 업스트림 오류 메시지를 그대로 전달하지 않아 인증키가 포함된 URL이 노출되지 않는다.
 
 ---
 
@@ -334,3 +377,100 @@ ReadySetJob/
 | `POST` | `/materials/:id/star-draft`, `/api/materials/:id/star-draft` | `requireAuth` + CSRF | 경험 자료 기반 OpenAI STAR 초안 생성 (`material_star_drafts` 저장) 및 `/:draftId/apply` 본문 반영 | P4: 구현 완료 |
 | `POST` | `/api/jobs/parse` | `requireAuth` + CSRF | 채용 공고 원문 텍스트에서 기업명·직무·마감일·자소서 문항 구조화 추출 (DB 미저장) | P4: 구현 완료 |
 | `GET` | `/settings/ai` | `requireAuth` | OpenAI 활성화 상태 및 기능별 모델 매핑·환경 변수 설정 안내 화면 | P4: 구현 완료 |
+
+---
+
+### 6.4 스펙 관리 라우트 (SPEC): 검증 완료 (`test/specs*.test.js`, `test/spec-*.test.js`)
+
+`src/app.js`는 `mountSpecDiscover(app, db)`로 `src/routes/specDiscover.js`가 존재할 때만 `/specs/discover` 라우터를 **`createSpecsRouter`보다 먼저** 마운트한다. 리터럴 경로 `/specs/discover`가 `/specs/:id`에 포획되지 않게 하기 위함이며, `createSpecDiscoverRouter`의 mount 이벤트가 부모 앱에 `/api/specs` 검색 API를 함께 등록한다.
+
+#### 스펙 코어 라우터 (`src/routes/specs.js`, 마운트 경로: `/specs`, `/api/specs`)
+| Method | Path | 인증 | 입력 필드 및 검증 규칙 | 성공 응답 | 실패/에러 응답 |
+|---|---|---|---|---|---|
+| `GET` | `/specs` | `requireAuth` | Query: `view`(`list` 외에는 보드), `kind`(`SPEC_KINDS`), `status`(`SPEC_STATUSES`), `q`(최대 100자, 제목·주최·메모 검색), `from`·`to`(`isValidDate`) | `200` `specs/index` 렌더 (5개 상태 컬럼 `columns`, `items`, 구독 목록 `watches`) | 미인증 시 `302 /login` |
+| `GET` | `/specs/new` | `requireAuth` | Query: `kind`(선택, 기본 `certificate`) | `200` `specs/form` 렌더 (`isEdit: false`, 기본 상태 `interested`) | 미인증 시 `302 /login` |
+| `POST` | `/specs` | `requireAuth` + CSRF | Body: `kind`, `title`(필수, 200자 이하), `organizer`, `source_url`(`isValidUrl`), `status`, `apply_start`, `apply_end`, `event_date`, `end_date`, `result_date`(`isValidDate`), `memo`(5000자 이하) | 스펙 생성 및 일정·할 일 자동 등록 후 `302 /specs/:id` | 검증 실패 `422` `specs/form` 재렌더 (`SpecValidationError`) |
+| `POST` | `/specs/watch` | `requireAuth` + CSRF | Body: `cert_code`(`/^[A-Za-z0-9_-]{1,40}$/`), `cert_name`(100자 이하), `redirect_to`(선택, `safeRedirectPath`) | 구독 추가(중복이면 멱등 처리) 후 `302` (`redirect_to` 또는 `/specs`) | 검증 실패 `422` `specs/index` 재렌더 |
+| `DELETE` | `/specs/watch/:code` | `requireAuth` + CSRF | Param: `code`, Body: `redirect_to`(선택) | 구독 해제 후 `302` | 구독 미존재 시 `404` |
+| `GET` | `/specs/:id` | `requireAuth` | Param: `id` | `200` `specs/detail` 렌더 (상세 + 날짜 타임라인 `timeline` + 연결 일정·할 일·자료 `links`) | 미존재/타인 소유 `404` |
+| `GET` | `/specs/:id/edit` | `requireAuth` | Param: `id` | `200` `specs/form` 렌더 (`isEdit: true`) | 미존재/타인 소유 `404` |
+| `PUT` | `/specs/:id` | `requireAuth` + CSRF | Param: `id`, Body: 등록과 동일한 폼 필드 | 수정 및 일정·할 일 동기화 후 `302 /specs/:id` | 미존재/타인 소유 `404`, 검증·출처 중복 실패 `422` `specs/form` 재렌더 |
+| `POST` | `/specs/:id/status` | `requireAuth` + CSRF | Param: `id`, Body: `status`(`SPEC_STATUSES`), `redirect_to`(선택) | 상태 변경 및 자동화 실행 후 `302` (`redirect_to` 또는 `/specs/:id`) | 미존재/타인 소유 `404`, 잘못된 상태 `422` `specs/detail` 재렌더 |
+| `DELETE` | `/specs/:id` | `requireAuth` + CSRF | Param: `id` | 스펙과 연결된 일정·할 일 삭제 후 `302 /specs` | 미존재/타인 소유 `404` |
+| `PATCH` | `/api/specs/:id/status` | `requireAuth` + CSRF | Param: `id`, JSON Body: `status`(`SPEC_STATUSES`) | `200` JSON `{ ok: true, spec, automation, message }` | 미인증 `401` JSON, CSRF 실패 `403` JSON, 잘못된 상태 `422` JSON, 미존재/타인 소유 `404` JSON |
+
+#### 스펙 찾기 라우터 (`src/routes/specDiscover.js`, 마운트 경로: `/specs`, `/api/specs`)
+| Method | Path | 인증 | 입력 필드 및 검증 규칙 | 성공 응답 | 실패/에러 응답 |
+|---|---|---|---|---|---|
+| `GET` | `/specs/discover` | `requireAuth` | 없음 | `200` `specs/discover` 렌더 (종류 칩, 카탈로그, 소스별 활성 상태 `statuses`) | 미인증 시 `302 /login` |
+| `GET` | `/specs/discover/catalog` | `requireAuth` | Query: `q`(최대 40자) | `200` JSON `{ ok: true, items: [{ jmCd, name, field }] }` (Q-Net 카탈로그, 조회 실패 시 정적 폴백) | 미인증 시 `302 /login` |
+| `POST` | `/specs/discover` | `requireAuth` + CSRF | Body: `discoverOptions.validateDiscoverInput` 화이트리스트(종류·필드·지역 등), `cert_query`(최대 40자) | `200` `specs/discover` 렌더 (토큰이 부여된 결과 카드, `notices`, `dropped`) | 입력 오류 `422`, 속도 제한 `429`, 외부 응답 지연 `504`, 그 외 외부 오류 `502` |
+| `POST` | `/api/specs/discover` | `requireAuth` + CSRF | 위와 동일 | `200` JSON `{ ok: true, items, notices, dropped }` | 미인증 `401` JSON, CSRF 실패 `403` JSON, `422`·`429`·`502`·`504` JSON `{ error }` |
+| `POST` | `/specs/discover/register` | `requireAuth` + CSRF | Body: `token`(24자리 hex, 세션 저장 결과 키) | 세션에 저장된 항목으로 `createSpecItem` 호출 후 `302 /specs/:id` (중복 출처면 기존 항목으로 이동) | 토큰 형식 오류·만료·타 사용자 토큰·`job` 카테고리 `422`, 스펙 검증 실패 `422` |
+| `POST` | `/specs/discover/watch` | `requireAuth` + CSRF | Body: `cert_code`(`/^\d{1,8}$/`, Q-Net 카탈로그에서 재확인) | `addWatch` 호출 후 `302 /specs/discover` | 카탈로그에 없는 코드 `422` |
+
+---
+
+## 7. 스펙 관리 자동화 흐름 (Spec Automation Flow)
+
+`src/services/specAutomationService.js`의 모든 부수효과는 `spec_item_id`로 키가 부여되어 재실행해도 일정·할 일·자료가 중복 생성되지 않는다(멱등). `specsService`가 `createSpecItem`, `updateSpecItem`, `updateSpecStatus`, `deleteSpecItem`의 `db.transaction` 내부에서 호출하므로 스펙 변경과 자동화 결과는 원자적으로 반영된다. 수동으로 등록한 일정·할 일은 `spec_item_id`가 없으므로 자동화가 건드리지 않는다.
+
+```mermaid
+flowchart TD
+    A["스펙 등록 / 수정 / 상태 변경 / 삭제<br/>(specsService, db.transaction)"] --> B{"동작 종류"}
+
+    B -->|"createSpecItem"| C["spec_items INSERT<br/>(source_ref 중복이면 기존 항목 + duplicate: true, 자동화 생략)"]
+    C --> D["syncSpecSchedule(status = interested)<br/>일정 + 접수 할 일 생성"]
+    D --> E["applySpecStatusAutomation<br/>(선택한 초기 상태 적용)"]
+
+    B -->|"updateSpecItem"| F["spec_items UPDATE (부분 수정)"]
+    F --> G["syncSpecSchedule<br/>제목·날짜 변경분만 UPDATE, 사라진 슬롯 DELETE"]
+    G --> E
+
+    B -->|"updateSpecStatus"| H["status UPDATE"]
+    H --> E
+
+    B -->|"deleteSpecItem"| I["removeSpecSchedule<br/>연결 events·todos 일괄 DELETE"]
+    I --> J["spec_items DELETE<br/>(경험 자료 materials는 유지)"]
+
+    E --> K{"전이 대상 상태"}
+    K -->|"interested 이탈 (dropped 제외)"| L["미완료 접수 할 일 완료 처리<br/>is_done = 1, done_at 기록"]
+    K -->|"completed / passed"| M["ensureSpecMaterial<br/>연결 자료가 없을 때만 materials 초안 생성<br/>spec_items.material_id 연결"]
+    K -->|"dropped"| N["cleanupFutureSchedule<br/>오늘 이후 events + 미완료 todos만 DELETE"]
+    K -->|"dropped에서 활성 복귀"| O["syncSpecSchedule 재실행"]
+    K -->|"failed"| P["이력 유지, 추가 생성 없음"]
+```
+
+### 7.1 일정(`events`) 자동 생성 규칙 (`scheduleSlots`, `syncSpecEvents`)
+활성 상태(`interested`, `applied`, `in_progress`)에서만 동기화하며, 일정 제목은 `[스펙 제목] 슬롯명`, 메모는 `스펙 관리에서 자동 등록된 일정`이다. 기존 연결 일정은 제목으로 매칭해 `starts_at`·`type`만 갱신하고, 날짜가 비워진 슬롯의 일정은 삭제한다.
+
+| 날짜 컬럼 | 슬롯명 | 시각 | `events.type` | 비고 |
+|---|---|---|---|---|
+| `apply_start` | 접수 시작 | `09:00` | `other` | |
+| `apply_end` | 접수 마감 | `18:00` | `deadline` | |
+| `event_date` | 시험(자격증) / 시작(그 외) | `09:00` | `test`(자격증) / `other` | |
+| `end_date` | 종료 | `09:00` | - | `timelineOnly`: 일정을 만들지 않고 타임라인·자료 기간 요약에만 사용 |
+| `result_date` | 결과 발표 | `09:00` | `announcement` | |
+
+### 7.2 할 일(`todos`) 자동 생성 규칙 (`syncSpecTodo`, `completeApplyTodo`)
+- 스펙당 접수 할 일 1건만 만든다. 제목은 자격증이면 `[스펙 제목] 원서 접수`, 그 외에는 `[스펙 제목] 신청서 제출`(120자 초과 시 말줄임)이며 `category = 'other'`, `due_date = apply_end`다.
+- 상태가 `interested`일 때만 새로 생성한다. 이미 접수한 상태로 등록해도 접수 이력이 연결되도록 등록 트랜잭션이 먼저 기본 일정·접수 할 일을 만든 뒤 선택된 상태를 적용하며, `interested`를 벗어나는 순간 미완료 접수 할 일은 완료 처리된다.
+- 활성 항목을 수정하면 미완료 접수 할 일의 제목과 마감일을 동기화한다. 이미 완료된 할 일은 변경하지 않는다.
+
+### 7.3 경험 자료함 초안 연결 (`ensureSpecMaterial`, `materialShape`)
+`completed` 또는 `passed`로 전이될 때 `spec_items.material_id`가 비어 있거나 가리키는 자료가 없는 경우에만 `materials` 초안을 만들고 연결한다. `materials`에는 별도 draft 컬럼이 없으므로 본문 첫 줄에 자동 생성 초안임과 STAR 보완 안내를 명시한다. `material_id`는 이 자동화만 설정하며 클라이언트 입력으로 임의 자료를 연결할 수 없다.
+
+| 스펙 `kind` | 조건 | `materials.kind` | `materials.tags` |
+|---|---|---|---|
+| `certificate` | - | `award` | `자격증` |
+| `contest` | `passed` | `award` | `공모전,수상` |
+| `contest` | `completed` | `activity` | `공모전` |
+| `bootcamp` | - | `project` | `교육,부트캠프` |
+| `activity` | - | `activity` | `대외활동` |
+| `grad_school` | - | `other` | `대학원` |
+| `other` | - | `other` | `스펙` |
+
+### 7.4 중단·삭제 정리 정책
+- `dropped`: `date(starts_at) >= 오늘`인 연결 일정과 미완료(`is_done = 0`) 연결 할 일만 삭제하고, 과거 일정과 완료된 할 일은 이력으로 유지한다.
+- `deleteSpecItem`: 연결된 모든 일정·할 일을 명시적으로 삭제한 뒤 스펙을 삭제한다. 신규 DB는 `ON DELETE CASCADE`가 있지만 마이그레이션된 기존 DB는 FK가 없어 두 경로 모두 동일하게 동작하도록 서비스에서 직접 삭제한다. 이미 생성된 경험 자료는 유지한다.
+- 대시보드 위젯(`listUpcomingSpecDates`)은 활성 스펙의 `apply_start`·`apply_end`·`event_date` 중 오늘부터 14일 이내 날짜를 오름차순으로 최대 5건 조회하며, D-3 이하(`isUrgent`)는 강조한다.
