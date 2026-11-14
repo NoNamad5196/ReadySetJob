@@ -1,9 +1,14 @@
 <div class="page-header">
-  <div>
+  <div class="page-header__meta">
     <h1 class="page-header__title">자소서 라이브러리</h1>
-    <p class="text-muted">과거 자기소개서 답변, 자주 쓰는 문단, 핵심 경험 스토리를 저장하고 작성 중 바로 불러옵니다.</p>
+    <p class="page-header__summary text-muted">과거 자기소개서 답변, 자주 쓰는 문단, 핵심 경험 스토리를 저장하고 작성 중 바로 불러옵니다.</p>
   </div>
-  <div class="inline-actions">
+  <div class="page-header__actions">
+    <div class="view-toggle" role="group" aria-label="자기소개서 탭">
+      <a href="/essays" class="segmented-tab">자기소개서</a>
+      <span class="view-toggle__sep" aria-hidden="true">|</span>
+      <a href="/library" class="segmented-tab segmented-tab--active" aria-current="page">자소서 라이브러리</a>
+    </div>
     <a href="/library/import" class="btn">파일 가져오기 (.txt, .md, .docx, .pdf)</a>
     <a href="/library/new" class="btn btn-primary">새 항목 등록</a>
   </div>

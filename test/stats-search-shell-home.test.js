@@ -243,4 +243,34 @@ describe('Stats Pass-Rates, Interview Prep, Global Search, Shell Data, and Home 
     assert.equal(home.stats.total, 6);
     assert.equal(home.stats.documentPassRate, 80);
   });
+
+  it('renders decluttered sidebar navigation with 3 groups and active states on merged sub-pages', async () => {
+    const res = await userA.agent.get('/dashboard');
+    assert.equal(res.status, 200);
+    assert.match(res.text, /취업 활동/);
+    assert.match(res.text, /서류·준비/);
+    assert.match(res.text, /관리/);
+    assert.match(res.text, /href="\/dashboard" class="sidebar__link sidebar__link--active"/);
+    assert.match(res.text, /href="\/applications\/board"/);
+    assert.match(res.text, /href="\/jobs"/);
+    assert.match(res.text, /href="\/companies"/);
+    assert.match(res.text, /href="\/essays"/);
+    assert.match(res.text, /href="\/materials"/);
+    assert.match(res.text, /href="\/interview-prep"/);
+    assert.match(res.text, /href="\/events"/);
+    assert.match(res.text, /href="\/specs"/);
+    assert.match(res.text, /href="\/stats"/);
+
+    const libraryRes = await userA.agent.get('/library');
+    assert.match(libraryRes.text, /href="\/essays" class="sidebar__link sidebar__link--active"/);
+    assert.match(libraryRes.text, /class="segmented-tab segmented-tab--active"[^>]*>자소서 라이브러리<\/a>/);
+
+    const discoverRes = await userA.agent.get('/jobs/discover');
+    assert.match(discoverRes.text, /href="\/jobs" class="sidebar__link sidebar__link--active"/);
+    assert.match(discoverRes.text, /class="segmented-tab segmented-tab--active"[^>]*>AI 공고 찾기<\/a>/);
+
+    const todosRes = await userA.agent.get('/todos');
+    assert.match(todosRes.text, /href="\/events" class="sidebar__link sidebar__link--active"/);
+    assert.match(todosRes.text, /class="segmented-tab segmented-tab--active"[^>]*>할 일<\/a>/);
+  });
 });

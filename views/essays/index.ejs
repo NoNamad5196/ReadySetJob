@@ -1,11 +1,18 @@
 <link rel="stylesheet" href="/css/essay.css">
 
 <div class="page-header">
-  <div>
-    <h1 class="page-header__title">자기소개서 관리</h1>
-    <p class="text-muted">기업·공고별 자기소개서 초안 작성 및 불변 버전 스냅샷·비교·복원을 관리합니다.</p>
+  <div class="page-header__meta">
+    <h1 class="page-header__title">자기소개서</h1>
+    <p class="page-header__summary text-muted">기업·공고별 자기소개서 초안 작성 및 불변 버전 스냅샷·비교·복원을 관리합니다.</p>
   </div>
-  <a href="/essays/new" class="btn btn-primary">새 자기소개서 작성</a>
+  <div class="page-header__actions">
+    <div class="view-toggle" role="group" aria-label="자기소개서 탭">
+      <a href="/essays" class="segmented-tab segmented-tab--active" aria-current="page">자기소개서</a>
+      <span class="view-toggle__sep" aria-hidden="true">|</span>
+      <a href="/library" class="segmented-tab">자소서 라이브러리</a>
+    </div>
+    <a href="/essays/new" class="btn btn-primary">새 자기소개서 작성</a>
+  </div>
 </div>
 
 <form action="/essays" method="GET" class="filter-bar">

@@ -6,6 +6,11 @@
     </div>
   </div>
   <div class="page-header__actions">
+    <div class="view-toggle" role="group" aria-label="채용 공고 탭">
+      <a href="/jobs" class="segmented-tab segmented-tab--active" aria-current="page">채용 공고</a>
+      <span class="view-toggle__sep" aria-hidden="true">|</span>
+      <a href="/jobs/discover" class="segmented-tab">AI 공고 찾기</a>
+    </div>
     <div class="segmented-tabs" role="group" aria-label="공고 보기 전환">
       <a
         href="/jobs"
@@ -18,7 +23,6 @@
         <%= filters.bookmarked === '1' ? 'aria-current="page"' : '' %>
       >북마크</a>
     </div>
-    <a href="/jobs/discover" class="btn">AI 공고 찾기</a>
     <a href="/jobs/new" class="btn btn-primary">+ 채용 공고 등록</a>
   </div>
 </div>
