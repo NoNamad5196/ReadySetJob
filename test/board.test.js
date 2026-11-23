@@ -194,4 +194,15 @@ describe('Kanban Board (/applications/board) & Stage Reordering API', () => {
     assert.equal(row.stage, 'interview1');
     assert.equal(row.board_order, 0);
   });
+
+  it('renders 6 mobile stage tabs without inline styles for responsive 390px view', async () => {
+    const res = await userA.agent.get('/applications/board');
+    assert.equal(res.status, 200);
+    assert.match(res.text, /id="kanban-stage-tabs"[^>]*role="tablist"/);
+    const tabs = [...res.text.matchAll(/data-stage-tab="([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual(tabs, ['document', 'coding_test', 'assignment', 'interview1', 'interview2', 'final']);
+    const selectedTabs = [...res.text.matchAll(/aria-selected="true"/g)];
+    assert.equal(selectedTabs.length, 1);
+    assert.doesNotMatch(res.text, /\sstyle="/i);
+  });
 });

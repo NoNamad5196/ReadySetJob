@@ -30,6 +30,10 @@
   padding: 0 4px;
 }
 
+.board-stage-tabs {
+  display: none;
+}
+
 /* 6-Column Grid at >= 1280px / 1440px, Horizontal Scroll Fallback < 1280px */
 .kanban-board {
   display: grid;
@@ -62,6 +66,100 @@
   .kanban-column {
     flex: 0 0 250px;
     min-width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .board-stage-tabs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding: var(--space-1) 0 var(--space-3);
+    margin-bottom: var(--space-2);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .board-stage-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .board-stage-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+    min-height: var(--control-height);
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .board-stage-tab:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .board-stage-tab--active {
+    background-color: var(--color-primary-soft);
+    border-color: var(--color-primary);
+    color: var(--color-primary-text);
+  }
+
+  .board-stage-tab__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-surface-subtle);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-caption);
+    font-weight: 700;
+  }
+
+  .board-stage-tab--active .board-stage-tab__count {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+  }
+
+  .kanban-board--mobile-tabs {
+    display: block;
+    overflow-x: visible;
+    min-height: auto;
+    padding-bottom: var(--space-4);
+  }
+
+  .kanban-board--mobile-tabs .kanban-column {
+    display: none;
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    max-height: none;
+  }
+
+  .kanban-board--mobile-tabs .kanban-column--mobile-active {
+    display: flex;
+  }
+
+  .kanban-board--mobile-tabs .kanban-column__body:empty::after {
+    content: '이 단계에 등록된 지원 내역이 없습니다.';
+    display: block;
+    padding: var(--space-8) var(--space-3);
+    text-align: center;
+    font-size: var(--font-size-small);
+    color: var(--color-text-subtle);
   }
 }
 

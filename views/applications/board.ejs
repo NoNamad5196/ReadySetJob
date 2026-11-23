@@ -37,11 +37,36 @@
 
 <div id="kanban-toast" class="kanban-toast" role="alert" aria-live="polite" hidden></div>
 
+<%
+  const defaultMobileStage = APPLICATION_STAGES.find((st) => columns && columns[st] && columns[st].length > 0) || APPLICATION_STAGES[0];
+%>
+<div class="board-stage-tabs" id="kanban-stage-tabs" role="tablist" aria-label="전형 단계 선택">
+  <% for (const stageKey of APPLICATION_STAGES) { %>
+    <% const tabCount = (columns && columns[stageKey]) ? columns[stageKey].length : 0; %>
+    <% const isDefaultTab = stageKey === defaultMobileStage; %>
+    <button
+      type="button"
+      class="board-stage-tab <%= isDefaultTab ? 'board-stage-tab--active' : '' %>"
+      role="tab"
+      id="kanban-tab-<%= stageKey %>"
+      data-stage-tab="<%= stageKey %>"
+      aria-controls="kanban-panel-<%= stageKey %>"
+      aria-selected="<%= isDefaultTab ? 'true' : 'false' %>"
+    >
+      <span class="stage-dot stage-dot--<%= stageKey %>" aria-hidden="true"></span>
+      <span class="board-stage-tab__label"><%= BOARD_STAGE_LABELS[stageKey] %></span>
+      <span class="board-stage-tab__count num" data-tab-count="<%= stageKey %>"><%= tabCount %></span>
+    </button>
+  <% } %>
+</div>
+
 <div class="kanban-board" id="kanban-board" data-stages="<%= APPLICATION_STAGES.join(',') %>">
   <% for (const stageKey of APPLICATION_STAGES) { %>
     <% const stageCards = (columns && columns[stageKey]) ? columns[stageKey] : []; %>
+    <% const isDefaultPanel = stageKey === defaultMobileStage; %>
     <section
-      class="kanban-column"
+      class="kanban-column <%= isDefaultPanel ? 'kanban-column--mobile-active' : '' %>"
+      id="kanban-panel-<%= stageKey %>"
       data-stage="<%= stageKey %>"
       aria-label="<%= BOARD_STAGE_LABELS[stageKey] %> 컬럼"
     >

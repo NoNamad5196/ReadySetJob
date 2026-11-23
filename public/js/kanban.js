@@ -40,14 +40,60 @@
     for (const stage of stages) {
       const bodyEl = getColumnBody(stage);
       const countEl = board.querySelector(`[data-column-count="${stage}"]`);
-      if (bodyEl && countEl) {
+      const tabCountEl = document.querySelector(`[data-tab-count="${stage}"]`);
+      if (bodyEl) {
         const cards = getCardsInBody(bodyEl);
-        countEl.textContent = String(cards.length);
+        if (countEl) countEl.textContent = String(cards.length);
+        if (tabCountEl) tabCountEl.textContent = String(cards.length);
         cards.forEach((c, idx) => {
           c.setAttribute('data-board-order', String(idx));
         });
       }
     }
+  }
+
+  const stageTabsEl = document.getElementById('kanban-stage-tabs');
+  if (stageTabsEl) {
+    const TAB_STORAGE_KEY = 'rsj.kanban.activeStage';
+    const tabButtons = Array.from(stageTabsEl.querySelectorAll('[data-stage-tab]'));
+    const columns = Array.from(board.querySelectorAll('.kanban-column'));
+
+    function activateMobileStage(stageKey, shouldScroll) {
+      if (!stageKey) return;
+      for (const btn of tabButtons) {
+        const isActive = btn.getAttribute('data-stage-tab') === stageKey;
+        btn.classList.toggle('board-stage-tab--active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        if (isActive && shouldScroll && typeof btn.scrollIntoView === 'function') {
+          btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+      for (const col of columns) {
+        col.classList.toggle('kanban-column--mobile-active', col.getAttribute('data-stage') === stageKey);
+      }
+      try {
+        window.sessionStorage.setItem(TAB_STORAGE_KEY, stageKey);
+      } catch (_err) {
+        return;
+      }
+    }
+
+    board.classList.add('kanban-board--mobile-tabs');
+    let savedStage = null;
+    try {
+      savedStage = window.sessionStorage.getItem(TAB_STORAGE_KEY);
+    } catch (_err) {
+      savedStage = null;
+    }
+    if (savedStage && stages.includes(savedStage)) {
+      activateMobileStage(savedStage, false);
+    }
+
+    stageTabsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-stage-tab]');
+      if (!btn) return;
+      activateMobileStage(btn.getAttribute('data-stage-tab'), true);
+    });
   }
 
   function syncCardStageAttrs(card, stage) {
