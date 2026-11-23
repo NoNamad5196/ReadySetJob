@@ -634,6 +634,10 @@
   color: var(--color-text-muted);
 }
 
+.spec-stage-tabs {
+  display: none;
+}
+
 @media (max-width: 1279px) {
   .spec-board {
     display: flex;
@@ -643,6 +647,90 @@
   .spec-column {
     flex: 0 0 248px;
     scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 768px) {
+  .spec-stage-tabs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding: var(--space-1) 0 var(--space-3);
+    margin-bottom: var(--space-2);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .spec-stage-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .spec-stage-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+    min-height: var(--control-height);
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .spec-stage-tab:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .spec-stage-tab--active {
+    background-color: var(--color-primary-soft);
+    border-color: var(--color-primary);
+    color: var(--color-primary-text);
+  }
+
+  .spec-stage-tab__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-pill);
+    background-color: var(--color-surface-subtle);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-caption);
+    font-weight: 700;
+  }
+
+  .spec-stage-tab--active .spec-stage-tab__count {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+  }
+
+  .spec-board--mobile-tabs {
+    display: block;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+
+  .spec-board--mobile-tabs .spec-column {
+    display: none;
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    max-height: none;
+  }
+
+  .spec-board--mobile-tabs .spec-column--mobile-active {
+    display: flex;
   }
 }
 

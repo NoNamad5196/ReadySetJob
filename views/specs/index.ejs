@@ -103,9 +103,31 @@
     </div>
   <% } %>
 <% } else { %>
+  <%
+    const defaultMobileSpecCol = (columns.find((col) => col.items.length > 0) || columns[0] || {}).key || '';
+  %>
+  <div class="spec-stage-tabs" id="spec-stage-tabs" role="tablist" aria-label="스펙 진행 상태 선택">
+    <% for (const column of columns) { %>
+      <% const isDefaultSpecTab = column.key === defaultMobileSpecCol; %>
+      <button
+        type="button"
+        class="spec-stage-tab <%= isDefaultSpecTab ? 'spec-stage-tab--active' : '' %>"
+        role="tab"
+        id="spec-tab-<%= column.key %>"
+        data-column-tab="<%= column.key %>"
+        aria-controls="spec-panel-<%= column.key %>"
+        aria-selected="<%= isDefaultSpecTab ? 'true' : 'false' %>"
+      >
+        <span class="spec-column__dot spec-column__dot--<%= column.key %>" aria-hidden="true"></span>
+        <span class="spec-stage-tab__label"><%= column.label %></span>
+        <span class="spec-stage-tab__count num"><%= column.items.length %></span>
+      </button>
+    <% } %>
+  </div>
   <div class="spec-board" id="spec-board">
     <% for (const column of columns) { %>
-      <section class="spec-column" data-column="<%= column.key %>" data-statuses="<%= column.statuses.join(',') %>" aria-label="<%= column.label %> 컬럼">
+      <% const isDefaultSpecPanel = column.key === defaultMobileSpecCol; %>
+      <section class="spec-column <%= isDefaultSpecPanel ? 'spec-column--mobile-active' : '' %>" id="spec-panel-<%= column.key %>" data-column="<%= column.key %>" data-statuses="<%= column.statuses.join(',') %>" aria-label="<%= column.label %> 컬럼">
         <header class="spec-column__header">
           <div class="spec-column__title-wrap">
             <span class="spec-column__dot spec-column__dot--<%= column.key %>" aria-hidden="true"></span>

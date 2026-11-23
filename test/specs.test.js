@@ -200,4 +200,15 @@ describe('Specs routes (/specs) CRUD, validation, ownership, CSRF', () => {
     assert.doesNotMatch(res.text, /class="spec-card__title">기간 밖 활동</);
     assert.match(res.text, /href="\/specs\?view=list&amp;from=2031-04-01&amp;to=2031-04-30"/);
   });
+
+  it('renders 5 mobile status tabs on the spec board without inline styles', async () => {
+    const res = await userA.agent.get('/specs');
+    assert.equal(res.status, 200);
+    assert.match(res.text, /id="spec-stage-tabs"[^>]*role="tablist"/);
+    const tabs = [...res.text.matchAll(/data-column-tab="([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual(tabs, ['interested', 'applied', 'in_progress', 'done', 'closed']);
+    const selectedTabs = [...res.text.matchAll(/aria-selected="true"/g)];
+    assert.equal(selectedTabs.length, 1);
+    assert.doesNotMatch(res.text, /\sstyle="/i);
+  });
 });
