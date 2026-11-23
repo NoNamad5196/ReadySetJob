@@ -1,7 +1,7 @@
 const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const Database = require('better-sqlite3');
 const request = require('supertest');
+const { openDatabase } = require('../src/db/connection');
 const { createTestContext, fetchCsrfToken, signupAndLogin } = require('./helpers');
 const { migrate, hasColumn } = require('../src/db/migrate');
 
@@ -149,7 +149,7 @@ describe('Account Features (Track B): Remember-Me Login, ReturnTo & Profile Avat
 
   it('migrates users.avatar_data idempotently when run twice on an existing DB', () => {
     // Given an existing legacy DB without avatar_data column
-    const legacyDb = new Database(':memory:');
+    const legacyDb = openDatabase(':memory:', { setActive: false });
     legacyDb.exec(
       "CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, name TEXT NOT NULL, created_at DATETIME NOT NULL DEFAULT (datetime('now')));"
     );

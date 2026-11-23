@@ -1,6 +1,6 @@
 const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const Database = require('better-sqlite3');
+const { openDatabase } = require('../src/db/connection');
 const { createTestContext, signupAndLogin } = require('./helpers');
 const { migrate, hasColumn } = require('../src/db/migrate');
 
@@ -59,7 +59,7 @@ describe('Migration Idempotency, Todos, Settings, and Favorites', () => {
   });
 
   it('migrates an existing legacy DB idempotently when run twice', () => {
-    const legacyDb = new Database(':memory:');
+    const legacyDb = openDatabase(':memory:', { setActive: false });
     legacyDb.exec(`
       CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, name TEXT NOT NULL, created_at DATETIME NOT NULL DEFAULT (datetime('now')));
       CREATE TABLE companies (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, name TEXT NOT NULL);

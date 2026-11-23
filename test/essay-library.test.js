@@ -1,7 +1,7 @@
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
-const Database = require('better-sqlite3');
 const request = require('supertest');
+const { openDatabase } = require('../src/db/connection');
 const { createTestContext, signupAndLogin } = require('./helpers');
 const { migrate, hasTable, hasColumn } = require('../src/db/migrate');
 const { buildMinimalDocxBuffer, MAX_IMPORT_FILE_BYTES } = require('../src/services/libraryImportService');
@@ -50,7 +50,7 @@ describe('Track C: Essay Library (/library), File Import, Editor Reuse, and AI Q
 
   it('migrates essay_library table and columns idempotently when run twice on a legacy DB', () => {
     // Given a legacy database with partial essay_library table missing optional columns
-    const legacyDb = new Database(':memory:');
+    const legacyDb = openDatabase(':memory:', { setActive: false });
     legacyDb.exec(`
       CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, name TEXT NOT NULL, created_at DATETIME NOT NULL DEFAULT (datetime('now')));
       CREATE TABLE essay_library (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, created_at DATETIME NOT NULL DEFAULT (datetime('now')), updated_at DATETIME NOT NULL DEFAULT (datetime('now')));
