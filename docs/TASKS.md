@@ -19,8 +19,8 @@
 
 | 마감일 | 산출물 | 상태 |
 |---|---|---|
-| **2026-11-16** | 프로젝트 계획서 제출 (`docs/PROJECT_PROPOSAL.md`) | `구현 완료` (제출용 최종안 작성 및 P4 AI·P2-SPEC 전 모듈 동기화 완료) |
-| **2026-12-16** | 기말 최종 발표 및 최종 보고서 제출 (`docs/FINAL_REPORT.md`) | `개발 중` (실측 데이터 기반 Living Report 지속 동기화) |
+| **2026-11-16** | 프로젝트 계획서 제출 (`docs/PROJECT_PROPOSAL.md`) | `검증 완료` (제출용 최종안 작성 및 P4 AI·P2-SPEC 전 모듈 동기화 완료) |
+| **2026-12-16** | 기말 최종 발표 및 최종 보고서 제출 (`docs/FINAL_REPORT.md`) | `구현 완료` (32개 스위트 199개 테스트·최신 스크린샷·시연 시나리오 반영 완료; 원격 Turso 실연동 키 등록 대기) |
 
 ---
 
@@ -171,9 +171,40 @@
 
 ---
 
+### Phase P5. 사용자 피드백 10건 반영, 사이드바 개편, Turso(`libsql`) 전환 및 기말 마감 폴리싱
+
+**P5 완료 기준 (Completion Criteria):**
+1. 대기 중이던 P2-SPEC 모듈을 `main`에 커밋·푸시(`d2b7470`)하고, 사용자 피드백 10건(트랙 A·B 7건 + 트랙 C 자소서 라이브러리·파일 가져오기·AI 문항 추출 3건)을 구현·검증한다.
+2. 사이드바 내비게이션을 3그룹으로 단순화하고 하위 화면을 페이지 탭으로 통합한다(`bc83b77`).
+3. Render 무료 플랜 재시작 시 DB 초기화 문제를 해결하기 위해 `better-sqlite3`를 `libsql@^0.5.29`로 전환하고, 기존 동기 API·중첩 `SAVEPOINT` 트랜잭션·`_metadata` 제거 호환 래퍼 및 로컬/원격(Turso embedded replica) 이중 모드를 구현한다(`d8072bb`~`015f226`).
+4. 모바일(390px) 뷰포트에서 6열 지원 칸반 보드와 5열 스펙 보드를 탭형 단계 전환 UI로 개선하고 strict CSP(`style=""` 0건)와 `tokens.css` 토큰 규칙을 준수한다.
+5. 최신 실측 테스트(32개 스위트 199개 테스트 100% 통과), 최신 스크린샷 6종, 2026-12-16 최종 발표 시연 시나리오를 기말 제출 문서 3종에 동기화한다.
+
+| 구분 | 작업 항목 | 관련 파일 / 경로 | 상태 |
+|---|---|---|---|
+| P5-01 | P2-SPEC 모듈 기능 단위 커밋·푸시 완료 (`d2b7470`) | `src/routes/specs*.js`, `src/services/spec*`, `test/spec*.test.js` | `검증 완료` |
+| P5-02 | 피드백 트랙 A+B 7건: 30일 로그인 유지·안전 `returnTo`, 프로필 사진 업로드/삭제(`<=200KB`), 공고 탐색 고용형태 다중 선택, 빠른 실행 기업 검색, 로고 폴백 강화, 설정 AI 내부정보 숨김 (`7d98f2d`) | `src/routes/auth.js`, `src/routes/settings.js`, `src/services/logoService.js`, `test/account-features.test.js` | `검증 완료` |
+| P5-03 | 피드백 트랙 C 3건: 자소서 라이브러리(`/library`, `essay_library`), `.txt`/`.md`/`.docx`(`mammoth`)/`.pdf`(`pdf-parse`) 파일 가져오기·자동 문항 분할, AI 문항 추출 (`2b276e6`) | `src/routes/library.js`, `src/services/libraryService.js`, `src/services/libraryImportService.js`, `test/essay-library.test.js` | `검증 완료` |
+| P5-04 | 사이드바 3그룹 정리 및 하위 페이지 탭 통합 (`bc83b77`) | `views/layouts/main.ejs`, `src/middleware/shell.js`, `test/stats-search-shell-home.test.js` | `검증 완료` |
+| P5-05 | `better-sqlite3` → `libsql@^0.5.29` 전환, 호환 래퍼(중첩 `SAVEPOINT`, `_metadata` 제거, `pragma` 보정), 로컬/원격 이중 모드, `render.yaml`/`.env.example` 갱신 (`d8072bb`~`015f226`) | `package.json`, `src/db/connection.js`, `src/app.js`, `src/server.js`, `render.yaml`, `.env.example`, `test/db-connection.test.js` | `검증 완료` (로컬·래퍼·mock 레플리카) / `구현 완료` (원격 Turso·Render 실연동 키 등록 대기) |
+| P5-06 | 모바일(390px) 6열 지원 칸반 보드·5열 스펙 보드 탭형 단계 전환 UX 폴리싱 및 Playwright 390×844 검증(가로 넘침 0건, 인라인 `style` 0건) | `views/applications/board.ejs`, `views/specs/index.ejs`, `public/css/{board,specs}.css`, `public/js/{kanban,specs}.js`, `test/{board,specs}.test.js` | `검증 완료` |
+| P5-07 | 기말 제출 문서 3종(`FINAL_REPORT.md`, `TASKS.md`, `IDEA_LOG.md`) 현행화, 최신 스크린샷 캡처 및 12/16 최종 발표 시연 시나리오 정리 | `docs/FINAL_REPORT.md`, `docs/TASKS.md`, `docs/IDEA_LOG.md`, `docs/screenshots/*.png` | `검증 완료` |
+
+---
+
 ## 4. 변경 이력 (Changelog)
 
-### 2026-11-13
+### 2026-11-23
+- **모바일(390px) 칸반 보드 탭 전환 UX 폴리싱 (`검증 완료`)**: 지원 현황 6열 칸반 보드(`/applications/board`)와 스펙 관리 5열 보드(`/specs`)에 `<= 768px` 반응형 단계 탭(`role="tablist"`, 단계 색상 점·라벨·건수 배지, `sessionStorage` 선택 유지, no-JS 폴백 보존)을 구현했다. 인라인 `style=""` 0건과 `tokens.css` 토큰 규칙을 엄수하며, Playwright 390×844 실측 검증(가로 넘침 `0px`, 콘솔 오류 0건, 탭 클릭 전환 확인) 및 회귀 테스트 2건 추가(`test/board.test.js`, `test/specs.test.js`)로 전체 **32개 스위트 199개 테스트 100% 통과(`pass 199`, `fail 0`)**를 달성했다.
+- **최신 스크린샷 캡처 및 기말 제출 문서 3종 현행화 (`검증 완료`)**: Playwright 헤드리스 Chromium으로 최신 화면 6종(`dashboard-1440x900`, `board-1440x900`, `board-390x844`, `specs-1440x900`, `specs-390x844`, `library-1440x900`)을 `docs/screenshots/`에 캡처하고, `docs/FINAL_REPORT.md`, `docs/TASKS.md`, `docs/IDEA_LOG.md`에 P2-SPEC 커밋 완료, 피드백 10건, 사이드바 3그룹 개편, Turso(`libsql`) 전환, 22개 테이블·21개 인덱스·199개 테스트 실측치, 2026-12-16 최종 발표 시연 시나리오를 반영했다.
+
+### 2026-11-19
+- **Turso(`libsql`) 전환 및 로컬/원격 이중 모드 적용 (`d8072bb`, `fe2128b`, `dcd0e9e`, `015f226`)**: `better-sqlite3` 의존성을 제거하고 `libsql@^0.5.29`로 전환했다(`better-sqlite3-session-store` 유지·호환). `src/db/connection.js`에 중첩 `SAVEPOINT` 트랜잭션, `get`/`all`/`iterate`/`pragma`의 `_metadata` 제거, `pluck`/`raw`/`safeIntegers` 체이닝 및 단일 `null` 바인딩 보정, idempotent `close()`(종료 시 best-effort `sync()`) 래퍼를 구현했다. `TURSO_DATABASE_URL`·`TURSO_AUTH_TOKEN` 미설정 시 로컬 SQLite 단독 모드(WAL), 설정 시 Turso embedded replica 모드로 동작하며 `:memory:` 및 `NODE_ENV=test`에서 환경변수 원격 오염을 차단했다. `render.yaml`과 `.env.example`을 갱신하고 `test/db-connection.test.js` 6건을 추가해 197/197 통과를 검증했다(원격 Turso 실연동 및 Render 배포 확인은 DB URL·토큰 등록 대기).
+
+### 2026-11-13 ~ 2026-11-16
+- **P2-SPEC 커밋·푸시(`d2b7470`) 및 피드백 10건 완료(`7d98f2d`, `2b276e6`)·사이드바 3그룹 정리(`bc83b77`) (`검증 완료`)**: 스펙 관리 모듈을 `main`에 반영한 뒤 사용자 피드백 10건을 3개 트랙으로 나눠 전량 완료했다. 트랙 A+B(`7d98f2d`)에서 30일 로그인 유지·안전 `returnTo`, 200KB 이하 프로필 아바타(PNG/JPEG/WebP, SVG 차단), 공고 탐색 고용형태 다중 선택, 빠른 실행 기업 검색, 기업 로고 후보 도메인 폴백, AI 내부 모델명 숨김을 적용했고, 트랙 C(`2b276e6`)에서 자소서 라이브러리(`/library`, `essay_library`), `.txt`/`.md`/`.docx`(`mammoth`)/`.pdf`(`pdf-parse`) 파일 가져오기·문항 자동 분할 미리보기, AI 문항 추출(`POST /api/essays/:id/extract-questions`)을 구현했다. 이어 `bc83b77`로 사이드바를 3그룹으로 단순화하고 하위 화면을 페이지 탭으로 정리했다.
+
+### 2026-11-13 (계획서 동기화)
 - **계획서 및 최종 보고서 동기화 (`검증 완료`)**: 11/16 제출 예정인 `docs/PROJECT_PROPOSAL.md` 내 구버전 Gemini 참조를 OpenAI Responses API(Structured Outputs: `gpt-6.1-terra` / `gpt-6-luna`), 4대 AI 기능, AI 공고 탐색(`web_search`), 주간 브리핑, P2-SPEC 모듈 전체 명세로 전면 개정하여 제출용 최종안 완성. `docs/FINAL_REPORT.md` 리빙 리포트에 최근 16개 커밋 이력, 15개 도메인 테이블 ERD 스키마, P2-SPEC 모듈, 실측 29개 스위트 172개 테스트 통과 수치 동기화. DSN-04/DSN-05 및 P0-03/04/08 항목 상태를 `검증 완료`로 정합성 일치.
 
 ### 2026-11-12
