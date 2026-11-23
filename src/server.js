@@ -14,7 +14,8 @@ if (process.env.AUTO_SEED === '1') {
 }
 
 const server = app.listen(port, () => {
-  console.log(`ReadySetJob server listening on http://localhost:${port}`);
+  const dbMode = app.db && app.db.mode ? app.db.mode : 'local';
+  console.log(`ReadySetJob server listening on http://localhost:${port} (db: ${dbMode})`);
 });
 
 function shutdown() {

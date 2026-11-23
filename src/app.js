@@ -62,6 +62,13 @@ class SqliteSessionStore extends BaseSqliteStore {
       timer.unref();
     }
   }
+
+  clearExpiredSessions() {
+    if (this.client && this.client.open === false) {
+      return;
+    }
+    super.clearExpiredSessions();
+  }
 }
 
 function createApp({ dbPath } = {}) {
