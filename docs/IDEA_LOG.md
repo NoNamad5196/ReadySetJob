@@ -114,17 +114,29 @@ ReadySetJob의 모든 기술 문서는 실무급 엔지니어링 포트폴리오
   * 11-16 제출 예정인 `docs/PROJECT_PROPOSAL.md`의 구버전 Gemini 참조를 OpenAI Responses API(Structured Outputs: `gpt-6.1-terra` / `gpt-6-luna`) 기반 AI 4종 기능, AI 공고 탐색(`web_search`), 주간 브리핑, P2-SPEC 모듈 전체 명세로 전면 개정해 제출용 최종안을 완성했다.
   * `docs/FINAL_REPORT.md` 리빙 리포트에 최근 16개 커밋 이력, 15개 도메인 테이블 ERD 스키마, P2-SPEC 모듈, 실측 29개 스위트 172개 테스트 통과 수치를 동기화했다.
   * DSN-04/DSN-05 및 P0-03/04/08 항목 상태를 `검증 완료`로 맞춰 문서 간 정합성을 일치시켰다.
+* **2026-11-13 ~ 2026-11-16 | P2-SPEC 커밋(`d2b7470`), 사용자 피드백 10건 완료(`7d98f2d`, `2b276e6`) 및 사이드바 3그룹 개편(`bc83b77`)**:
+  * 대기 중이던 스펙 관리 모듈(P2-SPEC)을 `d2b7470`으로 커밋·푸시했다.
+  * 사용자 피드백 10건을 3개 트랙으로 완수했다. 트랙 A+B(`7d98f2d`)에서는 30일 로그인 유지(rolling 쿠키) 및 오픈 리다이렉트 차단 `returnTo`, 프로필 사진 업로드/삭제(`users.avatar_data`, 200KB 이하 PNG/JPEG/WebP, SVG 차단), AI 공고 탐색 고용형태 다중 선택, 빠른 실행 기업 검색, 기업 로고 대체 도메인 폴백, 설정 화면 내 내부 AI 모델/환경변수 정보 숨김을 반영해 `test/account-features.test.js` 8건을 포함 183개 테스트를 통과했다.
+  * 트랙 C(`2b276e6`)에서는 `essay_library` 테이블을 추가(스키마 총 22개 테이블·21개 인덱스)하고 자소서 라이브러리(`/library`), `.txt`/`.md`/`.docx`(`mammoth@^1.13.0`)/`.pdf`(`pdf-parse@^2.4.5`, 5MB 제한, 매직바이트 검증) 파일 가져오기 및 문항 자동 분할 미리보기, 자소서 에디터 재사용 연동, AI 문항 추출(`POST /api/essays/:id/extract-questions`)을 구현해 `test/essay-library.test.js` 7건을 포함 190~191개 테스트를 통과했다.
+  * 이어 `bc83b77`로 사이드바 메뉴를 3개 그룹으로 재구성하고 병합 가능한 하위 화면을 페이지 내부 탭으로 정리해 탐색 밀도를 개선했다.
+* **2026-11-19 | Render DB 초기화 방지용 Turso(`libsql`) 본 저장소 전환 (`d8072bb`~`015f226`)**:
+  * Render 무료 플랜 재시작 시 로컬 SQLite 파일이 초기화되는 한계를 근본적으로 해결하기 위해 `better-sqlite3`를 `libsql@^0.5.29`로 전면 전환했다(`better-sqlite3-session-store` 유지·호환).
+  * `src/db/connection.js`에 기존 동기 API 100% 호환 래퍼를 구현했다: `libsql`이 미지원하는 중첩 트랜잭션을 `SAVEPOINT`/`RELEASE SAVEPOINT`/`ROLLBACK TO SAVEPOINT`로 구현하고, `stmt.get()`에 섞여 들어오는 `_metadata` 제거, `pluck()`/`raw()`/`safeIntegers()` 체이닝 및 단일 `null` 바인딩 보정, `pragma(..., { simple: true })` 스칼라 반환 보정, 멱등 `close()`(원격 레플리카 종료 시 best-effort `sync()`)를 적용했다.
+  * `TURSO_DATABASE_URL`·`TURSO_AUTH_TOKEN` 미설정 시 로컬 SQLite 단독 실행, 모두 설정 시 Turso embedded replica(`readYourWrites: true`, 시작/종료 `sync()`, 선택 `TURSO_SYNC_PERIOD`)로 동작하는 이중 모드를 구현하고, `:memory:` 및 `NODE_ENV=test`에서 환경변수 원격 연결을 차단하는 안전 가드를 추가했다.
+  * `render.yaml`과 `.env.example`에 Turso 환경변수를 추가하고 `test/db-connection.test.js` 6건을 신설해 전체 197/197 통과 및 임시 DB `migrate`/`seed` 검증을 마쳤다(원격 Turso 실연동·Render 배포는 키 등록 후 검증 예정).
+* **2026-11-23 | 모바일(390px) 칸반 탭 전환 UX 폴리싱, 최신 스크린샷 캡처 및 기말 문서 현행화**:
+  * 모바일(390px) 환경에서 6열 지원 칸반 보드(`/applications/board`)와 5열 스펙 보드(`/specs`)의 가로 스크롤 불편을 해소하기 위해 `<= 768px` 반응형 탭형 단계 전환 UI(`role="tablist"`, `sessionStorage` 선택 유지, 데스크톱 6열/5열 무변경, strict CSP `style=""` 0건, `tokens.css` 준수)를 구현했다.
+  * 회귀 테스트 2건(`test/board.test.js`, `test/specs.test.js`)을 추가해 전체 **32개 스위트 199개 테스트 100% 통과(`pass 199`, `fail 0`)**를 확인했고, Playwright 헤드리스 Chromium으로 390×844 가로 넘침 0건·탭 전환 정상 동작을 실측 검증했다.
+  * 최신 데스크톱·모바일 스크린샷 6종을 `docs/screenshots/`에 캡처하고 `docs/FINAL_REPORT.md`, `docs/TASKS.md`, `docs/IDEA_LOG.md`에 최신 현황 및 2026-12-16 최종 발표 시연 시나리오를 반영했다.
 
 ---
 
 ## 4. 향후 작업 마일스톤 및 실행 계획
 
-> **2026-11-13 기준 진행 현황**: P0(기반 구축·인증·핵심 CRUD), P1(칸반·자소서 버전 관리), P2(대시보드·경험 자료함), P2-SPEC(스펙 관리·공공 데이터 연동), P3(디자인 시스템), P4(OpenAI AI 기능·자동화) 전 단계가 `검증 완료`에 도달했고 자동화 테스트는 29개 스위트 172개 테스트가 100% 통과(`npm test`)를 유지한다. 당초 2026-11-22(P1), 2026-11-30(P2), 2026-12-08(P3)로 계획했던 마일스톤은 모두 조기 완료되었고, 남은 실행 계획은 아래 두 가지뿐이다.
+> **2026-11-23 기준 진행 현황**: P0~P5(기반·CRUD, 칸반·불변 자소서 버전, 대시보드·자료함, P2-SPEC 스펙 관리·공공/검증 탐색, 디자인 시스템, OpenAI AI 스위트, 피드백 10건·자소서 라이브러리, 사이드바 3그룹 개편, Turso `libsql` 전환, 모바일 390px 칸반 탭 UX, 최신 문서·스크린샷) 전 단계 구현 및 로컬 검증을 완료했으며 자동화 테스트는 **32개 스위트 199개 테스트 100% 통과(`npm test`)** 상태를 유지한다.
 
-1. **프로젝트 계획서 제출 (2026-11-16 마감) | `구현 완료` (제출 대기)**:
-   * `docs/PROJECT_PROPOSAL.md`를 OpenAI Responses API(Structured Outputs) 기반 AI 4종 기능, `web_search` 공고 탐색, 주간 브리핑, P2-SPEC 모듈 전체 명세로 전면 개정한 제출용 최종안을 2026-11-13에 완성했다(`검증 완료`).
-   * 과목 평가 기준(기획 20%, 구현 50%, 보고서 20%, 창의성 5%, AI 활용 5%)에 부합하도록 최종 점검을 마쳤으며, 남은 작업은 마감일 제출 절차뿐이다.
-2. **기말 최종 발표 및 최종 보고서 제출 (2026-12-16 마감) | `개발 중` (유일한 잔여 마일스톤)**:
-   * `docs/FINAL_REPORT.md` 리빙 리포트를 최신 커밋 이력, 15개 도메인 테이블 ERD, 실측 테스트 수치(29개 스위트 172개 테스트)에 맞춰 지속 동기화한다.
-   * 전체 172개 테스트 전원 통과 상태로 대기 중인 P2-SPEC 모듈의 기능 단위 커밋을 완료해 코드·테스트·문서의 정합성을 유지한다.
-   * Render 배포 환경(`https://readysetjob.onrender.com`, `AUTO_SEED=1` 데모 데이터 자동 시드)을 활용한 발표 시연 시나리오를 준비하고, 발표 전 전체 회귀 테스트로 `검증 완료` 상태를 유지한다.
+1. **프로젝트 계획서 제출 (2026-11-16 마감) | `검증 완료`**:
+   * `docs/PROJECT_PROPOSAL.md` 최종본을 마감 일정에 맞춰 완료했다.
+2. **기말 최종 발표 및 최종 보고서 제출 (2026-12-16 마감) | `구현 완료` (원격 Turso 키 등록 및 최종 발표 대기)**:
+   * `docs/FINAL_REPORT.md`, `docs/TASKS.md`, `docs/IDEA_LOG.md`에 최신 커밋 이력, 22개 테이블·21개 인덱스 스키마, 199/199 테스트 실측치, 최신 스크린샷 6종, 12/16 최종 발표 시연 시나리오를 모두 반영 완료했다.
+   * 남은 마지막 운영 절차는 Turso 무료 DB 생성 후 `TURSO_DATABASE_URL`과 `TURSO_AUTH_TOKEN`을 Render 환경변수에 등록해 원격 영속화를 실연동 검증하는 것과 12/16 발표 시연이다.
