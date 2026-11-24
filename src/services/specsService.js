@@ -45,9 +45,23 @@ function createSpecItem(db, userId, payload) {
     const info = db.prepare(`
       INSERT INTO spec_items (user_id, kind, title, organizer, source, source_ref, source_url, status,
         apply_start, apply_end, event_date, end_date, result_date, memo)
-      VALUES (@uid, @kind, @title, @organizer, @source, @source_ref, @source_url, @status,
-        @apply_start, @apply_end, @event_date, @end_date, @result_date, @memo)
-    `).run({ uid, ...values });
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      uid,
+      values.kind,
+      values.title,
+      values.organizer,
+      values.source,
+      values.source_ref,
+      values.source_url,
+      values.status,
+      values.apply_start,
+      values.apply_end,
+      values.event_date,
+      values.end_date,
+      values.result_date,
+      values.memo
+    );
     const item = getRawSpecItem(db, uid, info.lastInsertRowid);
     const schedule = syncSpecSchedule(db, uid, { ...item, status: 'interested' });
     const status = applySpecStatusAutomation(db, uid, item, 'interested');
@@ -123,12 +137,28 @@ function updateSpecItem(db, userId, id, payload = {}) {
   try {
     return db.transaction(() => {
       db.prepare(`
-        UPDATE spec_items SET kind = @kind, title = @title, organizer = @organizer, source = @source,
-          source_ref = @source_ref, source_url = @source_url, status = @status, apply_start = @apply_start,
-          apply_end = @apply_end, event_date = @event_date, end_date = @end_date, result_date = @result_date,
-          memo = @memo, updated_at = datetime('now')
-        WHERE id = @id AND user_id = @uid
-      `).run({ ...values, id: existing.id, uid });
+        UPDATE spec_items SET kind = ?, title = ?, organizer = ?, source = ?,
+          source_ref = ?, source_url = ?, status = ?, apply_start = ?,
+          apply_end = ?, event_date = ?, end_date = ?, result_date = ?,
+          memo = ?, updated_at = datetime('now')
+        WHERE id = ? AND user_id = ?
+      `).run(
+        values.kind,
+        values.title,
+        values.organizer,
+        values.source,
+        values.source_ref,
+        values.source_url,
+        values.status,
+        values.apply_start,
+        values.apply_end,
+        values.event_date,
+        values.end_date,
+        values.result_date,
+        values.memo,
+        existing.id,
+        uid
+      );
       const item = getRawSpecItem(db, uid, existing.id);
       const schedule = syncSpecSchedule(db, uid, item);
       const status = applySpecStatusAutomation(db, uid, item, existing.status);

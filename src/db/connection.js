@@ -25,7 +25,28 @@ function formatRow(row, pluckEnabled) {
   return keys.length > 0 ? clean[keys[0]] : undefined;
 }
 
-const normalizeBind = (args) => (args.length === 1 && args[0] === null ? [[null]] : args);
+function normalizeBind(args) {
+  if (args.length === 1) {
+    const val = args[0];
+    if (val === null) return [[null]];
+    if (val && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Buffer)) {
+      const normalized = {};
+      for (const [k, v] of Object.entries(val)) {
+        const safeVal = v === undefined ? null : v;
+        normalized[k] = safeVal;
+        if (/^[@:$]/.test(k)) {
+          normalized[k.slice(1)] = safeVal;
+        } else {
+          normalized[`@${k}`] = safeVal;
+          normalized[`:${k}`] = safeVal;
+          normalized[`$${k}`] = safeVal;
+        }
+      }
+      return [normalized];
+    }
+  }
+  return args;
+}
 
 function wrapStatement(rawStmt) {
   let pluckEnabled = false;

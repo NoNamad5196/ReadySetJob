@@ -110,6 +110,14 @@ describe('DB Connection Wrapper (libsql compatibility & dual mode)', () => {
     assert.deepEqual(nullRow, { id: 1, title: null });
     assert.equal(Object.prototype.hasOwnProperty.call(nullRow, '_metadata'), false);
 
+    db.prepare('INSERT INTO items (title, score) VALUES (@title, @score)').run({ title: 'NamedObj', score: 99 });
+    const namedRow1 = db.prepare('SELECT title, score FROM items WHERE title = :t').get({ ':t': 'NamedObj' });
+    assert.deepEqual(namedRow1, { title: 'NamedObj', score: 99 });
+
+    db.prepare('INSERT INTO items (title, score) VALUES (@title, @score)').run({ '@title': 'AtPrefix', '@score': undefined });
+    const namedRow2 = db.prepare('SELECT title, score FROM items WHERE title = ?').get('AtPrefix');
+    assert.deepEqual(namedRow2, { title: 'AtPrefix', score: null });
+
     db.close();
   });
 
