@@ -240,6 +240,13 @@ CREATE TABLE IF NOT EXISTS external_cache (
   PRIMARY KEY (source, query_hash)
 );
 
+CREATE TABLE IF NOT EXISTS sessions (
+  sid TEXT NOT NULL PRIMARY KEY,
+  sess TEXT NOT NULL,
+  expire TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expire);
 CREATE INDEX IF NOT EXISTS idx_spec_items_user_id ON spec_items(user_id);
 CREATE INDEX IF NOT EXISTS idx_spec_items_user_status ON spec_items(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);

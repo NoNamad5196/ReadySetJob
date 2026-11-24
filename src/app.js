@@ -163,6 +163,27 @@ function createApp({ dbPath } = {}) {
   );
 
   app.use(attachSessionLocals);
+  app.get('/api/health', (req, res) => {
+    let sessionCount = -1;
+    let tableError = null;
+    try {
+      const row = db.prepare('SELECT COUNT(*) AS count FROM sessions').get();
+      sessionCount = row ? Number(row.count) || 0 : 0;
+    } catch (e) {
+      tableError = e.message;
+    }
+    return res.json({
+      status: 'ok',
+      mode: db.mode || 'local',
+      isReplica: Boolean(db.isReplica),
+      sessionCount,
+      tableError,
+      hasSession: Boolean(req.session),
+      sessionID: req.sessionID || null,
+      csrfToken: req.session ? req.session.csrfToken : null,
+      time: new Date().toISOString(),
+    });
+  });
   app.use(attachUiHelpers);
   app.use(attachShellData(db));
   app.use(csrfProtection);

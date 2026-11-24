@@ -23,13 +23,17 @@ class LibsqlSessionStore extends session.Store {
   }
 
   createTable() {
-    this.client.exec(`
-      CREATE TABLE IF NOT EXISTS ${this.tableName} (
-        sid TEXT NOT NULL PRIMARY KEY,
-        sess TEXT NOT NULL,
-        expire TEXT NOT NULL
-      )
-    `);
+    try {
+      this.client.exec(`
+        CREATE TABLE IF NOT EXISTS ${this.tableName} (
+          sid TEXT NOT NULL PRIMARY KEY,
+          sess TEXT NOT NULL,
+          expire TEXT NOT NULL
+        )
+      `);
+    } catch (err) {
+      console.error('[ReadySetJob] Failed to create sessions table:', err && err.message ? err.message : String(err));
+    }
   }
 
   startInterval() {
@@ -68,6 +72,7 @@ class LibsqlSessionStore extends session.Store {
       }
       return cb(null, JSON.parse(row.sess));
     } catch (err) {
+      console.error('[ReadySetJob] SessionStore.get failed for sid:', sid, err && err.message ? err.message : String(err));
       return cb(err);
     }
   }
@@ -84,6 +89,7 @@ class LibsqlSessionStore extends session.Store {
 
       return cb(null);
     } catch (err) {
+      console.error('[ReadySetJob] SessionStore.set failed for sid:', sid, err && err.message ? err.message : String(err));
       return cb(err);
     }
   }
