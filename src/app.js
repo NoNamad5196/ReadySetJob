@@ -3,13 +3,13 @@ const path = require('node:path');
 const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
 const session = require('express-session');
-const createSqliteStore = require('better-sqlite3-session-store');
 const helmet = require('helmet');
 const methodOverride = require('method-override');
 const morgan = require('morgan');
 
 const { openDatabase } = require('./db/connection');
 const { migrate } = require('./db/migrate');
+const { LibsqlSessionStore } = require('./db/sessionStore');
 const { attachSessionLocals } = require('./middleware/auth');
 const { attachShellData } = require('./middleware/shellData');
 const { csrfProtection } = require('./middleware/csrf');
@@ -49,27 +49,6 @@ function mountSpecDiscover(app, db) {
   }
 }
 const { isAiEnabled } = require('./services/aiService');
-
-const BaseSqliteStore = createSqliteStore(session);
-
-class SqliteSessionStore extends BaseSqliteStore {
-  startInterval() {
-    const timer = setInterval(
-      this.clearExpiredSessions.bind(this),
-      this.expired.intervalMs
-    );
-    if (typeof timer.unref === 'function') {
-      timer.unref();
-    }
-  }
-
-  clearExpiredSessions() {
-    if (this.client && this.client.open === false) {
-      return;
-    }
-    super.clearExpiredSessions();
-  }
-}
 
 function createApp({ dbPath } = {}) {
   const db = openDatabase(dbPath);
@@ -163,7 +142,7 @@ function createApp({ dbPath } = {}) {
   app.use(
     session({
       name: 'readysetjob.sid',
-      store: new SqliteSessionStore({
+      store: new LibsqlSessionStore({
         client: db,
         expired: {
           clear: true,

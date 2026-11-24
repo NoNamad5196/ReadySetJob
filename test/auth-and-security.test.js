@@ -136,4 +136,37 @@ describe('Auth, Session, requireAuth, and CSRF Security', () => {
     assert.equal(dashAfterLogin.status, 200);
     assert.match(dashAfterLogin.text, /이순신/);
   });
+
+  it('persists session in database store on login and authorizes subsequent requests with cookies', async () => {
+    const email = 'sessionpersist@readysetjob.dev';
+    const password = 'Password123!';
+    await signupAndLogin(ctx.app, { email, password, name: '세션영속테스터' });
+
+    const agent = request.agent(ctx.app);
+    const loginCsrf = await fetchCsrfToken(agent, '/login');
+    const loginRes = await agent.post('/login').type('form').send({
+      _csrf: loginCsrf,
+      email,
+      password,
+    });
+    assert.equal(loginRes.status, 302);
+    assert.equal(loginRes.headers.location, '/dashboard');
+
+    const sessionRows = ctx.db.prepare('SELECT sid, sess, expire FROM sessions').all();
+    assert.ok(sessionRows.length > 0, 'sessions table must contain at least one session row');
+
+    const activeSession = sessionRows.find((r) => {
+      try {
+        const parsed = JSON.parse(r.sess);
+        return parsed.user && parsed.user.email === email;
+      } catch {
+        return false;
+      }
+    });
+    assert.ok(activeSession, 'sessions table must store session with authenticated user payload');
+
+    const protectedRes = await agent.get('/dashboard');
+    assert.equal(protectedRes.status, 200);
+    assert.match(protectedRes.text, /세션영속테스터/);
+  });
 });

@@ -16,7 +16,11 @@ function notFoundHandler(req, res) {
   });
 }
 
-function errorHandler(err, req, res, _next) {
+function errorHandler(err, req, res, next) {
+  if (res.headersSent) {
+    return next(err);
+  }
+
   const status = err.status || 500;
   const message =
     err.expose && err.message
@@ -25,7 +29,7 @@ function errorHandler(err, req, res, _next) {
         ? '요청하신 리소스를 찾을 수 없습니다.'
         : '서버 처리 중 오류가 발생했습니다.';
 
-  if (req.originalUrl.startsWith('/api')) {
+  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
     return res.status(status).json({ error: message });
   }
 
@@ -34,7 +38,6 @@ function errorHandler(err, req, res, _next) {
   if (res.locals.flash === undefined) res.locals.flash = null;
 
   return res.status(status).render('error', {
-
     title: status === 404 ? '페이지를 찾을 수 없습니다 (404)' : `오류 (${status})`,
     status,
     message,
