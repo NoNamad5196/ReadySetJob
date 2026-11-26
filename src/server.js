@@ -5,11 +5,19 @@ const port = Number(process.env.PORT) || 3000;
 const app = createApp();
 
 if (process.env.AUTO_SEED === '1') {
-  const { count } = app.db.prepare('SELECT COUNT(*) AS count FROM users').get();
-  if (count === 0) {
-    const { seed } = require('./db/seed');
-    seed(app.db);
-    console.log('[ReadySetJob] AUTO_SEED: demo data inserted.');
+  try {
+    const demoUser = app.db
+      .prepare('SELECT id FROM users WHERE email = ?')
+      .get('demo@readysetjob.dev');
+
+    if (!demoUser) {
+      console.log('[ReadySetJob] Demo account not found. Seeding demo data...');
+      const { seed } = require('./db/seed');
+      seed(app.db);
+      console.log('[ReadySetJob] AUTO_SEED: demo data inserted.');
+    }
+  } catch (err) {
+    console.error('[ReadySetJob] AUTO_SEED failed:', err && err.message ? err.message : String(err));
   }
 }
 
